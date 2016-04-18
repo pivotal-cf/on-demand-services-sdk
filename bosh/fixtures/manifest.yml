@@ -1,0 +1,46 @@
+---
+name: deployment-name
+
+releases:
+  - name: a-release
+    version: latest
+
+stemcells:
+  - alias: greatest
+    os: Windows
+    version: 3.1
+
+instance_groups:
+  - name: jerb
+    instances: 1
+    jobs:
+      - name: broker
+        release: a-release
+        provides:
+          some_link: {as: link-name}
+        consumes:
+          another_link: {from: jerb-link}
+    vm_type: massive
+    persistent_disk_type: big
+    azs: [az1, az2]
+    stemcell: greatest
+    networks:
+      - name: a-network
+        static_ips: [10.0.0.0]
+
+  - name: an-errand
+    lifecycle: errand
+    instances: 1
+    jobs: [{name: a-release, release: a-release}]
+    vm_type: small
+    stemcell: greatest
+    networks: [{name: a-network}]
+
+properties:
+  foo: bar
+
+update:
+  canaries: 1
+  canary_watch_time: 30000-180000
+  update_watch_time: 30000-180000
+  max_in_flight: 4
