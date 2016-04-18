@@ -1,0 +1,10 @@
+---
+platform: linux
+
+image: docker:///cflondonservices/on-demand-service-broker-ci
+
+inputs:
+  - name: on-demand-service-broker-sdk
+
+run:
+  path: on-demand-service-broker-sdk/ci/unit-tests.sh
