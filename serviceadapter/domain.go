@@ -72,4 +72,5 @@ type InstanceGroup struct {
 	Instances      int      `json:"instances" validate:"min=1"`
 	Networks       []string `json:"networks" validate:"required"`
 	AZs            []string `json:"azs,omitempty"`
+	Lifecycle      string   `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
 }

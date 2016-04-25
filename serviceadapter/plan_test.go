@@ -22,7 +22,8 @@ var _ = Describe("Plan", func() {
 			      "azs": [
 			        "example-az"
 			      ],
-			      "instances": 1
+			      "instances": 1,
+			      "lifecycle": "errand"
 			    }
 			  ],
 			  "properties": {
@@ -38,6 +39,7 @@ var _ = Describe("Plan", func() {
 				Networks:       []string{"example-network"},
 				AZs:            []string{"example-az"},
 				Instances:      1,
+				Lifecycle:      "errand",
 			}},
 			Properties: serviceadapter.Properties{"example": "property"},
 		}
