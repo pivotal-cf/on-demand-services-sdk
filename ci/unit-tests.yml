@@ -1,7 +1,7 @@
 ---
 platform: linux
 
-image: docker:///cflondonservices/on-demand-service-broker-ci
+image: docker:///pcfservicesenablement/services-enablement-ci
 
 inputs:
   - name: on-demand-service-broker-sdk
