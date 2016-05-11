@@ -71,13 +71,15 @@ var _ = Describe("ServiceReleasesInfo", func() {
 			Expect(validServiceReleasesInfo.Validate()).To(Succeed())
 		})
 
-		// It("returns an error when a fields is empty", func() {
-		// 	boshInfo := serviceadapter.BoshInfo{
-		// 		Name:       "a-name",
-		// 		StemcellOS: "BeOS",
-		// 		// StemcellVersion: "2",
-		// 	}
-		// 	Expect(boshInfo.Validate()).NotTo(Succeed())
-		// })
+		It("returns an error when a field is empty", func() {
+			invalidServiceReleasesInfo := serviceadapter.ServiceReleasesInfo{
+				DeploymentName: "service-instance-deployment",
+				Stemcell: serviceadapter.StemcellInfo{
+					OS:      "BeOS",
+					Version: "2",
+				},
+			}
+			Expect(invalidServiceReleasesInfo.Validate()).NotTo(Succeed())
+		})
 	})
 })
