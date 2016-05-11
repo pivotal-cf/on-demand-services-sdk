@@ -22,12 +22,13 @@ type FakeServiceAdapter struct {
 		result1 bosh.BoshManifest
 		result2 error
 	}
-	CreateBindingStub        func(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) (map[string]interface{}, error)
+	CreateBindingStub        func(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (map[string]interface{}, error)
 	createBindingMutex       sync.RWMutex
 	createBindingArgsForCall []struct {
 		bindingID          string
 		deploymentTopology bosh.BoshVMs
 		manifest           bosh.BoshManifest
+		arbitraryParams    map[string]interface{}
 	}
 	createBindingReturns struct {
 		result1 map[string]interface{}
@@ -82,16 +83,17 @@ func (fake *FakeServiceAdapter) GenerateManifestReturns(result1 bosh.BoshManifes
 	}{result1, result2}
 }
 
-func (fake *FakeServiceAdapter) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) (map[string]interface{}, error) {
+func (fake *FakeServiceAdapter) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (map[string]interface{}, error) {
 	fake.createBindingMutex.Lock()
 	fake.createBindingArgsForCall = append(fake.createBindingArgsForCall, struct {
 		bindingID          string
 		deploymentTopology bosh.BoshVMs
 		manifest           bosh.BoshManifest
-	}{bindingID, deploymentTopology, manifest})
+		arbitraryParams    map[string]interface{}
+	}{bindingID, deploymentTopology, manifest, arbitraryParams})
 	fake.createBindingMutex.Unlock()
 	if fake.CreateBindingStub != nil {
-		return fake.CreateBindingStub(bindingID, deploymentTopology, manifest)
+		return fake.CreateBindingStub(bindingID, deploymentTopology, manifest, arbitraryParams)
 	} else {
 		return fake.createBindingReturns.result1, fake.createBindingReturns.result2
 	}
@@ -103,10 +105,10 @@ func (fake *FakeServiceAdapter) CreateBindingCallCount() int {
 	return len(fake.createBindingArgsForCall)
 }
 
-func (fake *FakeServiceAdapter) CreateBindingArgsForCall(i int) (string, bosh.BoshVMs, bosh.BoshManifest) {
+func (fake *FakeServiceAdapter) CreateBindingArgsForCall(i int) (string, bosh.BoshVMs, bosh.BoshManifest, map[string]interface{}) {
 	fake.createBindingMutex.RLock()
 	defer fake.createBindingMutex.RUnlock()
-	return fake.createBindingArgsForCall[i].bindingID, fake.createBindingArgsForCall[i].deploymentTopology, fake.createBindingArgsForCall[i].manifest
+	return fake.createBindingArgsForCall[i].bindingID, fake.createBindingArgsForCall[i].deploymentTopology, fake.createBindingArgsForCall[i].manifest, fake.createBindingArgsForCall[i].arbitraryParams
 }
 
 func (fake *FakeServiceAdapter) CreateBindingReturns(result1 map[string]interface{}, result2 error) {

@@ -17,7 +17,7 @@ type commandLineHandler struct {
 
 func HandleCommandLineInvocation(args []string, serviceAdapter ServiceAdapter, logger *log.Logger) {
 	logger.Printf("handling %s", args[1])
-	potato := commandLineHandler{serviceAdapter: serviceAdapter, logger: logger}
+	handler := commandLineHandler{serviceAdapter: serviceAdapter, logger: logger}
 	switch args[1] {
 	case "generate-manifest":
 		boshInfoJSON := args[2]
@@ -25,17 +25,18 @@ func HandleCommandLineInvocation(args []string, serviceAdapter ServiceAdapter, l
 		planJSON := args[4]
 		argsJSON := args[5]
 		previousManifestYAML := args[6]
-		potato.generateManifest(boshInfoJSON, serviceReleasesJSON, planJSON, argsJSON, previousManifestYAML)
+		handler.generateManifest(boshInfoJSON, serviceReleasesJSON, planJSON, argsJSON, previousManifestYAML)
 	case "create-binding":
 		bindingID := args[2]
 		boshVMsJSON := args[3]
 		manifestYAML := args[4]
-		potato.createBinding(bindingID, boshVMsJSON, manifestYAML)
+		bindingArbitraryParams := args[5]
+		handler.createBinding(bindingID, boshVMsJSON, manifestYAML, bindingArbitraryParams)
 	case "delete-binding":
 		bindingID := args[2]
 		boshVMsJSON := args[3]
 		manifestYAML := args[4]
-		potato.deleteBinding(bindingID, boshVMsJSON, manifestYAML)
+		handler.deleteBinding(bindingID, boshVMsJSON, manifestYAML)
 	default:
 		logger.Fatalf("unknown subcommand: %s", args[1])
 	}
@@ -72,14 +73,17 @@ func (p commandLineHandler) generateManifest(boshInfoJSON, serviceReleasesJSON, 
 	fmt.Println(string(manifestBytes))
 }
 
-func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML string) {
+func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, arbitraryParams string) {
 	var boshVMs map[string][]string
 	p.must(json.Unmarshal([]byte(boshVMsJSON), &boshVMs), "unmarshalling BOSH VMs")
 
 	var manifest bosh.BoshManifest
 	p.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
 
-	binding, err := p.serviceAdapter.CreateBinding(bindingID, boshVMs, manifest)
+	var params map[string]interface{}
+	p.must(json.Unmarshal([]byte(arbitraryParams), &params), "unmarshalling arbitrary binding parameters")
+
+	binding, err := p.serviceAdapter.CreateBinding(bindingID, boshVMs, manifest, params)
 	p.mustNot(err, "creating binding")
 
 	p.must(json.NewEncoder(os.Stdout).Encode(binding), "marshalling binding")

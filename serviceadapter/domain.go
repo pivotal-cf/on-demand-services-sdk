@@ -11,7 +11,7 @@ import (
 //go:generate counterfeiter -o fake_service_adapter/fake_service_adapter.go . ServiceAdapter
 type ServiceAdapter interface {
 	GenerateManifest(boshInfo BoshInfo, serviceReleases ServiceReleases, plan Plan, arbitraryParams map[string]interface{}, previousManifest *bosh.BoshManifest) (bosh.BoshManifest, error)
-	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) (map[string]interface{}, error)
+	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (map[string]interface{}, error)
 	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
 }
 
