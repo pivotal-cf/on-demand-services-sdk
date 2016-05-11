@@ -47,7 +47,7 @@ func (p commandLineHandler) generateManifest(boshInfoJSON, serviceReleasesJSON, 
 	p.must(json.Unmarshal([]byte(boshInfoJSON), &boshInfo), "unmarshalling bosh info")
 	p.must(boshInfo.Validate(), "validating bosh info")
 
-	var serviceReleases ServiceReleases
+	var serviceReleases ServiceReleasesInfo
 	p.must(json.Unmarshal([]byte(serviceReleasesJSON), &serviceReleases), "unmarshalling service releases")
 	p.must(serviceReleases.Validate(), "validating service releases")
 

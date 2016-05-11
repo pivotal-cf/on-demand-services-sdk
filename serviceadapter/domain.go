@@ -30,6 +30,12 @@ type ServiceRelease struct {
 
 type ServiceReleases []ServiceRelease
 
+type ServiceReleasesInfo struct {
+	DeploymentName string          `json:"deployment_name" validate:"required"`
+	Releases       ServiceReleases `json:"releases" validate:"required"`
+	Stemcell       StemcellInfo    `json:"stemcell" validate:"required"`
+}
+
 func (r ServiceReleases) Validate() error {
 	if len(r) < 1 {
 		return errors.New("no releases specified")
@@ -44,10 +50,9 @@ func (r ServiceReleases) Validate() error {
 	return nil
 }
 
-type BoshInfo struct {
-	Name            string `json:"name" validate:"required"`
-	StemcellOS      string `json:"stemcell_os" validate:"required"`
-	StemcellVersion string `json:"stemcell_version" validate:"required"`
+type StemcellInfo struct {
+	OS      string `json:"stemcell_os" validate:"required"`
+	Version string `json:"stemcell_version" validate:"required"`
 }
 
 func (b BoshInfo) Validate() error {
