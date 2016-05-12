@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	validServiceReleasesInfo serviceadapter.ServiceReleasesInfo
+	validServiceReleasesInfo serviceadapter.ServiceDeployment
 )
 
-var _ = Describe("ServiceReleasesInfo", func() {
+var _ = Describe("ServiceDeployment", func() {
 	BeforeEach(func() {
-		validServiceReleasesInfo = serviceadapter.ServiceReleasesInfo{
+		validServiceReleasesInfo = serviceadapter.ServiceDeployment{
 			DeploymentName: "service-instance-deployment",
 			Releases: serviceadapter.ServiceReleases{
 				{
@@ -24,7 +24,7 @@ var _ = Describe("ServiceReleasesInfo", func() {
 					Jobs:    []string{"job_one", "job_two"},
 				},
 			},
-			Stemcell: serviceadapter.StemcellInfo{
+			Stemcell: serviceadapter.Stemcell{
 				OS:      "BeOS",
 				Version: "2",
 			},
@@ -33,7 +33,7 @@ var _ = Describe("ServiceReleasesInfo", func() {
 
 	Describe("(De)serialising JSON", func() {
 
-		var expectedServiceReleasesInfo serviceadapter.ServiceReleasesInfo
+		var expectedServiceReleasesInfo serviceadapter.ServiceDeployment
 
 		serviceReleasesInfoJSON := []byte(`{
       "deployment_name": "service-instance-deployment",
@@ -56,7 +56,7 @@ var _ = Describe("ServiceReleasesInfo", func() {
 		})
 
 		It("deserialises a ServiceReleasesInfo object from JSON", func() {
-			var serviceReleasesInfo serviceadapter.ServiceReleasesInfo
+			var serviceReleasesInfo serviceadapter.ServiceDeployment
 			Expect(json.Unmarshal(serviceReleasesInfoJSON, &serviceReleasesInfo)).To(Succeed())
 			Expect(serviceReleasesInfo).To(Equal(validServiceReleasesInfo))
 		})
@@ -72,9 +72,9 @@ var _ = Describe("ServiceReleasesInfo", func() {
 		})
 
 		It("returns an error when a field is empty", func() {
-			invalidServiceReleasesInfo := serviceadapter.ServiceReleasesInfo{
+			invalidServiceReleasesInfo := serviceadapter.ServiceDeployment{
 				DeploymentName: "service-instance-deployment",
-				Stemcell: serviceadapter.StemcellInfo{
+				Stemcell: serviceadapter.Stemcell{
 					OS:      "BeOS",
 					Version: "2",
 				},

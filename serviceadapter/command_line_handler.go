@@ -20,12 +20,11 @@ func HandleCommandLineInvocation(args []string, serviceAdapter ServiceAdapter, l
 	handler := commandLineHandler{serviceAdapter: serviceAdapter, logger: logger}
 	switch args[1] {
 	case "generate-manifest":
-		boshInfoJSON := args[2]
-		serviceReleasesJSON := args[3]
-		planJSON := args[4]
-		argsJSON := args[5]
-		previousManifestYAML := args[6]
-		handler.generateManifest(boshInfoJSON, serviceReleasesJSON, planJSON, argsJSON, previousManifestYAML)
+		serviceDeploymentJSON := args[2]
+		planJSON := args[3]
+		argsJSON := args[4]
+		previousManifestYAML := args[5]
+		handler.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML)
 	case "create-binding":
 		bindingID := args[2]
 		boshVMsJSON := args[3]
@@ -42,14 +41,11 @@ func HandleCommandLineInvocation(args []string, serviceAdapter ServiceAdapter, l
 	}
 }
 
-func (p commandLineHandler) generateManifest(boshInfoJSON, serviceReleasesJSON, planJSON, argsJSON, previousManifestYAML string) {
-	var boshInfo BoshInfo
-	p.must(json.Unmarshal([]byte(boshInfoJSON), &boshInfo), "unmarshalling bosh info")
-	p.must(boshInfo.Validate(), "validating bosh info")
+func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML string) {
 
-	var serviceReleases ServiceReleasesInfo
-	p.must(json.Unmarshal([]byte(serviceReleasesJSON), &serviceReleases), "unmarshalling service releases")
-	p.must(serviceReleases.Validate(), "validating service releases")
+	var serviceDeployment ServiceDeployment
+	p.must(json.Unmarshal([]byte(serviceDeploymentJSON), &serviceDeployment), "unmarshalling service deployment")
+	p.must(serviceDeployment.Validate(), "validating service deployment")
 
 	var plan Plan
 	p.must(json.Unmarshal([]byte(planJSON), &plan), "unmarshalling service plan")
@@ -61,7 +57,7 @@ func (p commandLineHandler) generateManifest(boshInfoJSON, serviceReleasesJSON, 
 	var previousManifest *bosh.BoshManifest
 	p.must(yaml.Unmarshal([]byte(previousManifestYAML), &previousManifest), "unmarshalling previous manifest")
 
-	manifest, err := p.serviceAdapter.GenerateManifest(boshInfo, serviceReleases, plan, arbitraryParams, previousManifest)
+	manifest, err := p.serviceAdapter.GenerateManifest(serviceDeployment, plan, arbitraryParams, previousManifest)
 
 	p.mustNot(err, "generating manifest")
 

@@ -10,7 +10,7 @@ import (
 
 //go:generate counterfeiter -o fake_service_adapter/fake_service_adapter.go . ServiceAdapter
 type ServiceAdapter interface {
-	GenerateManifest(boshInfo BoshInfo, serviceReleases ServiceReleases, plan Plan, arbitraryParams map[string]interface{}, previousManifest *bosh.BoshManifest) (bosh.BoshManifest, error)
+	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, arbitraryParams map[string]interface{}, previousManifest *bosh.BoshManifest) (bosh.BoshManifest, error)
 	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (map[string]interface{}, error)
 	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
 }
@@ -30,10 +30,10 @@ type ServiceRelease struct {
 
 type ServiceReleases []ServiceRelease
 
-type ServiceReleasesInfo struct {
+type ServiceDeployment struct {
 	DeploymentName string          `json:"deployment_name" validate:"required"`
 	Releases       ServiceReleases `json:"releases" validate:"required"`
-	Stemcell       StemcellInfo    `json:"stemcell" validate:"required"`
+	Stemcell       Stemcell        `json:"stemcell" validate:"required"`
 }
 
 func (r ServiceReleases) Validate() error {
@@ -50,13 +50,13 @@ func (r ServiceReleases) Validate() error {
 	return nil
 }
 
-type StemcellInfo struct {
+type Stemcell struct {
 	OS      string `json:"stemcell_os" validate:"required"`
 	Version string `json:"stemcell_version" validate:"required"`
 }
 
-func (b BoshInfo) Validate() error {
-	return validate.Struct(b)
+func (s ServiceDeployment) Validate() error {
+	return validate.Struct(s)
 }
 
 type Properties map[string]interface{}
