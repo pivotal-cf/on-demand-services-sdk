@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	validServiceReleasesInfo serviceadapter.ServiceDeployment
+	validDeployment serviceadapter.ServiceDeployment
 )
 
 var _ = Describe("ServiceDeployment", func() {
 	BeforeEach(func() {
-		validServiceReleasesInfo = serviceadapter.ServiceDeployment{
+		validDeployment = serviceadapter.ServiceDeployment{
 			DeploymentName: "service-instance-deployment",
 			Releases: serviceadapter.ServiceReleases{
 				{
@@ -33,9 +33,9 @@ var _ = Describe("ServiceDeployment", func() {
 
 	Describe("(De)serialising JSON", func() {
 
-		var expectedServiceReleasesInfo serviceadapter.ServiceDeployment
+		var expectedServiceDeployment serviceadapter.ServiceDeployment
 
-		serviceReleasesInfoJSON := []byte(`{
+		serviceDeploymentJSON := []byte(`{
       "deployment_name": "service-instance-deployment",
       "releases": [{
         "name": "release-name",
@@ -52,34 +52,34 @@ var _ = Describe("ServiceDeployment", func() {
     }`)
 
 		JustBeforeEach(func() {
-			expectedServiceReleasesInfo = validServiceReleasesInfo
+			expectedServiceDeployment = validDeployment
 		})
 
-		It("deserialises a ServiceReleasesInfo object from JSON", func() {
-			var serviceReleasesInfo serviceadapter.ServiceDeployment
-			Expect(json.Unmarshal(serviceReleasesInfoJSON, &serviceReleasesInfo)).To(Succeed())
-			Expect(serviceReleasesInfo).To(Equal(validServiceReleasesInfo))
+		It("deserialises a ServiceDeployment object from JSON", func() {
+			var serviceDeployment serviceadapter.ServiceDeployment
+			Expect(json.Unmarshal(serviceDeploymentJSON, &serviceDeployment)).To(Succeed())
+			Expect(serviceDeployment).To(Equal(validDeployment))
 		})
 
-		It("serialises a ServiceReleasesInfo object to JSON", func() {
-			Expect(json.Marshal(expectedServiceReleasesInfo)).To(MatchJSON(serviceReleasesInfoJSON))
+		It("serialises a ServiceDeployment object to JSON", func() {
+			Expect(json.Marshal(expectedServiceDeployment)).To(MatchJSON(serviceDeploymentJSON))
 		})
 	})
 
 	Describe("validation", func() {
 		It("returns no error when all fields non-empty", func() {
-			Expect(validServiceReleasesInfo.Validate()).To(Succeed())
+			Expect(validDeployment.Validate()).To(Succeed())
 		})
 
 		It("returns an error when a field is empty", func() {
-			invalidServiceReleasesInfo := serviceadapter.ServiceDeployment{
+			invalidServiceDeployment := serviceadapter.ServiceDeployment{
 				DeploymentName: "service-instance-deployment",
 				Stemcell: serviceadapter.Stemcell{
 					OS:      "BeOS",
 					Version: "2",
 				},
 			}
-			Expect(invalidServiceReleasesInfo.Validate()).NotTo(Succeed())
+			Expect(invalidServiceDeployment.Validate()).NotTo(Succeed())
 		})
 	})
 })
