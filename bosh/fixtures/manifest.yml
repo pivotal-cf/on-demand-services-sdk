@@ -20,6 +20,8 @@ instance_groups:
           some_link: {as: link-name}
         consumes:
           another_link: {from: jerb-link}
+        properties:
+          some_property: some_value
     vm_type: massive
     persistent_disk_type: big
     azs: [az1, az2]

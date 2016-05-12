@@ -34,10 +34,11 @@ type InstanceGroup struct {
 }
 
 type Job struct {
-	Name     string                  `yaml:"name"`
-	Release  string                  `yaml:"release"`
-	Provides map[string]ProvidesLink `yaml:"provides,omitempty"`
-	Consumes map[string]ConsumesLink `yaml:"consumes,omitempty"`
+	Name       string                  `yaml:"name"`
+	Release    string                  `yaml:"release"`
+	Provides   map[string]ProvidesLink `yaml:"provides,omitempty"`
+	Consumes   map[string]ConsumesLink `yaml:"consumes,omitempty"`
+	Properties map[string]interface{}  `yaml:"properties,omitempty"`
 }
 
 type ProvidesLink struct {

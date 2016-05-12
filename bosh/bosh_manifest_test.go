@@ -42,6 +42,9 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 						Consumes: map[string]bosh.ConsumesLink{
 							"another_link": {From: "jerb-link"},
 						},
+						Properties: map[string]interface{}{
+							"some_property": "some_value",
+						},
 					},
 				},
 				VMType:             "massive",
@@ -131,5 +134,6 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("jobs:"))
 		Expect(content).NotTo(ContainSubstring("provides:"))
 		Expect(content).NotTo(ContainSubstring("consumes:"))
+		Expect(content).NotTo(ContainSubstring("properties:"))
 	})
 })
