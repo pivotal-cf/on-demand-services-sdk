@@ -2,7 +2,7 @@ package serviceadapter
 
 import (
 	"encoding/json"
-	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -15,6 +15,9 @@ type commandLineHandler struct {
 	logger         *log.Logger
 }
 
+var OutputWriter io.Writer = os.Stdout
+var Exiter func(int) = os.Exit
+
 func HandleCommandLineInvocation(args []string, serviceAdapter ServiceAdapter, logger *log.Logger) {
 	logger.Printf("handling %s", args[1])
 	handler := commandLineHandler{serviceAdapter: serviceAdapter, logger: logger}
@@ -24,7 +27,8 @@ func HandleCommandLineInvocation(args []string, serviceAdapter ServiceAdapter, l
 		planJSON := args[3]
 		argsJSON := args[4]
 		previousManifestYAML := args[5]
-		handler.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML)
+		previousPlanJSON := args[6]
+		handler.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON)
 	case "create-binding":
 		bindingID := args[2]
 		boshVMsJSON := args[3]
@@ -37,11 +41,11 @@ func HandleCommandLineInvocation(args []string, serviceAdapter ServiceAdapter, l
 		manifestYAML := args[4]
 		handler.deleteBinding(bindingID, boshVMsJSON, manifestYAML)
 	default:
-		logger.Fatalf("unknown subcommand: %s", args[1])
+		fail(logger, "unknown subcommand: %s", args[1])
 	}
 }
 
-func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML string) {
+func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON string) {
 
 	var serviceDeployment ServiceDeployment
 	p.must(json.Unmarshal([]byte(serviceDeploymentJSON), &serviceDeployment), "unmarshalling service deployment")
@@ -57,16 +61,19 @@ func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 	var previousManifest *bosh.BoshManifest
 	p.must(yaml.Unmarshal([]byte(previousManifestYAML), &previousManifest), "unmarshalling previous manifest")
 
-	manifest, err := p.serviceAdapter.GenerateManifest(serviceDeployment, plan, arbitraryParams, previousManifest)
+	var previousPlan *Plan
+	p.must(json.Unmarshal([]byte(previousPlanJSON), &previousPlan), "unmarshalling previous service plan")
+	p.must(plan.Validate(), "validating previous service plan")
 
+	manifest, err := p.serviceAdapter.GenerateManifest(serviceDeployment, plan, arbitraryParams, previousManifest, previousPlan)
 	p.mustNot(err, "generating manifest")
 
 	manifestBytes, err := yaml.Marshal(manifest)
 	if err != nil {
-		p.logger.Fatalf("error marshalling bosh manifest: %s", err)
+		fail(p.logger, "error marshalling bosh manifest: %s", err)
 	}
 
-	fmt.Println(string(manifestBytes))
+	OutputWriter.Write(manifestBytes)
 }
 
 func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, arbitraryParams string) {
@@ -82,7 +89,7 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	binding, err := p.serviceAdapter.CreateBinding(bindingID, boshVMs, manifest, params)
 	p.mustNot(err, "creating binding")
 
-	p.must(json.NewEncoder(os.Stdout).Encode(binding), "marshalling binding")
+	p.must(json.NewEncoder(OutputWriter).Encode(binding), "marshalling binding")
 }
 
 func (p commandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML string) {
@@ -98,10 +105,15 @@ func (p commandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML s
 
 func (p commandLineHandler) must(err error, msg string) {
 	if err != nil {
-		p.logger.Fatalf("error %s: %s\n", msg, err)
+		fail(p.logger, "error %s: %s\n", msg, err)
 	}
 }
 
 func (p commandLineHandler) mustNot(err error, msg string) {
 	p.must(err, msg)
+}
+
+func fail(logger *log.Logger, format string, params ...interface{}) {
+	logger.Printf(format, params...)
+	Exiter(1)
 }
