@@ -55,8 +55,8 @@ func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 	p.must(json.Unmarshal([]byte(planJSON), &plan), "unmarshalling service plan")
 	p.must(plan.Validate(), "validating service plan")
 
-	var arbitraryParams map[string]interface{}
-	p.must(json.Unmarshal([]byte(argsJSON), &arbitraryParams), "unmarshalling arbitraryParams plan")
+	var requestParams map[string]interface{}
+	p.must(json.Unmarshal([]byte(argsJSON), &requestParams), "unmarshalling requestParams")
 
 	var previousManifest *bosh.BoshManifest
 	p.must(yaml.Unmarshal([]byte(previousManifestYAML), &previousManifest), "unmarshalling previous manifest")
@@ -65,7 +65,7 @@ func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 	p.must(json.Unmarshal([]byte(previousPlanJSON), &previousPlan), "unmarshalling previous service plan")
 	p.must(plan.Validate(), "validating previous service plan")
 
-	manifest, err := p.serviceAdapter.GenerateManifest(serviceDeployment, plan, arbitraryParams, previousManifest, previousPlan)
+	manifest, err := p.serviceAdapter.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan)
 	p.mustNot(err, "generating manifest")
 
 	manifestBytes, err := yaml.Marshal(manifest)
