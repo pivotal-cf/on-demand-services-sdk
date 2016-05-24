@@ -15,6 +15,7 @@ var _ = Describe("Domain", func() {
 				Expect(params.ArbitraryParams()).To(Equal(map[string]interface{}{"foo": "bar"}))
 			})
 		})
+
 		Context("when arbitraryParams are absent", func() {
 			It("arbitrary params are empty", func() {
 				params := RequestParameters{"plan_id": "baz"}
