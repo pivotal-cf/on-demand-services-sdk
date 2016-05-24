@@ -10,9 +10,18 @@ import (
 
 //go:generate counterfeiter -o fake_service_adapter/fake_service_adapter.go . ServiceAdapter
 type ServiceAdapter interface {
-	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams map[string]interface{}, previousManifest *bosh.BoshManifest, previousPlan *Plan) (bosh.BoshManifest, error)
+	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan) (bosh.BoshManifest, error)
 	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (map[string]interface{}, error)
 	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
+}
+
+type RequestParameters map[string]interface{}
+
+func (s RequestParameters) ArbitraryParams() map[string]interface{} {
+	if s["parameters"] == nil {
+		return map[string]interface{}{}
+	}
+	return s["parameters"].(map[string]interface{})
 }
 
 var validate *validator.Validate

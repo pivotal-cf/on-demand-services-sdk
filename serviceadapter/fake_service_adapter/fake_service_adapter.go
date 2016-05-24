@@ -9,12 +9,12 @@ import (
 )
 
 type FakeServiceAdapter struct {
-	GenerateManifestStub        func(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams map[string]interface{}, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (bosh.BoshManifest, error)
+	GenerateManifestStub        func(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams serviceadapter.RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (bosh.BoshManifest, error)
 	generateManifestMutex       sync.RWMutex
 	generateManifestArgsForCall []struct {
 		serviceDeployment serviceadapter.ServiceDeployment
 		plan              serviceadapter.Plan
-		requestParams     map[string]interface{}
+		requestParams     serviceadapter.RequestParameters
 		previousManifest  *bosh.BoshManifest
 		previousPlan      *serviceadapter.Plan
 	}
@@ -46,12 +46,12 @@ type FakeServiceAdapter struct {
 	}
 }
 
-func (fake *FakeServiceAdapter) GenerateManifest(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams map[string]interface{}, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (bosh.BoshManifest, error) {
+func (fake *FakeServiceAdapter) GenerateManifest(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams serviceadapter.RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (bosh.BoshManifest, error) {
 	fake.generateManifestMutex.Lock()
 	fake.generateManifestArgsForCall = append(fake.generateManifestArgsForCall, struct {
 		serviceDeployment serviceadapter.ServiceDeployment
 		plan              serviceadapter.Plan
-		requestParams     map[string]interface{}
+		requestParams     serviceadapter.RequestParameters
 		previousManifest  *bosh.BoshManifest
 		previousPlan      *serviceadapter.Plan
 	}{serviceDeployment, plan, requestParams, previousManifest, previousPlan})
@@ -69,7 +69,7 @@ func (fake *FakeServiceAdapter) GenerateManifestCallCount() int {
 	return len(fake.generateManifestArgsForCall)
 }
 
-func (fake *FakeServiceAdapter) GenerateManifestArgsForCall(i int) (serviceadapter.ServiceDeployment, serviceadapter.Plan, map[string]interface{}, *bosh.BoshManifest, *serviceadapter.Plan) {
+func (fake *FakeServiceAdapter) GenerateManifestArgsForCall(i int) (serviceadapter.ServiceDeployment, serviceadapter.Plan, serviceadapter.RequestParameters, *bosh.BoshManifest, *serviceadapter.Plan) {
 	fake.generateManifestMutex.RLock()
 	defer fake.generateManifestMutex.RUnlock()
 	return fake.generateManifestArgsForCall[i].serviceDeployment, fake.generateManifestArgsForCall[i].plan, fake.generateManifestArgsForCall[i].requestParams, fake.generateManifestArgsForCall[i].previousManifest, fake.generateManifestArgsForCall[i].previousPlan
