@@ -102,8 +102,12 @@ var _ = Describe("Command line handler", func() {
 		expectedBoshVMs   = bosh.BoshVMs{"kafka": []string{"a", "b"}}
 		expectedManifest  = expectedPreviousManifest
 
-		expectedResultantBinding = map[string]interface{}{
-			"binding": "this binds",
+		expectedResultantBinding = serviceadapter.Binding{
+			RouteServiceURL: "a route",
+			SyslogDrainURL:  "a url",
+			Credentials: map[string]interface{}{
+				"binding": "this binds",
+			},
 		}
 	)
 
@@ -241,7 +245,7 @@ var _ = Describe("Command line handler", func() {
 
 		Context("binding fails", func() {
 			BeforeEach(func() {
-				serviceAdapter.CreateBindingReturns(nil, fmt.Errorf("not valid"))
+				serviceAdapter.CreateBindingReturns(serviceadapter.Binding{}, fmt.Errorf("not valid"))
 			})
 			It("Fails and logs", func() {
 				Expect(exitCode).To(Equal(1))

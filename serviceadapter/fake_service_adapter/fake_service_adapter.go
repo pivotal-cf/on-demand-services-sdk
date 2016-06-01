@@ -22,7 +22,7 @@ type FakeServiceAdapter struct {
 		result1 bosh.BoshManifest
 		result2 error
 	}
-	CreateBindingStub        func(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (map[string]interface{}, error)
+	CreateBindingStub        func(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (serviceadapter.Binding, error)
 	createBindingMutex       sync.RWMutex
 	createBindingArgsForCall []struct {
 		bindingID          string
@@ -31,7 +31,7 @@ type FakeServiceAdapter struct {
 		arbitraryParams    map[string]interface{}
 	}
 	createBindingReturns struct {
-		result1 map[string]interface{}
+		result1 serviceadapter.Binding
 		result2 error
 	}
 	DeleteBindingStub        func(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
@@ -83,7 +83,7 @@ func (fake *FakeServiceAdapter) GenerateManifestReturns(result1 bosh.BoshManifes
 	}{result1, result2}
 }
 
-func (fake *FakeServiceAdapter) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (map[string]interface{}, error) {
+func (fake *FakeServiceAdapter) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (serviceadapter.Binding, error) {
 	fake.createBindingMutex.Lock()
 	fake.createBindingArgsForCall = append(fake.createBindingArgsForCall, struct {
 		bindingID          string
@@ -111,10 +111,10 @@ func (fake *FakeServiceAdapter) CreateBindingArgsForCall(i int) (string, bosh.Bo
 	return fake.createBindingArgsForCall[i].bindingID, fake.createBindingArgsForCall[i].deploymentTopology, fake.createBindingArgsForCall[i].manifest, fake.createBindingArgsForCall[i].arbitraryParams
 }
 
-func (fake *FakeServiceAdapter) CreateBindingReturns(result1 map[string]interface{}, result2 error) {
+func (fake *FakeServiceAdapter) CreateBindingReturns(result1 serviceadapter.Binding, result2 error) {
 	fake.CreateBindingStub = nil
 	fake.createBindingReturns = struct {
-		result1 map[string]interface{}
+		result1 serviceadapter.Binding
 		result2 error
 	}{result1, result2}
 }

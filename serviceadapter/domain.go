@@ -11,7 +11,7 @@ import (
 //go:generate counterfeiter -o fake_service_adapter/fake_service_adapter.go . ServiceAdapter
 type ServiceAdapter interface {
 	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan) (bosh.BoshManifest, error)
-	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (map[string]interface{}, error)
+	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (Binding, error)
 	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
 }
 
@@ -87,4 +87,10 @@ type InstanceGroup struct {
 	Networks       []string `json:"networks" validate:"required"`
 	AZs            []string `json:"azs,omitempty"`
 	Lifecycle      string   `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
+}
+
+type Binding struct {
+	Credentials     map[string]interface{} `json:"credentials"`
+	SyslogDrainURL  string                 `json:"syslog_drain_url,omitempty"`
+	RouteServiceURL string                 `json:"route_service_url,omitempty"`
 }
