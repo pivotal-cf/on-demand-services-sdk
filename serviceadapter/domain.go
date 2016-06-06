@@ -15,6 +15,14 @@ type ServiceAdapter interface {
 	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
 }
 
+type BindingAlreadyExistsError struct {
+	error
+}
+
+func NewBindingAlreadyExistsError(e error) BindingAlreadyExistsError {
+	return BindingAlreadyExistsError{e}
+}
+
 type RequestParameters map[string]interface{}
 
 func (s RequestParameters) ArbitraryParams() map[string]interface{} {

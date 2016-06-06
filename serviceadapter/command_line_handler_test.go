@@ -244,12 +244,24 @@ var _ = Describe("Command line handler", func() {
 		})
 
 		Context("binding fails", func() {
-			BeforeEach(func() {
-				serviceAdapter.CreateBindingReturns(serviceadapter.Binding{}, fmt.Errorf("not valid"))
+			Context("binding already exists", func() {
+				BeforeEach(func() {
+					serviceAdapter.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewBindingAlreadyExistsError(fmt.Errorf("binding foo already exists")))
+				})
+				It("Fails and logs", func() {
+					Expect(exitCode).To(Equal(49))
+					Expect(logBuffer).To(ContainSubstring("binding foo already exists"))
+				})
 			})
-			It("Fails and logs", func() {
-				Expect(exitCode).To(Equal(1))
-				Expect(logBuffer).To(ContainSubstring("not valid"))
+
+			Context("internal error", func() {
+				BeforeEach(func() {
+					serviceAdapter.CreateBindingReturns(serviceadapter.Binding{}, fmt.Errorf("not valid"))
+				})
+				It("Fails and logs", func() {
+					Expect(exitCode).To(Equal(1))
+					Expect(logBuffer).To(ContainSubstring("not valid"))
+				})
 			})
 		})
 	})

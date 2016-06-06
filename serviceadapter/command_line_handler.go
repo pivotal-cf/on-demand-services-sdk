@@ -87,7 +87,14 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	p.must(json.Unmarshal([]byte(arbitraryParams), &params), "unmarshalling arbitrary binding parameters")
 
 	binding, err := p.serviceAdapter.CreateBinding(bindingID, boshVMs, manifest, params)
-	p.mustNot(err, "creating binding")
+	switch err := err.(type) {
+	case BindingAlreadyExistsError:
+		failWithCode(p.logger, 49, "creating binding: %v", err)
+	case error:
+		p.mustNot(err, "creating binding")
+	default:
+		break
+	}
 
 	p.must(json.NewEncoder(OutputWriter).Encode(binding), "marshalling binding")
 }
@@ -114,6 +121,10 @@ func (p commandLineHandler) mustNot(err error, msg string) {
 }
 
 func fail(logger *log.Logger, format string, params ...interface{}) {
+	failWithCode(logger, 1, format, params...)
+}
+
+func failWithCode(logger *log.Logger, code int, format string, params ...interface{}) {
 	logger.Printf(format, params...)
-	Exiter(1)
+	Exiter(code)
 }
