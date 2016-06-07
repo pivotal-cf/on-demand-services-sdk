@@ -18,7 +18,8 @@ import (
 )
 
 var _ = Describe("Command line handler", func() {
-	var serviceAdapter *fake_service_adapter.FakeServiceAdapter
+	var manifestGenerator *fake_service_adapter.FakeManifestGenerator
+	var binder *fake_service_adapter.FakeBinder
 	var args []string
 	var outputBuffer *bytes.Buffer
 	var logBuffer *bytes.Buffer
@@ -118,7 +119,8 @@ var _ = Describe("Command line handler", func() {
 
 		serviceadapter.OutputWriter = io.MultiWriter(outputBuffer, GinkgoWriter)
 
-		serviceAdapter = &fake_service_adapter.FakeServiceAdapter{}
+		manifestGenerator = &fake_service_adapter.FakeManifestGenerator{}
+		binder = &fake_service_adapter.FakeBinder{}
 		exitCode = 0
 		serviceadapter.Exiter = func(code int) { exitCode = code }
 	})
@@ -129,13 +131,13 @@ var _ = Describe("Command line handler", func() {
 	})
 
 	JustBeforeEach(func() {
-		serviceadapter.HandleCommandLineInvocation(args, serviceAdapter, log.New(io.MultiWriter(logBuffer, GinkgoWriter), "[on-demand-service-adapter-test] ", log.LstdFlags))
+		serviceadapter.HandleCommandLineInvocation(args, manifestGenerator, binder, log.New(io.MultiWriter(logBuffer, GinkgoWriter), "[on-demand-service-adapter-test] ", log.LstdFlags))
 	})
 
 	Context("generating a manifest", func() {
 		BeforeEach(func() {
 			args = []string{"command-name", "generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedAribtaryParams), "", "null"}
-			serviceAdapter.GenerateManifestReturns(expectedResultantBoshManifest, nil)
+			manifestGenerator.GenerateManifestReturns(expectedResultantBoshManifest, nil)
 		})
 
 		var (
@@ -146,12 +148,12 @@ var _ = Describe("Command line handler", func() {
 			actualPreviousPlan      *serviceadapter.Plan
 		)
 		JustBeforeEach(func() {
-			actualServiceDeployment, acutalCurrentPlan, acutalAribtaryParams, actualPreviousManifest, actualPreviousPlan = serviceAdapter.GenerateManifestArgsForCall(0)
+			actualServiceDeployment, acutalCurrentPlan, acutalAribtaryParams, actualPreviousManifest, actualPreviousPlan = manifestGenerator.GenerateManifestArgsForCall(0)
 		})
 		It("only invokes generate manifest", func() {
-			Expect(serviceAdapter.CreateBindingCallCount()).To(BeZero())
-			Expect(serviceAdapter.DeleteBindingCallCount()).To(BeZero())
-			Expect(serviceAdapter.GenerateManifestCallCount()).To(Equal(1))
+			Expect(binder.CreateBindingCallCount()).To(BeZero())
+			Expect(binder.DeleteBindingCallCount()).To(BeZero())
+			Expect(manifestGenerator.GenerateManifestCallCount()).To(Equal(1))
 		})
 
 		It("deserialises the service deployment", func() {
@@ -194,7 +196,7 @@ var _ = Describe("Command line handler", func() {
 
 		Context("error generating a manifest", func() {
 			BeforeEach(func() {
-				serviceAdapter.GenerateManifestReturns(bosh.BoshManifest{}, fmt.Errorf("not valid"))
+				manifestGenerator.GenerateManifestReturns(bosh.BoshManifest{}, fmt.Errorf("not valid"))
 			})
 			It("Fails and logs", func() {
 				Expect(exitCode).To(Equal(1))
@@ -211,18 +213,18 @@ var _ = Describe("Command line handler", func() {
 			actualBindingParams map[string]interface{}
 		)
 		JustBeforeEach(func() {
-			actualBindingId, actualBoshVMs, actualBoshManifest, actualBindingParams = serviceAdapter.CreateBindingArgsForCall(0)
+			actualBindingId, actualBoshVMs, actualBoshManifest, actualBindingParams = binder.CreateBindingArgsForCall(0)
 		})
 
 		BeforeEach(func() {
 			args = []string{"command-name", "create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedAribtaryParams)}
-			serviceAdapter.CreateBindingReturns(expectedResultantBinding, nil)
+			binder.CreateBindingReturns(expectedResultantBinding, nil)
 		})
 
 		It("only invokes create binding", func() {
-			Expect(serviceAdapter.CreateBindingCallCount()).To(Equal(1))
-			Expect(serviceAdapter.DeleteBindingCallCount()).To(BeZero())
-			Expect(serviceAdapter.GenerateManifestCallCount()).To(BeZero())
+			Expect(binder.CreateBindingCallCount()).To(Equal(1))
+			Expect(binder.DeleteBindingCallCount()).To(BeZero())
+			Expect(manifestGenerator.GenerateManifestCallCount()).To(BeZero())
 		})
 
 		It("reads the binding id", func() {
@@ -246,7 +248,7 @@ var _ = Describe("Command line handler", func() {
 		Context("binding fails", func() {
 			Context("binding already exists", func() {
 				BeforeEach(func() {
-					serviceAdapter.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewBindingAlreadyExistsError(fmt.Errorf("binding foo already exists")))
+					binder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewBindingAlreadyExistsError(fmt.Errorf("binding foo already exists")))
 				})
 				It("Fails and logs", func() {
 					Expect(exitCode).To(Equal(49))
@@ -256,7 +258,7 @@ var _ = Describe("Command line handler", func() {
 
 			Context("internal error", func() {
 				BeforeEach(func() {
-					serviceAdapter.CreateBindingReturns(serviceadapter.Binding{}, fmt.Errorf("not valid"))
+					binder.CreateBindingReturns(serviceadapter.Binding{}, fmt.Errorf("not valid"))
 				})
 				It("Fails and logs", func() {
 					Expect(exitCode).To(Equal(1))
@@ -272,18 +274,18 @@ var _ = Describe("Command line handler", func() {
 			actualBoshManifest bosh.BoshManifest
 		)
 		JustBeforeEach(func() {
-			actualBindingId, actualBoshVMs, actualBoshManifest = serviceAdapter.DeleteBindingArgsForCall(0)
+			actualBindingId, actualBoshVMs, actualBoshManifest = binder.DeleteBindingArgsForCall(0)
 		})
 
 		BeforeEach(func() {
 			args = []string{"command-name", "delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedAribtaryParams)}
-			serviceAdapter.DeleteBindingReturns(nil)
+			binder.DeleteBindingReturns(nil)
 		})
 
 		It("only invokes delete binding", func() {
-			Expect(serviceAdapter.CreateBindingCallCount()).To(BeZero())
-			Expect(serviceAdapter.DeleteBindingCallCount()).To(Equal(1))
-			Expect(serviceAdapter.GenerateManifestCallCount()).To(BeZero())
+			Expect(binder.CreateBindingCallCount()).To(BeZero())
+			Expect(binder.DeleteBindingCallCount()).To(Equal(1))
+			Expect(manifestGenerator.GenerateManifestCallCount()).To(BeZero())
 		})
 
 		It("reads the binding id", func() {
@@ -299,7 +301,7 @@ var _ = Describe("Command line handler", func() {
 
 		Context("binding fails", func() {
 			BeforeEach(func() {
-				serviceAdapter.DeleteBindingReturns(fmt.Errorf("not valid"))
+				binder.DeleteBindingReturns(fmt.Errorf("not valid"))
 			})
 			It("Fails and logs", func() {
 				Expect(exitCode).To(Equal(1))
