@@ -295,6 +295,10 @@ var _ = Describe("Command line handler", func() {
 				Expect(actualBindingId).To(Equal(expectedBindingID))
 			})
 
+			It("serialzies binding result as json", func() {
+				Expect(outputBuffer.String()).To(MatchJSON(toJson(expectedResultantBinding)))
+			})
+
 			It("deserializes the bosh vms", func() {
 				Expect(actualBoshVMs).To(Equal(expectedBoshVMs))
 			})
