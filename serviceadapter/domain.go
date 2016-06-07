@@ -93,7 +93,7 @@ type InstanceGroup struct {
 	PersistentDisk string   `yaml:"persistent_disk,omitempty" json:"persistent_disk_type,omitempty"`
 	Instances      int      `json:"instances" validate:"min=1"`
 	Networks       []string `json:"networks" validate:"required"`
-	AZs            []string `json:"azs,omitempty"`
+	AZs            []string `json:"azs" validate:"required,min=1"`
 	Lifecycle      string   `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
 }
 

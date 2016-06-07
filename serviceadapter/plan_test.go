@@ -60,6 +60,7 @@ var _ = Describe("Plan", func() {
 					Name:      "example-server",
 					VMType:    "small",
 					Networks:  []string{"example-network"},
+					AZs:       []string{"az1"},
 					Instances: 1,
 				}},
 				Properties: serviceadapter.Properties{},
@@ -73,12 +74,29 @@ var _ = Describe("Plan", func() {
 			      "networks": [
 			        "example-network"
 			      ],
-			      "instances": 1
+			      "instances": 1,
+						"azs": ["az1"]
 			    }
 			  ],
 			  "properties": {}
 			}`)
 			Expect(json.Marshal(expectedPlan)).To(MatchJSON(planJson))
+		})
+
+		It("serializes required fields for instance_groups", func() {
+			plan := serviceadapter.Plan{
+				InstanceGroups: []serviceadapter.InstanceGroup{{}},
+				Properties:     serviceadapter.Properties{},
+			}
+
+			planJson, err := json.Marshal(plan)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(planJson).To(ContainSubstring("name"))
+			Expect(planJson).To(ContainSubstring("vm_type"))
+			Expect(planJson).To(ContainSubstring("instances"))
+			Expect(planJson).To(ContainSubstring("networks"))
+			Expect(planJson).To(ContainSubstring("azs"))
 		})
 	})
 
@@ -92,6 +110,7 @@ var _ = Describe("Plan", func() {
 					VMType:    "small",
 					Networks:  []string{"example-network"},
 					Instances: 1,
+					AZs:       []string{"az1"},
 				}},
 				Properties: serviceadapter.Properties{},
 			}
@@ -126,6 +145,26 @@ var _ = Describe("Plan", func() {
 		Context("when networks is missing", func() {
 			BeforeEach(func() {
 				plan.InstanceGroups[0].Networks = nil
+			})
+
+			It("returns an error", func() {
+				Expect(plan.Validate()).To(HaveOccurred())
+			})
+		})
+
+		Context("when azs are missing", func() {
+			BeforeEach(func() {
+				plan.InstanceGroups[0].AZs = nil
+			})
+
+			It("returns an error", func() {
+				Expect(plan.Validate()).To(HaveOccurred())
+			})
+		})
+
+		Context("when azs are empty", func() {
+			BeforeEach(func() {
+				plan.InstanceGroups[0].AZs = []string{}
 			})
 
 			It("returns an error", func() {
