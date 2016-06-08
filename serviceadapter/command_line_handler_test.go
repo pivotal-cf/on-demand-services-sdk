@@ -256,6 +256,18 @@ var _ = Describe("Command line handler", func() {
 				})
 			})
 
+			Context("app_guid isn't provided", func() {
+				BeforeEach(func() {
+					binder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewAppGuidNotProvidedError(fmt.Errorf("no app_guid provided")))
+				})
+
+				It("Fails and logs", func() {
+					Expect(exitCode).To(Equal(42))
+					Expect(logBuffer).To(ContainSubstring("no app_guid provided"))
+				})
+
+			})
+
 			Context("internal error", func() {
 				BeforeEach(func() {
 					binder.CreateBindingReturns(serviceadapter.Binding{}, fmt.Errorf("not valid"))
