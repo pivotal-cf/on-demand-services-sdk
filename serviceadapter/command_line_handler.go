@@ -103,6 +103,8 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	switch err := err.(type) {
 	case BindingAlreadyExistsError:
 		failWithCode(p.logger, 49, "creating binding: %v", err)
+	case AppGuidNotProvidedError:
+		failWithCode(p.logger, 42, "creating binding: %v", err)
 	case error:
 		p.mustNot(err, "creating binding")
 	default:

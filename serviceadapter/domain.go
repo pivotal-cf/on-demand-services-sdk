@@ -23,8 +23,16 @@ type BindingAlreadyExistsError struct {
 	error
 }
 
+type AppGuidNotProvidedError struct {
+	error
+}
+
 func NewBindingAlreadyExistsError(e error) BindingAlreadyExistsError {
 	return BindingAlreadyExistsError{e}
+}
+
+func NewAppGuidNotProvidedError(e error) AppGuidNotProvidedError {
+	return AppGuidNotProvidedError{e}
 }
 
 type RequestParameters map[string]interface{}
