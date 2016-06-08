@@ -24,35 +24,35 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 	handler := commandLineHandler{manifestGenerator: manifestGenerator, binder: binder, logger: logger}
 	switch args[1] {
 	case "generate-manifest":
-		if handler.manifestGenerator == nil {
+		if handler.manifestGenerator != nil {
+			serviceDeploymentJSON := args[2]
+			planJSON := args[3]
+			argsJSON := args[4]
+			previousManifestYAML := args[5]
+			previousPlanJSON := args[6]
+			handler.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON)
+		} else {
 			failWithCode(logger, 10, "manifest generator not implemented")
-			return
 		}
-		serviceDeploymentJSON := args[2]
-		planJSON := args[3]
-		argsJSON := args[4]
-		previousManifestYAML := args[5]
-		previousPlanJSON := args[6]
-		handler.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON)
 	case "create-binding":
-		if handler.binder == nil {
+		if handler.binder != nil {
+			bindingID := args[2]
+			boshVMsJSON := args[3]
+			manifestYAML := args[4]
+			bindingArbitraryParams := args[5]
+			handler.createBinding(bindingID, boshVMsJSON, manifestYAML, bindingArbitraryParams)
+		} else {
 			failWithCode(logger, 10, "binder not implemented")
-			return
 		}
-		bindingID := args[2]
-		boshVMsJSON := args[3]
-		manifestYAML := args[4]
-		bindingArbitraryParams := args[5]
-		handler.createBinding(bindingID, boshVMsJSON, manifestYAML, bindingArbitraryParams)
 	case "delete-binding":
-		if handler.binder == nil {
+		if handler.binder != nil {
+			bindingID := args[2]
+			boshVMsJSON := args[3]
+			manifestYAML := args[4]
+			handler.deleteBinding(bindingID, boshVMsJSON, manifestYAML)
+		} else {
 			failWithCode(logger, 10, "binder not implemented")
-			return
 		}
-		bindingID := args[2]
-		boshVMsJSON := args[3]
-		manifestYAML := args[4]
-		handler.deleteBinding(bindingID, boshVMsJSON, manifestYAML)
 	default:
 		fail(logger, "unknown subcommand: %s", args[1])
 	}
