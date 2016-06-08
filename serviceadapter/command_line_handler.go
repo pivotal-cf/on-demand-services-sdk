@@ -78,7 +78,7 @@ func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 	p.must(json.Unmarshal([]byte(previousPlanJSON), &previousPlan), "unmarshalling previous service plan")
 	p.must(plan.Validate(), "validating previous service plan")
 
-	manifest, err := p.manifestGenerator.Generate(serviceDeployment, plan, requestParams, previousManifest, previousPlan)
+	manifest, err := p.manifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan)
 	p.mustNot(err, "generating manifest")
 
 	manifestBytes, err := yaml.Marshal(manifest)
@@ -99,7 +99,7 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	var params map[string]interface{}
 	p.must(json.Unmarshal([]byte(arbitraryParams), &params), "unmarshalling arbitrary binding parameters")
 
-	binding, err := p.binder.Create(bindingID, boshVMs, manifest, params)
+	binding, err := p.binder.CreateBinding(bindingID, boshVMs, manifest, params)
 	switch err := err.(type) {
 	case BindingAlreadyExistsError:
 		failWithCode(p.logger, 49, "creating binding: %v", err)
@@ -121,7 +121,7 @@ func (p commandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML s
 	var manifest bosh.BoshManifest
 	p.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
 
-	err := p.binder.Delete(bindingID, boshVMs, manifest)
+	err := p.binder.DeleteBinding(bindingID, boshVMs, manifest)
 	p.mustNot(err, "deleting binding")
 }
 

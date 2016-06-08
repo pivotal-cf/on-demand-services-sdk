@@ -26,7 +26,7 @@ type FakeManifestGenerator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeManifestGenerator) Generate(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams serviceadapter.RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (bosh.BoshManifest, error) {
+func (fake *FakeManifestGenerator) GenerateManifest(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams serviceadapter.RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (bosh.BoshManifest, error) {
 	fake.generateManifestMutex.Lock()
 	fake.generateManifestArgsForCall = append(fake.generateManifestArgsForCall, struct {
 		serviceDeployment serviceadapter.ServiceDeployment

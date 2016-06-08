@@ -35,7 +35,7 @@ type FakeBinder struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeBinder) Create(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (serviceadapter.Binding, error) {
+func (fake *FakeBinder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (serviceadapter.Binding, error) {
 	fake.createBindingMutex.Lock()
 	fake.createBindingArgsForCall = append(fake.createBindingArgsForCall, struct {
 		bindingID          string
@@ -72,7 +72,7 @@ func (fake *FakeBinder) CreateBindingReturns(result1 serviceadapter.Binding, res
 	}{result1, result2}
 }
 
-func (fake *FakeBinder) Delete(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error {
+func (fake *FakeBinder) DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error {
 	fake.deleteBindingMutex.Lock()
 	fake.deleteBindingArgsForCall = append(fake.deleteBindingArgsForCall, struct {
 		bindingID          string

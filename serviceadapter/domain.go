@@ -10,13 +10,13 @@ import (
 
 //go:generate counterfeiter -o fake_service_adapter/manifest_generator.go . ManifestGenerator
 type ManifestGenerator interface {
-	Generate(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan) (bosh.BoshManifest, error)
+	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan) (bosh.BoshManifest, error)
 }
 
 //go:generate counterfeiter -o fake_service_adapter/binder.go . Binder
 type Binder interface {
-	Create(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (Binding, error)
-	Delete(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
+	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, arbitraryParams map[string]interface{}) (Binding, error)
+	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
 }
 
 type BindingAlreadyExistsError struct {
