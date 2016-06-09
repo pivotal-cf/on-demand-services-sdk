@@ -11,17 +11,18 @@ import (
 )
 
 type commandLineHandler struct {
-	manifestGenerator ManifestGenerator
-	binder            Binder
-	logger            *log.Logger
+	manifestGenerator     ManifestGenerator
+	binder                Binder
+	dashboardUrlGenerator DashboardUrlGenerator
+	logger                *log.Logger
 }
 
 var OutputWriter io.Writer = os.Stdout
 var Exiter func(int) = os.Exit
 
-func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenerator, binder Binder, logger *log.Logger) {
+func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenerator, binder Binder, dashboardUrlGenerator DashboardUrlGenerator, logger *log.Logger) {
 	logger.Printf("handling %s", args[1])
-	handler := commandLineHandler{manifestGenerator: manifestGenerator, binder: binder, logger: logger}
+	handler := commandLineHandler{manifestGenerator: manifestGenerator, binder: binder, dashboardUrlGenerator: dashboardUrlGenerator, logger: logger}
 	switch args[1] {
 	case "generate-manifest":
 		if handler.manifestGenerator != nil {
@@ -34,6 +35,7 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 		} else {
 			failWithCode(logger, 10, "manifest generator not implemented")
 		}
+
 	case "create-binding":
 		if handler.binder != nil {
 			bindingID := args[2]
@@ -52,6 +54,15 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			handler.deleteBinding(bindingID, boshVMsJSON, manifestYAML)
 		} else {
 			failWithCode(logger, 10, "binder not implemented")
+		}
+	case "dashboard-url":
+		if dashboardUrlGenerator != nil {
+			instanceID := args[2]
+			planJSON := args[3]
+			manifestYAML := args[4]
+			handler.dashboardUrl(instanceID, planJSON, manifestYAML)
+		} else {
+			failWithCode(logger, 10, "dashboard-url not implemented")
 		}
 	default:
 		fail(logger, "unknown subcommand: %s", args[1])
@@ -125,6 +136,19 @@ func (p commandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML s
 	p.mustNot(err, "deleting binding")
 }
 
+func (p commandLineHandler) dashboardUrl(instanceID, planJSON, manifestYAML string) {
+	var plan Plan
+	p.must(json.Unmarshal([]byte(planJSON), &plan), "unmarshalling service plan")
+	p.must(plan.Validate(), "validating service plan")
+
+	var manifest bosh.BoshManifest
+	p.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
+
+	dashboardUrl, err := p.dashboardUrlGenerator.DashboardUrl(instanceID, plan, manifest)
+	p.mustNot(err, "generating dashboardUrl")
+
+	p.must(json.NewEncoder(OutputWriter).Encode(dashboardUrl), "marshalling dashboardUrl")
+}
 func (p commandLineHandler) must(err error, msg string) {
 	if err != nil {
 		fail(p.logger, "error %s: %s\n", msg, err)

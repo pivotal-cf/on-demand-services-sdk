@@ -19,6 +19,15 @@ type Binder interface {
 	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
 }
 
+//go:generate counterfeiter -o fake_service_adapter/dashboard_url_generator.go . DashboardUrlGenerator
+type DashboardUrlGenerator interface {
+	DashboardUrl(instanceID string, plan Plan, manifest bosh.BoshManifest) (DashboardUrl, error)
+}
+
+type DashboardUrl struct {
+	DashboardUrl string `json:"dashboard_url"`
+}
+
 type BindingAlreadyExistsError struct {
 	error
 }
