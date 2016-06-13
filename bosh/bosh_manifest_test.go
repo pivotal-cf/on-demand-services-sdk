@@ -13,6 +13,10 @@ import (
 )
 
 var _ = Describe("de(serialising) BOSH manifests", func() {
+	boolPointer := func(b bool) *bool {
+		return &b
+	}
+
 	sampleManifest := bosh.BoshManifest{
 		Name: "deployment-name",
 		Releases: []bosh.Release{
@@ -85,6 +89,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 			CanaryWatchTime: "30000-180000",
 			UpdateWatchTime: "30000-180000",
 			MaxInFlight:     4,
+			Serial:          boolPointer(false),
 		},
 	}
 
@@ -122,6 +127,12 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 					},
 				},
 			},
+			Update: bosh.Update{
+				Canaries:        1,
+				CanaryWatchTime: "30000-180000",
+				UpdateWatchTime: "30000-180000",
+				MaxInFlight:     4,
+			},
 		}
 
 		content, err := yaml.Marshal(emptyManifest)
@@ -135,5 +146,6 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("provides:"))
 		Expect(content).NotTo(ContainSubstring("consumes:"))
 		Expect(content).NotTo(ContainSubstring("properties:"))
+		Expect(content).NotTo(ContainSubstring("serial:"))
 	})
 })

@@ -59,4 +59,5 @@ type Update struct {
 	CanaryWatchTime string `yaml:"canary_watch_time"`
 	UpdateWatchTime string `yaml:"update_watch_time"`
 	MaxInFlight     int    `yaml:"max_in_flight"`
+	Serial          *bool  `yaml:"serial,omitempty"`
 }
