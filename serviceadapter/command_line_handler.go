@@ -108,7 +108,7 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	p.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
 
 	var params map[string]interface{}
-	p.must(json.Unmarshal([]byte(arbitraryParams), &params), "unmarshalling arbitrary binding parameters")
+	p.must(json.Unmarshal([]byte(arbitraryParams), &params), "unmarshalling request binding parameters")
 
 	binding, err := p.binder.CreateBinding(bindingID, boshVMs, manifest, params)
 	switch err := err.(type) {
