@@ -16,7 +16,7 @@ type ManifestGenerator interface {
 //go:generate counterfeiter -o fake_service_adapter/binder.go . Binder
 type Binder interface {
 	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters) (Binding, error)
-	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
+	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters) error
 }
 
 //go:generate counterfeiter -o fake_service_adapter/dashboard_url_generator.go . DashboardUrlGenerator

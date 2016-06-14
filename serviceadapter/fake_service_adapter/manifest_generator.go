@@ -22,6 +22,8 @@ type FakeManifestGenerator struct {
 		result1 bosh.BoshManifest
 		result2 error
 	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeManifestGenerator) GenerateManifest(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams serviceadapter.RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (bosh.BoshManifest, error) {
@@ -33,6 +35,7 @@ func (fake *FakeManifestGenerator) GenerateManifest(serviceDeployment serviceada
 		previousManifest  *bosh.BoshManifest
 		previousPlan      *serviceadapter.Plan
 	}{serviceDeployment, plan, requestParams, previousManifest, previousPlan})
+	fake.recordInvocation("GenerateManifest", []interface{}{serviceDeployment, plan, requestParams, previousManifest, previousPlan})
 	fake.generateManifestMutex.Unlock()
 	if fake.GenerateManifestStub != nil {
 		return fake.GenerateManifestStub(serviceDeployment, plan, requestParams, previousManifest, previousPlan)
@@ -59,6 +62,26 @@ func (fake *FakeManifestGenerator) GenerateManifestReturns(result1 bosh.BoshMani
 		result1 bosh.BoshManifest
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeManifestGenerator) Invocations() map[string][][]interface{} {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	fake.generateManifestMutex.RLock()
+	defer fake.generateManifestMutex.RUnlock()
+	return fake.invocations
+}
+
+func (fake *FakeManifestGenerator) recordInvocation(key string, args []interface{}) {
+	fake.invocationsMutex.Lock()
+	defer fake.invocationsMutex.Unlock()
+	if fake.invocations == nil {
+		fake.invocations = map[string][][]interface{}{}
+	}
+	if fake.invocations[key] == nil {
+		fake.invocations[key] = [][]interface{}{}
+	}
+	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
 var _ serviceadapter.ManifestGenerator = new(FakeManifestGenerator)

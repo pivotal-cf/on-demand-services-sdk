@@ -51,7 +51,8 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			bindingID := args[2]
 			boshVMsJSON := args[3]
 			manifestYAML := args[4]
-			handler.deleteBinding(bindingID, boshVMsJSON, manifestYAML)
+			unbindingRequestParams := args[5]
+			handler.deleteBinding(bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams)
 		} else {
 			failWithCode(logger, 10, "binder not implemented")
 		}
@@ -100,7 +101,7 @@ func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 	OutputWriter.Write(manifestBytes)
 }
 
-func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, arbitraryParams string) {
+func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, requestParams string) {
 	var boshVMs map[string][]string
 	p.must(json.Unmarshal([]byte(boshVMsJSON), &boshVMs), "unmarshalling BOSH VMs")
 
@@ -108,7 +109,7 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	p.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
 
 	var params map[string]interface{}
-	p.must(json.Unmarshal([]byte(arbitraryParams), &params), "unmarshalling request binding parameters")
+	p.must(json.Unmarshal([]byte(requestParams), &params), "unmarshalling request binding parameters")
 
 	binding, err := p.binder.CreateBinding(bindingID, boshVMs, manifest, params)
 	switch err := err.(type) {
@@ -125,14 +126,17 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	p.must(json.NewEncoder(OutputWriter).Encode(binding), "marshalling binding")
 }
 
-func (p commandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML string) {
+func (p commandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML string, requestParams string) {
 	var boshVMs bosh.BoshVMs
 	p.must(json.Unmarshal([]byte(boshVMsJSON), &boshVMs), "unmarshalling BOSH VMs")
 
 	var manifest bosh.BoshManifest
 	p.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
 
-	err := p.binder.DeleteBinding(bindingID, boshVMs, manifest)
+	var params RequestParameters
+	p.must(json.Unmarshal([]byte(requestParams), &params), "unmarshalling request binding parameters")
+
+	err := p.binder.DeleteBinding(bindingID, boshVMs, manifest, params)
 	p.mustNot(err, "deleting binding")
 }
 

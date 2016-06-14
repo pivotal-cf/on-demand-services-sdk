@@ -20,6 +20,8 @@ type FakeDashboardUrlGenerator struct {
 		result1 serviceadapter.DashboardUrl
 		result2 error
 	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeDashboardUrlGenerator) DashboardUrl(instanceID string, plan serviceadapter.Plan, manifest bosh.BoshManifest) (serviceadapter.DashboardUrl, error) {
@@ -29,6 +31,7 @@ func (fake *FakeDashboardUrlGenerator) DashboardUrl(instanceID string, plan serv
 		plan       serviceadapter.Plan
 		manifest   bosh.BoshManifest
 	}{instanceID, plan, manifest})
+	fake.recordInvocation("DashboardUrl", []interface{}{instanceID, plan, manifest})
 	fake.dashboardUrlMutex.Unlock()
 	if fake.DashboardUrlStub != nil {
 		return fake.DashboardUrlStub(instanceID, plan, manifest)
@@ -55,6 +58,26 @@ func (fake *FakeDashboardUrlGenerator) DashboardUrlReturns(result1 serviceadapte
 		result1 serviceadapter.DashboardUrl
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeDashboardUrlGenerator) Invocations() map[string][][]interface{} {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	fake.dashboardUrlMutex.RLock()
+	defer fake.dashboardUrlMutex.RUnlock()
+	return fake.invocations
+}
+
+func (fake *FakeDashboardUrlGenerator) recordInvocation(key string, args []interface{}) {
+	fake.invocationsMutex.Lock()
+	defer fake.invocationsMutex.Unlock()
+	if fake.invocations == nil {
+		fake.invocations = map[string][][]interface{}{}
+	}
+	if fake.invocations[key] == nil {
+		fake.invocations[key] = [][]interface{}{}
+	}
+	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
 var _ serviceadapter.DashboardUrlGenerator = new(FakeDashboardUrlGenerator)

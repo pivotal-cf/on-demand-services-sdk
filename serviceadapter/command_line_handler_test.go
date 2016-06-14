@@ -105,6 +105,8 @@ var _ = Describe("Command line handler", func() {
 		expectedBoshVMs   = bosh.BoshVMs{"kafka": []string{"a", "b"}}
 		expectedManifest  = expectedPreviousManifest
 
+		expectedUnbindingRequestParams = serviceadapter.RequestParameters{"unbinding_param": "unbinding_value"}
+
 		expectedResultantBinding = serviceadapter.Binding{
 			RouteServiceURL: "a route",
 			SyslogDrainURL:  "a url",
@@ -289,16 +291,18 @@ var _ = Describe("Command line handler", func() {
 		})
 		Context("unbinding", func() {
 			var (
-				actualBindingId    string
-				actualBoshVMs      bosh.BoshVMs
-				actualBoshManifest bosh.BoshManifest
+				actualBindingId     string
+				actualBoshVMs       bosh.BoshVMs
+				actualBoshManifest  bosh.BoshManifest
+				actualRequestParams serviceadapter.RequestParameters
 			)
+
 			JustBeforeEach(func() {
-				actualBindingId, actualBoshVMs, actualBoshManifest = binder.DeleteBindingArgsForCall(0)
+				actualBindingId, actualBoshVMs, actualBoshManifest, actualRequestParams = binder.DeleteBindingArgsForCall(0)
 			})
 
 			BeforeEach(func() {
-				args = []string{"command-name", "delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedAribtaryParams)}
+				args = []string{"command-name", "delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)}
 				binder.DeleteBindingReturns(nil)
 			})
 
@@ -318,6 +322,10 @@ var _ = Describe("Command line handler", func() {
 			})
 			It("deserializes the manifest", func() {
 				Expect(actualBoshManifest).To(Equal(expectedManifest))
+			})
+
+			It("deserializes the request parameters", func() {
+				Expect(actualRequestParams).To(Equal(expectedUnbindingRequestParams))
 			})
 
 			Context("binding fails", func() {
