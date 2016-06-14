@@ -54,7 +54,7 @@ var _ = Describe("Command line handler", func() {
 			}},
 			Properties: serviceadapter.Properties{"example": "property"},
 		}
-		expectedAribtaryParams = map[string]interface{}{"key": "foo", "bar": "baz"}
+		expectedArbitraryParams = map[string]interface{}{"key": "foo", "bar": "baz"}
 
 		expectedResultantBoshManifest = bosh.BoshManifest{Name: "deployment-name",
 			Releases: []bosh.Release{
@@ -144,19 +144,19 @@ var _ = Describe("Command line handler", func() {
 
 		Context("generating a manifest", func() {
 			BeforeEach(func() {
-				args = []string{"command-name", "generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedAribtaryParams), "", "null"}
+				args = []string{"command-name", "generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedArbitraryParams), "", "null"}
 				manifestGenerator.GenerateManifestReturns(expectedResultantBoshManifest, nil)
 			})
 
 			var (
 				actualServiceDeployment serviceadapter.ServiceDeployment
 				acutalCurrentPlan       serviceadapter.Plan
-				acutalAribtaryParams    map[string]interface{}
+				acutalArbitraryParams   map[string]interface{}
 				actualPreviousManifest  *bosh.BoshManifest
 				actualPreviousPlan      *serviceadapter.Plan
 			)
 			JustBeforeEach(func() {
-				actualServiceDeployment, acutalCurrentPlan, acutalAribtaryParams, actualPreviousManifest, actualPreviousPlan = manifestGenerator.GenerateManifestArgsForCall(0)
+				actualServiceDeployment, acutalCurrentPlan, acutalArbitraryParams, actualPreviousManifest, actualPreviousPlan = manifestGenerator.GenerateManifestArgsForCall(0)
 			})
 			It("only invokes generate manifest", func() {
 				Expect(binder.CreateBindingCallCount()).To(BeZero())
@@ -173,8 +173,8 @@ var _ = Describe("Command line handler", func() {
 				Expect(acutalCurrentPlan).To(Equal(expectedCurrentPlan))
 			})
 
-			It("deserialises the aribitary params", func() {
-				Expect(acutalAribtaryParams).To(Equal(expectedAribtaryParams))
+			It("deserialises the arbitrary params", func() {
+				Expect(acutalArbitraryParams).To(Equal(expectedArbitraryParams))
 			})
 
 			It("deserialises the manfiest as nil", func() {
@@ -191,7 +191,7 @@ var _ = Describe("Command line handler", func() {
 
 			Context("when optional paramters are passed in", func() {
 				BeforeEach(func() {
-					args = []string{"command-name", "generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedAribtaryParams), toYaml(expectedPreviousManifest), toJson(expectedPreviousPlan)}
+					args = []string{"command-name", "generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedArbitraryParams), toYaml(expectedPreviousManifest), toJson(expectedPreviousPlan)}
 				})
 
 				It("deserialises the manfiest from params", func() {
@@ -226,7 +226,7 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			BeforeEach(func() {
-				args = []string{"command-name", "create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedAribtaryParams)}
+				args = []string{"command-name", "create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedArbitraryParams)}
 				binder.CreateBindingReturns(expectedResultantBinding, nil)
 			})
 
@@ -247,8 +247,8 @@ var _ = Describe("Command line handler", func() {
 			It("deserializes the manifest", func() {
 				Expect(actualBoshManifest).To(Equal(expectedManifest))
 			})
-			It("deserializes the aribitary params", func() {
-				Expect(actualBindingParams).To(Equal(expectedAribtaryParams))
+			It("deserializes the arbitrary params", func() {
+				Expect(actualBindingParams).To(Equal(expectedArbitraryParams))
 			})
 
 			It("serialzies binding result as json", func() {
@@ -395,7 +395,7 @@ var _ = Describe("Command line handler", func() {
 	Context("supporting parts of the interface", func() {
 		When("manifest generator isn't implemented", func() {
 			BeforeEach(func() {
-				args = []string{"command-name", "generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedAribtaryParams), "", "null"}
+				args = []string{"command-name", "generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedArbitraryParams), "", "null"}
 				serviceadapter.HandleCommandLineInvocation(args, nil, binder, dashboardUrlGenerator, log.New(io.MultiWriter(logBuffer, GinkgoWriter), "[on-demand-service-adapter-test] ", log.LstdFlags))
 			})
 			It("exits with 10", func() {
@@ -406,7 +406,7 @@ var _ = Describe("Command line handler", func() {
 		When("service binder isn't implemented", func() {
 			var command string
 			JustBeforeEach(func() {
-				args = []string{"command-name", command, toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedAribtaryParams), "", "null"}
+				args = []string{"command-name", command, toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedArbitraryParams), "", "null"}
 				serviceadapter.HandleCommandLineInvocation(args, manifestGenerator, nil, dashboardUrlGenerator, log.New(io.MultiWriter(logBuffer, GinkgoWriter), "[on-demand-service-adapter-test] ", log.LstdFlags))
 			})
 			Context("create-binding", func() {
