@@ -1,7 +1,9 @@
 ---
 platform: linux
 
-image: docker:///pcfservicesenablement/services-enablement-ci
+image_resource:
+  type: docker-image
+  source: {repository: pcfservicesenablement/services-enablement-ci}
 
 inputs:
   - name: on-demand-service-broker-sdk
