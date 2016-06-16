@@ -43,8 +43,9 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 						Provides: map[string]bosh.ProvidesLink{
 							"some_link": {As: "link-name"},
 						},
-						Consumes: map[string]bosh.ConsumesLink{
-							"another_link": {From: "jerb-link"},
+						Consumes: map[string]interface{}{
+							"another_link":   bosh.ConsumesLink{From: "jerb-link"},
+							"nullified_link": "nil",
 						},
 						Properties: map[string]interface{}{
 							"some_property": "some_value",
@@ -93,23 +94,15 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 		},
 	}
 
-	It("deserialises BOSH manifests", func() {
+	It("serialises bosh manifests", func() {
 		cwd, err := os.Getwd()
 		Expect(err).NotTo(HaveOccurred())
 		manifestBytes, err := ioutil.ReadFile(filepath.Join(cwd, "fixtures", "manifest.yml"))
 		Expect(err).NotTo(HaveOccurred())
-		var manifest bosh.BoshManifest
-		Expect(yaml.Unmarshal(manifestBytes, &manifest)).To(Succeed())
 
-		Expect(manifest).To(Equal(sampleManifest))
-	})
-
-	It("serialises and deserialises a bosh manifest", func() {
-		content, err := yaml.Marshal(sampleManifest)
+		serialisedManifest, err := yaml.Marshal(sampleManifest)
 		Expect(err).NotTo(HaveOccurred())
-		var actualManifest bosh.BoshManifest
-		Expect(yaml.Unmarshal(content, &actualManifest)).To(Succeed())
-		Expect(actualManifest).To(Equal(sampleManifest))
+		Expect(serialisedManifest).To(MatchYAML(manifestBytes))
 	})
 
 	It("omits optional keys", func() {

@@ -8,7 +8,7 @@ releases:
 stemcells:
   - alias: greatest
     os: Windows
-    version: 3.1
+    version: "3.1"
 
 instance_groups:
   - name: jerb
@@ -20,6 +20,7 @@ instance_groups:
           some_link: {as: link-name}
         consumes:
           another_link: {from: jerb-link}
+          nullified_link: nil
         properties:
           some_property: some_value
     vm_type: massive

@@ -37,7 +37,7 @@ type Job struct {
 	Name       string                  `yaml:"name"`
 	Release    string                  `yaml:"release"`
 	Provides   map[string]ProvidesLink `yaml:"provides,omitempty"`
-	Consumes   map[string]ConsumesLink `yaml:"consumes,omitempty"`
+	Consumes   map[string]interface{}  `yaml:"consumes,omitempty"`
 	Properties map[string]interface{}  `yaml:"properties,omitempty"`
 }
 
