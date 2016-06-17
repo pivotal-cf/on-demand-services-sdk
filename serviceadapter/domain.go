@@ -102,6 +102,7 @@ type Properties map[string]interface{}
 type Plan struct {
 	Properties     Properties      `json:"properties"`
 	InstanceGroups []InstanceGroup `json:"instance_groups" validate:"required,dive"`
+	Update         *Update         `json:"update,omitempty"`
 }
 
 func (p Plan) Validate() error {
@@ -116,6 +117,14 @@ type InstanceGroup struct {
 	Networks       []string `json:"networks" validate:"required"`
 	AZs            []string `json:"azs" validate:"required,min=1"`
 	Lifecycle      string   `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
+}
+
+type Update struct {
+	Canaries        int    `json:"canaries" yaml:"canaries"`
+	CanaryWatchTime string `json:"canary_watch_time" yaml:"canary_watch_time"`
+	UpdateWatchTime string `json:"update_watch_time" yaml:"update_watch_time"`
+	MaxInFlight     int    `json:"max_in_flight" yaml:"max_in_flight"`
+	Serial          *bool  `json:"serial,omitempty" yaml:"serial,omitempty"`
 }
 
 type Binding struct {

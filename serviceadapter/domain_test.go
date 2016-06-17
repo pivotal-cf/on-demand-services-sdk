@@ -10,6 +10,10 @@ import (
 )
 
 var _ = Describe("Domain", func() {
+	booleanPointer := func(b bool) *bool {
+		return &b
+	}
+
 	Context("RequestParameters", func() {
 		Context("when arbitraryParams are present", func() {
 			It("can extract arbitraryParams", func() {
@@ -51,7 +55,14 @@ var _ = Describe("Domain", func() {
 				],
 				"properties": {
 					"example": "property"
-				 }
+				},
+				"update": {
+					"canaries": 1,
+					"max_in_flight": 10,
+					"canary_watch_time": "1000-30000",
+					"update_watch_time": "1000-30000",
+					"serial": false
+				}
 			}`)
 
 			expectedPlan := serviceadapter.Plan{
@@ -65,6 +76,13 @@ var _ = Describe("Domain", func() {
 					Lifecycle:      "errand",
 				}},
 				Properties: serviceadapter.Properties{"example": "property"},
+				Update: &serviceadapter.Update{
+					Canaries:        1,
+					MaxInFlight:     10,
+					CanaryWatchTime: "1000-30000",
+					UpdateWatchTime: "1000-30000",
+					Serial:          booleanPointer(false),
+				},
 			}
 
 			It("deserialises plan object containing all optional fields from json", func() {
@@ -90,19 +108,19 @@ var _ = Describe("Domain", func() {
 				}
 
 				planJson := []byte(`{
-				"instance_groups": [
-					{
-						"name": "example-server",
-						"vm_type": "small",
-						"networks": [
-							"example-network"
-						],
-						"instances": 1,
-						"azs": ["az1"]
-					}
-				],
-				"properties": {}
-			}`)
+					"instance_groups": [
+						{
+							"name": "example-server",
+							"vm_type": "small",
+							"networks": [
+								"example-network"
+							],
+							"instances": 1,
+							"azs": ["az1"]
+						}
+					],
+					"properties": {}
+				}`)
 				Expect(json.Marshal(expectedPlan)).To(MatchJSON(planJson))
 			})
 
@@ -120,6 +138,35 @@ var _ = Describe("Domain", func() {
 				Expect(planJson).To(ContainSubstring("instances"))
 				Expect(planJson).To(ContainSubstring("networks"))
 				Expect(planJson).To(ContainSubstring("azs"))
+			})
+
+			It("serialises required fields for update", func() {
+				plan := serviceadapter.Plan{
+					InstanceGroups: []serviceadapter.InstanceGroup{{}},
+					Properties:     serviceadapter.Properties{},
+					Update:         &serviceadapter.Update{},
+				}
+
+				planJson, err := json.Marshal(plan)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(planJson).To(ContainSubstring("canaries"))
+				Expect(planJson).To(ContainSubstring("max_in_flight"))
+				Expect(planJson).To(ContainSubstring("canary_watch_time"))
+				Expect(planJson).To(ContainSubstring("update_watch_time"))
+			})
+
+			It("does not serialise optional fields for update", func() {
+				plan := serviceadapter.Plan{
+					InstanceGroups: []serviceadapter.InstanceGroup{{}},
+					Properties:     serviceadapter.Properties{},
+					Update:         &serviceadapter.Update{},
+				}
+
+				planJson, err := json.Marshal(plan)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(planJson).NotTo(ContainSubstring("serial"))
 			})
 		})
 
