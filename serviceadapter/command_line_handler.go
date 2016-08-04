@@ -2,7 +2,6 @@ package serviceadapter
 
 import (
 	"encoding/json"
-	"io"
 	"log"
 	"os"
 
@@ -13,16 +12,14 @@ import (
 type commandLineHandler struct {
 	manifestGenerator     ManifestGenerator
 	binder                Binder
-	dashboardUrlGenerator DashboardUrlGenerator
+	dashboardURLGenerator DashboardUrlGenerator
 	logger                *log.Logger
 }
 
-var OutputWriter io.Writer = os.Stdout
-var Exiter func(int) = os.Exit
-
-func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenerator, binder Binder, dashboardUrlGenerator DashboardUrlGenerator, logger *log.Logger) {
+func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenerator, binder Binder, dashboardUrlGenerator DashboardUrlGenerator) {
+	logger := log.New(os.Stderr, "[odb-sdk] ", log.LstdFlags)
 	logger.Printf("handling %s", args[1])
-	handler := commandLineHandler{manifestGenerator: manifestGenerator, binder: binder, dashboardUrlGenerator: dashboardUrlGenerator, logger: logger}
+	handler := commandLineHandler{manifestGenerator: manifestGenerator, binder: binder, dashboardURLGenerator: dashboardUrlGenerator, logger: logger}
 	switch args[1] {
 	case "generate-manifest":
 		if handler.manifestGenerator != nil {
@@ -71,7 +68,6 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 }
 
 func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON string) {
-
 	var serviceDeployment ServiceDeployment
 	p.must(json.Unmarshal([]byte(serviceDeploymentJSON), &serviceDeployment), "unmarshalling service deployment")
 	p.must(serviceDeployment.Validate(), "validating service deployment")
@@ -98,7 +94,7 @@ func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 		fail(p.logger, "error marshalling bosh manifest: %s", err)
 	}
 
-	OutputWriter.Write(manifestBytes)
+	os.Stdout.Write(manifestBytes)
 }
 
 func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, requestParams string) {
@@ -123,7 +119,7 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 		break
 	}
 
-	p.must(json.NewEncoder(OutputWriter).Encode(binding), "marshalling binding")
+	p.must(json.NewEncoder(os.Stdout).Encode(binding), "marshalling binding")
 }
 
 func (p commandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML string, requestParams string) {
@@ -148,10 +144,10 @@ func (p commandLineHandler) dashboardUrl(instanceID, planJSON, manifestYAML stri
 	var manifest bosh.BoshManifest
 	p.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
 
-	dashboardUrl, err := p.dashboardUrlGenerator.DashboardUrl(instanceID, plan, manifest)
+	dashboardUrl, err := p.dashboardURLGenerator.DashboardUrl(instanceID, plan, manifest)
 	p.mustNot(err, "generating dashboardUrl")
 
-	p.must(json.NewEncoder(OutputWriter).Encode(dashboardUrl), "marshalling dashboardUrl")
+	p.must(json.NewEncoder(os.Stdout).Encode(dashboardUrl), "marshalling dashboardUrl")
 }
 func (p commandLineHandler) must(err error, msg string) {
 	if err != nil {
@@ -169,5 +165,5 @@ func fail(logger *log.Logger, format string, params ...interface{}) {
 
 func failWithCode(logger *log.Logger, code int, format string, params ...interface{}) {
 	logger.Printf(format, params...)
-	Exiter(code)
+	os.Exit(code)
 }
