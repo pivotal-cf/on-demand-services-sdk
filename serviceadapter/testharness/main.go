@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -96,7 +97,8 @@ func (m *manifestGenerator) GenerateManifest(serviceDeployment serviceadapter.Se
 	}
 
 	if os.Getenv(testvariables.OperationFailsKey) == OperationShouldFail {
-		return bosh.BoshManifest{}, errors.New("not valid")
+		fmt.Fprintf(os.Stderr, "not valid")
+		return bosh.BoshManifest{}, errors.New("some message to the user")
 	}
 
 	return bosh.BoshManifest{Name: "deployment-name",
@@ -150,11 +152,11 @@ func (b *binder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs
 
 	switch os.Getenv(testvariables.OperationFailsKey) {
 	case testvariables.ErrAppGuidNotProvided:
-		return errs(serviceadapter.NewAppGuidNotProvidedError(nil))
+		return errs(serviceadapter.NewAppGuidNotProvidedError(errors.New("Something went wrong. Please contact your operator")))
 	case testvariables.ErrBindingAlreadyExists:
-		return errs(serviceadapter.NewBindingAlreadyExistsError(nil))
+		return errs(serviceadapter.NewBindingAlreadyExistsError(errors.New("binding already exists")))
 	case OperationShouldFail:
-		return errs(errors.New("not valid"))
+		return errs(errors.New("An internal error occured."))
 	}
 
 	return testvariables.SuccessfulBinding, nil
@@ -166,7 +168,7 @@ func (b *binder) DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs
 	}
 
 	if os.Getenv(testvariables.OperationFailsKey) == OperationShouldFail {
-		return errors.New("not valid")
+		return errors.New("An error occurred")
 	}
 
 	return nil
@@ -212,7 +214,7 @@ func (d *dashboard) DashboardUrl(instanceID string, plan serviceadapter.Plan, ma
 	}
 
 	if os.Getenv(testvariables.OperationFailsKey) == OperationShouldFail {
-		return errs(errors.New("not valid"))
+		return errs(errors.New("An error occurred"))
 	}
 
 	return serviceadapter.DashboardUrl{DashboardUrl: "http://dashboard.com"}, nil

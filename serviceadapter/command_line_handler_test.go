@@ -281,7 +281,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("Fails and logs", func() {
 				Expect(exitCode).To(Equal(1))
-				Expect(stderr).To(ContainSubstring("not valid"))
+				Expect(stdout).To(ContainSubstring("some message to the user"))
 			})
 		})
 	})
@@ -337,7 +337,7 @@ var _ = Describe("Command line handler", func() {
 				})
 
 				It("Fails and logs", func() {
-					Expect(stderr).To(ContainSubstring("[odb-sdk] creating binding"))
+					Expect(stdout).To(ContainSubstring("binding already exists"))
 					Expect(exitCode).To(Equal(49))
 				})
 			})
@@ -348,6 +348,7 @@ var _ = Describe("Command line handler", func() {
 				})
 
 				It("Fails and logs", func() {
+					Expect(stdout).To(ContainSubstring("Something went wrong. Please contact your operator"))
 					Expect(exitCode).To(Equal(42))
 				})
 
@@ -360,7 +361,7 @@ var _ = Describe("Command line handler", func() {
 
 				It("Fails and logs", func() {
 					Expect(exitCode).To(Equal(1))
-					Expect(stderr).To(ContainSubstring("not valid"))
+					Expect(stdout).To(ContainSubstring("An internal error occured."))
 				})
 			})
 		})
@@ -412,7 +413,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("Fails and logs", func() {
 				Expect(exitCode).To(Equal(1))
-				Expect(stderr).To(ContainSubstring("not valid"))
+				Expect(stdout).To(ContainSubstring("An error occurred"))
 			})
 		})
 	})
@@ -464,8 +465,7 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("logs the error", func() {
-				Expect(stderr).To(HavePrefix("[odb-sdk]"))
-				Expect(stderr).To(ContainSubstring("not valid"))
+				Expect(stdout).To(ContainSubstring("An error occurred"))
 			})
 		})
 	})

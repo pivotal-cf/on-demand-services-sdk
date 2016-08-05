@@ -85,7 +85,9 @@ func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 	p.must(plan.Validate(), "validating previous service plan")
 
 	manifest, err := p.manifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan)
-	p.mustNot(err, "generating manifest")
+	if err != nil {
+		failWithCodeAndNotifyUser(1, err.Error())
+	}
 
 	manifestBytes, err := yaml.Marshal(manifest)
 	if err != nil {
@@ -108,11 +110,11 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	binding, err := p.binder.CreateBinding(bindingID, boshVMs, manifest, params)
 	switch err := err.(type) {
 	case BindingAlreadyExistsError:
-		failWithCode(49, "creating binding: %v", err)
+		failWithCodeAndNotifyUser(49, err.Error())
 	case AppGuidNotProvidedError:
-		failWithCode(42, "creating binding: %v", err)
+		failWithCodeAndNotifyUser(42, err.Error())
 	case error:
-		p.mustNot(err, "creating binding")
+		failWithCodeAndNotifyUser(1, err.Error())
 	default:
 		break
 	}
@@ -131,7 +133,9 @@ func (p commandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML s
 	p.must(json.Unmarshal([]byte(requestParams), &params), "unmarshalling request binding parameters")
 
 	err := p.binder.DeleteBinding(bindingID, boshVMs, manifest, params)
-	p.mustNot(err, "deleting binding")
+	if err != nil {
+		failWithCodeAndNotifyUser(1, err.Error())
+	}
 }
 
 func (p commandLineHandler) dashboardUrl(instanceID, planJSON, manifestYAML string) {
@@ -143,7 +147,9 @@ func (p commandLineHandler) dashboardUrl(instanceID, planJSON, manifestYAML stri
 	p.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
 
 	dashboardUrl, err := p.dashboardURLGenerator.DashboardUrl(instanceID, plan, manifest)
-	p.mustNot(err, "generating dashboardUrl")
+	if err != nil {
+		failWithCodeAndNotifyUser(1, err.Error())
+	}
 
 	p.must(json.NewEncoder(os.Stdout).Encode(dashboardUrl), "marshalling dashboardUrl")
 }
@@ -163,5 +169,10 @@ func fail(format string, params ...interface{}) {
 
 func failWithCode(code int, format string, params ...interface{}) {
 	fmt.Fprintf(os.Stderr, fmt.Sprintf("[odb-sdk] %s\n", format), params...)
+	os.Exit(code)
+}
+
+func failWithCodeAndNotifyUser(code int, format string) {
+	fmt.Fprintf(os.Stdout, fmt.Sprintf("%s\n", format))
 	os.Exit(code)
 }
