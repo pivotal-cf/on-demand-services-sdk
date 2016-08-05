@@ -337,6 +337,7 @@ var _ = Describe("Command line handler", func() {
 				})
 
 				It("Fails and logs", func() {
+					Expect(stderr).To(ContainSubstring("[odb-sdk] creating binding"))
 					Expect(exitCode).To(Equal(49))
 				})
 			})
@@ -463,6 +464,7 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("logs the error", func() {
+				Expect(stderr).To(HavePrefix("[odb-sdk]"))
 				Expect(stderr).To(ContainSubstring("not valid"))
 			})
 		})

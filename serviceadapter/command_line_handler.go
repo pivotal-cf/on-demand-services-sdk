@@ -2,7 +2,7 @@ package serviceadapter
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"os"
 
 	"github.com/pivotal-cf/on-demand-service-broker-sdk/bosh"
@@ -13,13 +13,11 @@ type commandLineHandler struct {
 	manifestGenerator     ManifestGenerator
 	binder                Binder
 	dashboardURLGenerator DashboardUrlGenerator
-	logger                *log.Logger
 }
 
 func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenerator, binder Binder, dashboardUrlGenerator DashboardUrlGenerator) {
-	logger := log.New(os.Stderr, "[odb-sdk] ", log.LstdFlags)
-	logger.Printf("handling %s", args[1])
-	handler := commandLineHandler{manifestGenerator: manifestGenerator, binder: binder, dashboardURLGenerator: dashboardUrlGenerator, logger: logger}
+	fmt.Fprintf(os.Stderr, "[odb-sdk] handling %s\n", args[1])
+	handler := commandLineHandler{manifestGenerator: manifestGenerator, binder: binder, dashboardURLGenerator: dashboardUrlGenerator}
 	switch args[1] {
 	case "generate-manifest":
 		if handler.manifestGenerator != nil {
@@ -30,7 +28,7 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			previousPlanJSON := args[6]
 			handler.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON)
 		} else {
-			failWithCode(logger, 10, "manifest generator not implemented")
+			failWithCode(10, "manifest generator not implemented")
 		}
 
 	case "create-binding":
@@ -41,7 +39,7 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			bindingArbitraryParams := args[5]
 			handler.createBinding(bindingID, boshVMsJSON, manifestYAML, bindingArbitraryParams)
 		} else {
-			failWithCode(logger, 10, "binder not implemented")
+			failWithCode(10, "binder not implemented")
 		}
 	case "delete-binding":
 		if handler.binder != nil {
@@ -51,7 +49,7 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			unbindingRequestParams := args[5]
 			handler.deleteBinding(bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams)
 		} else {
-			failWithCode(logger, 10, "binder not implemented")
+			failWithCode(10, "binder not implemented")
 		}
 	case "dashboard-url":
 		if dashboardUrlGenerator != nil {
@@ -60,10 +58,10 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			manifestYAML := args[4]
 			handler.dashboardUrl(instanceID, planJSON, manifestYAML)
 		} else {
-			failWithCode(logger, 10, "dashboard-url not implemented")
+			failWithCode(10, "dashboard-url not implemented")
 		}
 	default:
-		fail(logger, "unknown subcommand: %s", args[1])
+		fail("unknown subcommand: %s", args[1])
 	}
 }
 
@@ -91,10 +89,10 @@ func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 
 	manifestBytes, err := yaml.Marshal(manifest)
 	if err != nil {
-		fail(p.logger, "error marshalling bosh manifest: %s", err)
+		fail("error marshalling bosh manifest: %s", err)
 	}
 
-	os.Stdout.Write(manifestBytes)
+	fmt.Fprintf(os.Stdout, string(manifestBytes))
 }
 
 func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, requestParams string) {
@@ -110,9 +108,9 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	binding, err := p.binder.CreateBinding(bindingID, boshVMs, manifest, params)
 	switch err := err.(type) {
 	case BindingAlreadyExistsError:
-		failWithCode(p.logger, 49, "creating binding: %v", err)
+		failWithCode(49, "creating binding: %v", err)
 	case AppGuidNotProvidedError:
-		failWithCode(p.logger, 42, "creating binding: %v", err)
+		failWithCode(42, "creating binding: %v", err)
 	case error:
 		p.mustNot(err, "creating binding")
 	default:
@@ -151,7 +149,7 @@ func (p commandLineHandler) dashboardUrl(instanceID, planJSON, manifestYAML stri
 }
 func (p commandLineHandler) must(err error, msg string) {
 	if err != nil {
-		fail(p.logger, "error %s: %s\n", msg, err)
+		fail("error %s: %s\n", msg, err)
 	}
 }
 
@@ -159,11 +157,11 @@ func (p commandLineHandler) mustNot(err error, msg string) {
 	p.must(err, msg)
 }
 
-func fail(logger *log.Logger, format string, params ...interface{}) {
-	failWithCode(logger, 1, format, params...)
+func fail(format string, params ...interface{}) {
+	failWithCode(1, format, params...)
 }
 
-func failWithCode(logger *log.Logger, code int, format string, params ...interface{}) {
-	logger.Printf(format, params...)
+func failWithCode(code int, format string, params ...interface{}) {
+	fmt.Fprintf(os.Stderr, fmt.Sprintf("[odb-sdk] %s\n", format), params...)
 	os.Exit(code)
 }
