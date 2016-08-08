@@ -173,6 +173,6 @@ func failWithCode(code int, format string, params ...interface{}) {
 }
 
 func failWithCodeAndNotifyUser(code int, format string) {
-	fmt.Fprintf(os.Stdout, fmt.Sprintf("%s\n", format))
+	fmt.Fprintf(os.Stdout, fmt.Sprintf("%s", format))
 	os.Exit(code)
 }

@@ -281,7 +281,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("Fails and logs", func() {
 				Expect(exitCode).To(Equal(1))
-				Expect(stdout).To(ContainSubstring("some message to the user"))
+				Expect(stdout.String()).To(Equal("some message to the user"))
 			})
 		})
 	})
@@ -337,7 +337,7 @@ var _ = Describe("Command line handler", func() {
 				})
 
 				It("Fails and logs", func() {
-					Expect(stdout).To(ContainSubstring("binding already exists"))
+					Expect(stdout.String()).To(Equal("binding already exists"))
 					Expect(exitCode).To(Equal(49))
 				})
 			})
@@ -348,7 +348,7 @@ var _ = Describe("Command line handler", func() {
 				})
 
 				It("Fails and logs", func() {
-					Expect(stdout).To(ContainSubstring("Something went wrong. Please contact your operator"))
+					Expect(stdout.String()).To(Equal("Something went wrong. Please contact your operator"))
 					Expect(exitCode).To(Equal(42))
 				})
 
@@ -361,7 +361,7 @@ var _ = Describe("Command line handler", func() {
 
 				It("Fails and logs", func() {
 					Expect(exitCode).To(Equal(1))
-					Expect(stdout).To(ContainSubstring("An internal error occured."))
+					Expect(stdout.String()).To(Equal("An internal error occured."))
 				})
 			})
 		})
@@ -413,7 +413,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("Fails and logs", func() {
 				Expect(exitCode).To(Equal(1))
-				Expect(stdout).To(ContainSubstring("An error occurred"))
+				Expect(stdout.String()).To(Equal("An error occurred"))
 			})
 		})
 	})
@@ -465,7 +465,7 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("logs the error", func() {
-				Expect(stdout).To(ContainSubstring("An error occurred"))
+				Expect(stdout.String()).To(Equal("An error occurred"))
 			})
 		})
 	})
