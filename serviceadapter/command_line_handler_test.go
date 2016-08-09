@@ -142,21 +142,33 @@ var _ = Describe("Command line handler", func() {
 		return file.Name()
 	}
 
-	BeforeEach(func() {
+	createTempFilesForGenerateManifest := func() {
 		serviceDeploymentFilePath = createTempFile()
 		planFilePath = createTempFile()
 		requestParamsFilePath = createTempFile()
 		previousManifestFilePath = createTempFile()
 		previousPlanFilePath = createTempFile()
+	}
 
+	createTempFilesForBinding := func() {
 		bindingIdFilePath = createTempFile()
 		boshVMsFilePath = createTempFile()
 		boshManifestFilePath = createTempFile()
 		bindingParamsFilePath = createTempFile()
+	}
 
+	createTempFilesForDashboardURL := func() {
 		instanceIDFilePath = createTempFile()
 		dashboardPlanFilePath = createTempFile()
 		dashboardManifestFilePath = createTempFile()
+	}
+
+	BeforeEach(func() {
+		createTempFilesForGenerateManifest()
+
+		createTempFilesForBinding()
+
+		createTempFilesForDashboardURL()
 
 		doNotImplementInterfaces = false
 	})
