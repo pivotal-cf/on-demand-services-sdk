@@ -81,6 +81,7 @@ var _ = Describe("Command line handler", func() {
 			}},
 			Properties: serviceadapter.Properties{"example": "property"},
 		}
+
 		expectedPlan = expectedPreviousPlan
 
 		expectedPreviousManifest = bosh.BoshManifest{Name: "another-deployment-name",

@@ -32,7 +32,7 @@ var _ = Describe("Domain", func() {
 	Context("DashboardUrl", func() {
 		It("serializes dashboard_url", func() {
 			dashboardUrl := serviceadapter.DashboardUrl{DashboardUrl: "https://someurl.com"}
-			Expect(json.Marshal(dashboardUrl)).To(MatchJSON(`{ "dashboard_url": "https://someurl.com"}`))
+			Expect(toJson(dashboardUrl)).To(MatchJSON(`{ "dashboard_url": "https://someurl.com"}`))
 		})
 	})
 	Context("plan", func() {
@@ -92,7 +92,7 @@ var _ = Describe("Domain", func() {
 			})
 
 			It("serialises plan object containing all optional fields to json", func() {
-				Expect(json.Marshal(expectedPlan)).To(MatchJSON(planJson))
+				Expect(toJson(expectedPlan)).To(MatchJSON(planJson))
 			})
 
 			It("serialises plan object containing only mandatory fields to json", func() {
@@ -121,7 +121,7 @@ var _ = Describe("Domain", func() {
 					],
 					"properties": {}
 				}`)
-				Expect(json.Marshal(expectedPlan)).To(MatchJSON(planJson))
+				Expect(toJson(expectedPlan)).To(MatchJSON(planJson))
 			})
 
 			It("serializes required fields for instance_groups", func() {
@@ -130,8 +130,7 @@ var _ = Describe("Domain", func() {
 					Properties:     serviceadapter.Properties{},
 				}
 
-				planJson, err := json.Marshal(plan)
-				Expect(err).ToNot(HaveOccurred())
+				planJson := toJson(plan)
 
 				Expect(planJson).To(ContainSubstring("name"))
 				Expect(planJson).To(ContainSubstring("vm_type"))
@@ -147,8 +146,7 @@ var _ = Describe("Domain", func() {
 					Update:         &serviceadapter.Update{},
 				}
 
-				planJson, err := json.Marshal(plan)
-				Expect(err).ToNot(HaveOccurred())
+				planJson := toJson(plan)
 
 				Expect(planJson).To(ContainSubstring("canaries"))
 				Expect(planJson).To(ContainSubstring("max_in_flight"))
@@ -163,8 +161,7 @@ var _ = Describe("Domain", func() {
 					Update:         &serviceadapter.Update{},
 				}
 
-				planJson, err := json.Marshal(plan)
-				Expect(err).ToNot(HaveOccurred())
+				planJson := toJson(plan)
 
 				Expect(planJson).NotTo(ContainSubstring("serial"))
 			})

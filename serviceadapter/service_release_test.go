@@ -29,7 +29,7 @@ var _ = Describe("ServiceRelease", func() {
 		})
 
 		It("serialises a ServiceRelease object to JSON", func() {
-			Expect(json.Marshal(expectedServiceRelease)).To(MatchJSON(serviceReleaseJson))
+			Expect(toJson(expectedServiceRelease)).To(MatchJSON(serviceReleaseJson))
 		})
 	})
 

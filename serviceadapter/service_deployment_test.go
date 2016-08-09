@@ -62,7 +62,7 @@ var _ = Describe("ServiceDeployment", func() {
 		})
 
 		It("serialises a ServiceDeployment object to JSON", func() {
-			Expect(json.Marshal(expectedServiceDeployment)).To(MatchJSON(serviceDeploymentJSON))
+			Expect(toJson(expectedServiceDeployment)).To(MatchJSON(serviceDeploymentJSON))
 		})
 	})
 
