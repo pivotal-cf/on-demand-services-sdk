@@ -52,7 +52,7 @@ var _ = Describe("Command line handler", func() {
 			}},
 			Properties: serviceadapter.Properties{"example": "property"},
 		}
-		expectedArbitraryParams = map[string]interface{}{"key": "foo", "bar": "baz"}
+		expectedRequestParams = map[string]interface{}{"key": "foo", "bar": "baz"}
 
 		expectedResultantBoshManifest = bosh.BoshManifest{Name: "deployment-name",
 			Releases: []bosh.Release{
@@ -118,7 +118,7 @@ var _ = Describe("Command line handler", func() {
 
 		serviceDeploymentFilePath string
 		planFilePath              string
-		arbitraryParamsFilePath   string
+		requestParamsFilePath     string
 		previousManifestFilePath  string
 		previousPlanFilePath      string
 
@@ -144,7 +144,7 @@ var _ = Describe("Command line handler", func() {
 	BeforeEach(func() {
 		serviceDeploymentFilePath = createTempFile()
 		planFilePath = createTempFile()
-		arbitraryParamsFilePath = createTempFile()
+		requestParamsFilePath = createTempFile()
 		previousManifestFilePath = createTempFile()
 		previousPlanFilePath = createTempFile()
 
@@ -162,7 +162,7 @@ var _ = Describe("Command line handler", func() {
 
 	AfterEach(func() {
 		for _, filePath := range []string{
-			serviceDeploymentFilePath, planFilePath, arbitraryParamsFilePath, previousManifestFilePath, previousPlanFilePath,
+			serviceDeploymentFilePath, planFilePath, requestParamsFilePath, previousManifestFilePath, previousPlanFilePath,
 			bindingIdFilePath, boshVMsFilePath, boshManifestFilePath, bindingParamsFilePath,
 			instanceIDFilePath, dashboardPlanFilePath, dashboardManifestFilePath,
 		} {
@@ -176,7 +176,7 @@ var _ = Describe("Command line handler", func() {
 			fmt.Sprintf("%s=%s", testvariables.OperationFailsKey, operationFails),
 			fmt.Sprintf("%s=%s", testvariables.GenerateManifestServiceDeploymentFileKey, serviceDeploymentFilePath),
 			fmt.Sprintf("%s=%s", testvariables.GenerateManifestPlanFileKey, planFilePath),
-			fmt.Sprintf("%s=%s", testvariables.GenerateManifestArbitraryParamsFileKey, arbitraryParamsFilePath),
+			fmt.Sprintf("%s=%s", testvariables.GenerateManifestRequestParamsFileKey, requestParamsFilePath),
 			fmt.Sprintf("%s=%s", testvariables.GenerateManifestPreviousManifestFileKey, previousManifestFilePath),
 			fmt.Sprintf("%s=%s", testvariables.GenerateManifestPreviousPlanFileKey, previousPlanFilePath),
 
@@ -212,14 +212,14 @@ var _ = Describe("Command line handler", func() {
 
 	Context("generating a manifest", func() {
 		BeforeEach(func() {
-			args = []string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedArbitraryParams), "", "null"}
+			args = []string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"}
 			operationFails = ""
 		})
 
 		var (
 			actualServiceDeployment serviceadapter.ServiceDeployment
 			actualCurrentPlan       serviceadapter.Plan
-			actualArbitraryParams   map[string]interface{}
+			actualRequestParams     map[string]interface{}
 			actualPreviousManifest  *bosh.BoshManifest
 			actualPreviousPlan      *serviceadapter.Plan
 		)
@@ -227,7 +227,7 @@ var _ = Describe("Command line handler", func() {
 		JustBeforeEach(func() {
 			jsonDeserialise(serviceDeploymentFilePath, &actualServiceDeployment)
 			jsonDeserialise(planFilePath, &actualCurrentPlan)
-			jsonDeserialise(arbitraryParamsFilePath, &actualArbitraryParams)
+			jsonDeserialise(requestParamsFilePath, &actualRequestParams)
 			yamlDeserialise(previousManifestFilePath, &actualPreviousManifest)
 			jsonDeserialise(previousPlanFilePath, &actualPreviousPlan)
 		})
@@ -244,11 +244,11 @@ var _ = Describe("Command line handler", func() {
 			Expect(actualCurrentPlan).To(Equal(expectedCurrentPlan))
 		})
 
-		It("deserialises the arbitrary params", func() {
-			Expect(actualArbitraryParams).To(Equal(expectedArbitraryParams))
+		It("deserialises the request params", func() {
+			Expect(actualRequestParams).To(Equal(expectedRequestParams))
 		})
 
-		It("deserialises the manfiest as nil", func() {
+		It("deserialises the manifest as nil", func() {
 			Expect(actualPreviousManifest).To(BeNil())
 		})
 
@@ -260,12 +260,12 @@ var _ = Describe("Command line handler", func() {
 			Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
 		})
 
-		Context("when optional paramters are passed in", func() {
+		Context("when optional parameters are passed in", func() {
 			BeforeEach(func() {
-				args = []string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedArbitraryParams), toYaml(expectedPreviousManifest), toJson(expectedPreviousPlan)}
+				args = []string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), toYaml(expectedPreviousManifest), toJson(expectedPreviousPlan)}
 			})
 
-			It("deserialises the manfiest from params", func() {
+			It("deserialises the manifest from params", func() {
 				Expect(actualPreviousManifest).To(Equal(&expectedPreviousManifest))
 			})
 
@@ -302,7 +302,7 @@ var _ = Describe("Command line handler", func() {
 		})
 
 		BeforeEach(func() {
-			args = []string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedArbitraryParams)}
+			args = []string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}
 			operationFails = ""
 		})
 
@@ -322,8 +322,8 @@ var _ = Describe("Command line handler", func() {
 			Expect(actualBoshManifest).To(Equal(expectedManifest))
 		})
 
-		It("deserializes the arbitrary params", func() {
-			Expect(actualBindingParams).To(Equal(expectedArbitraryParams))
+		It("deserializes the binding request params", func() {
+			Expect(actualBindingParams).To(Equal(expectedRequestParams))
 		})
 
 		It("serialises binding result as json", func() {
@@ -477,7 +477,7 @@ var _ = Describe("Command line handler", func() {
 
 		Context("manifest generator isn't implemented", func() {
 			BeforeEach(func() {
-				args = []string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedArbitraryParams), "", "null"}
+				args = []string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"}
 			})
 
 			It("exits with 10", func() {
@@ -488,7 +488,7 @@ var _ = Describe("Command line handler", func() {
 		Context("service binder isn't implemented", func() {
 			Context("create-binding", func() {
 				BeforeEach(func() {
-					args = []string{"create-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedArbitraryParams), "", "null"}
+					args = []string{"create-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"}
 				})
 
 				It("exits with 10", func() {
@@ -498,7 +498,7 @@ var _ = Describe("Command line handler", func() {
 
 			Context("delete-binding", func() {
 				BeforeEach(func() {
-					args = []string{"delete-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedArbitraryParams), "", "null"}
+					args = []string{"delete-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"}
 				})
 
 				It("exits with 10", func() {

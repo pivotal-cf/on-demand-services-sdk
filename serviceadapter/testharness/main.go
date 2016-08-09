@@ -21,7 +21,7 @@ func main() {
 	for _, envVar := range []string{
 		testvariables.GenerateManifestServiceDeploymentFileKey,
 		testvariables.GenerateManifestPlanFileKey,
-		testvariables.GenerateManifestArbitraryParamsFileKey,
+		testvariables.GenerateManifestRequestParamsFileKey,
 		testvariables.GenerateManifestPreviousManifestFileKey,
 		testvariables.GenerateManifestPreviousPlanFileKey,
 		testvariables.BindingIdFileKey,
@@ -46,7 +46,7 @@ func main() {
 	manGen := &manifestGenerator{
 		serviceDeploymentFilePath: os.Getenv(testvariables.GenerateManifestServiceDeploymentFileKey),
 		planFilePath:              os.Getenv(testvariables.GenerateManifestPlanFileKey),
-		arbitraryParamsFilePath:   os.Getenv(testvariables.GenerateManifestArbitraryParamsFileKey),
+		requestParamsFilePath:     os.Getenv(testvariables.GenerateManifestRequestParamsFileKey),
 		previousManifestFilePath:  os.Getenv(testvariables.GenerateManifestPreviousManifestFileKey),
 		previousPlanFilePath:      os.Getenv(testvariables.GenerateManifestPreviousPlanFileKey),
 	}
@@ -70,7 +70,7 @@ func main() {
 type manifestGenerator struct {
 	serviceDeploymentFilePath string
 	planFilePath              string
-	arbitraryParamsFilePath   string
+	requestParamsFilePath     string
 	previousManifestFilePath  string
 	previousPlanFilePath      string
 }
@@ -84,7 +84,7 @@ func (m *manifestGenerator) GenerateManifest(serviceDeployment serviceadapter.Se
 		return bosh.BoshManifest{}, err
 	}
 
-	if err := jsonSerialiseToFile(m.arbitraryParamsFilePath, requestParams); err != nil {
+	if err := jsonSerialiseToFile(m.requestParamsFilePath, requestParams); err != nil {
 		return bosh.BoshManifest{}, err
 	}
 

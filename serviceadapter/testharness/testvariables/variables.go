@@ -7,14 +7,14 @@ const (
 
 	GenerateManifestServiceDeploymentFileKey = "GENERATE_MANIFEST_SERVICE_DEPLOYMENT_FILE"
 	GenerateManifestPlanFileKey              = "GENERATE_MANIFEST_PLAN_FILE"
-	GenerateManifestArbitraryParamsFileKey   = "GENERATE_MANIFEST_ARBITRARY_PARAMS_FILE"
+	GenerateManifestRequestParamsFileKey     = "GENERATE_MANIFEST_REQUEST_PARAMS_FILE"
 	GenerateManifestPreviousManifestFileKey  = "GENERATE_MANIFEST_PREVIOUS_MANIFEST_FILE"
 	GenerateManifestPreviousPlanFileKey      = "GENERATE_MANIFEST_PREVIOUS_PLAN_FILE"
 
-	BindingIdFileKey       = "BINDING_ID_FILE_KEY"
-	BindingVmsFileKey      = "BINDING_VMS_FILE_KEY"
-	BindingManifestFileKey = "BINDING_MANIFEST_FILE_KEY"
-	BindingParamsFileKey   = "BINDING_PARAMS_FILE_KEY"
+	BindingIdFileKey       = "BINDING_ID_FILE"
+	BindingVmsFileKey      = "BINDING_VMS_FILE"
+	BindingManifestFileKey = "BINDING_MANIFEST_FILE"
+	BindingParamsFileKey   = "BINDING_PARAMS_FILE"
 
 	DashboardURLInstanceIDKey = "DASHBOARD_URL_INSTANCE_ID_FILE"
 	DashboardURLPlanKey       = "DASHBOARD_URL_PLAN_FILE"
