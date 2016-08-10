@@ -26,19 +26,25 @@ type DashboardUrl struct {
 }
 
 type BindingAlreadyExistsError struct {
-	error
 }
 
 type AppGuidNotProvidedError struct {
-	error
 }
 
-func NewBindingAlreadyExistsError(e error) BindingAlreadyExistsError {
-	return BindingAlreadyExistsError{e}
+func (BindingAlreadyExistsError) Error() string {
+	return ""
 }
 
-func NewAppGuidNotProvidedError(e error) AppGuidNotProvidedError {
-	return AppGuidNotProvidedError{e}
+func (AppGuidNotProvidedError) Error() string {
+	return ""
+}
+
+func NewBindingAlreadyExistsError() BindingAlreadyExistsError {
+	return BindingAlreadyExistsError{}
+}
+
+func NewAppGuidNotProvidedError() AppGuidNotProvidedError {
+	return AppGuidNotProvidedError{}
 }
 
 type RequestParameters map[string]interface{}

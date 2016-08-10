@@ -152,9 +152,9 @@ func (b *binder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs
 
 	switch os.Getenv(testvariables.OperationFailsKey) {
 	case testvariables.ErrAppGuidNotProvided:
-		return errs(serviceadapter.NewAppGuidNotProvidedError(errors.New("Something went wrong. Please contact your operator")))
+		return errs(serviceadapter.NewAppGuidNotProvidedError())
 	case testvariables.ErrBindingAlreadyExists:
-		return errs(serviceadapter.NewBindingAlreadyExistsError(errors.New("binding already exists")))
+		return errs(serviceadapter.NewBindingAlreadyExistsError())
 	case OperationShouldFail:
 		return errs(errors.New("An internal error occured."))
 	}

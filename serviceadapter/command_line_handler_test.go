@@ -350,7 +350,7 @@ var _ = Describe("Command line handler", func() {
 				})
 
 				It("Fails and logs", func() {
-					Expect(stdout.String()).To(Equal("binding already exists"))
+					Expect(stdout.String()).To(Equal(""))
 					Expect(exitCode).To(Equal(49))
 				})
 			})
@@ -361,10 +361,9 @@ var _ = Describe("Command line handler", func() {
 				})
 
 				It("Fails and logs", func() {
-					Expect(stdout.String()).To(Equal("Something went wrong. Please contact your operator"))
+					Expect(stdout.String()).To(Equal(""))
 					Expect(exitCode).To(Equal(42))
 				})
-
 			})
 
 			Context("internal error", func() {
