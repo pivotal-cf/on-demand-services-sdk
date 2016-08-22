@@ -16,6 +16,10 @@ const (
 	BindingManifestFileKey = "BINDING_MANIFEST_FILE"
 	BindingParamsFileKey   = "BINDING_PARAMS_FILE"
 
+	DeprovisionInstanceIDFileKey = "DEPROVISION_INSTANCE_ID_FILE"
+	DeprovisionVmsFileKey        = "DEPROVISION_VMS_FILE"
+	DeprovisionManifestFileKey   = "DEPROVISION_MANIFEST_FILE"
+
 	DashboardURLInstanceIDKey = "DASHBOARD_URL_INSTANCE_ID_FILE"
 	DashboardURLPlanKey       = "DASHBOARD_URL_PLAN_FILE"
 	DashboardURLManifestKey   = "DASHBOARD_URL_MANIFEST_FILE"

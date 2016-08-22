@@ -17,6 +17,10 @@ type Binder interface {
 	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters) error
 }
 
+type Deprovisioner interface {
+	PreDeleteDeployment(instanceID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error
+}
+
 type DashboardUrlGenerator interface {
 	DashboardUrl(instanceID string, plan Plan, manifest bosh.BoshManifest) (DashboardUrl, error)
 }

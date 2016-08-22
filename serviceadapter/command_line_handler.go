@@ -13,11 +13,12 @@ type commandLineHandler struct {
 	manifestGenerator     ManifestGenerator
 	binder                Binder
 	dashboardURLGenerator DashboardUrlGenerator
+	deprovisioner         Deprovisioner
 }
 
-func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenerator, binder Binder, dashboardUrlGenerator DashboardUrlGenerator) {
+func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenerator, binder Binder, deprovisioner Deprovisioner, dashboardUrlGenerator DashboardUrlGenerator) {
 	fmt.Fprintf(os.Stderr, "[odb-sdk] handling %s\n", args[1])
-	handler := commandLineHandler{manifestGenerator: manifestGenerator, binder: binder, dashboardURLGenerator: dashboardUrlGenerator}
+	handler := commandLineHandler{manifestGenerator: manifestGenerator, binder: binder, deprovisioner: deprovisioner, dashboardURLGenerator: dashboardUrlGenerator}
 	switch args[1] {
 	case "generate-manifest":
 		if handler.manifestGenerator != nil {
@@ -51,6 +52,17 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 		} else {
 			failWithCode(10, "binder not implemented")
 		}
+
+	case "pre-delete-deployment":
+		if handler.deprovisioner != nil {
+			instanceID := args[2]
+			boshVMsJSON := args[3]
+			manifestYAML := args[4]
+			handler.deprovision(instanceID, boshVMsJSON, manifestYAML)
+		} else {
+			failWithCode(10, "deprovisioner not implemented")
+		}
+
 	case "dashboard-url":
 		if dashboardUrlGenerator != nil {
 			instanceID := args[2]
@@ -134,6 +146,18 @@ func (p commandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML s
 
 	err := p.binder.DeleteBinding(bindingID, boshVMs, manifest, params)
 	if err != nil {
+		failWithCodeAndNotifyUser(1, err.Error())
+	}
+}
+
+func (p commandLineHandler) deprovision(instanceID, boshVMsJSON, manifestYAML string) {
+	var boshVMs bosh.BoshVMs
+	p.must(json.Unmarshal([]byte(boshVMsJSON), &boshVMs), "unmarshalling BOSH VMs")
+
+	var manifest bosh.BoshManifest
+	p.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
+
+	if err := p.deprovisioner.PreDeleteDeployment(instanceID, boshVMs, manifest); err != nil {
 		failWithCodeAndNotifyUser(1, err.Error())
 	}
 }

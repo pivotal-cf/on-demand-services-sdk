@@ -104,6 +104,8 @@ var _ = Describe("Command line handler", func() {
 		expectedBoshVMs   = bosh.BoshVMs{"kafka": []string{"a", "b"}}
 		expectedManifest  = expectedPreviousManifest
 
+		expectedInstanceID = "some-instance-id"
+
 		expectedUnbindingRequestParams = serviceadapter.RequestParameters{"unbinding_param": "unbinding_value"}
 	)
 
@@ -127,6 +129,10 @@ var _ = Describe("Command line handler", func() {
 		boshVMsFilePath       string
 		boshManifestFilePath  string
 		bindingParamsFilePath string
+
+		deprovisionInstanceIDFilePath   string
+		deprovisionBoshVMsFilePath      string
+		deprovisionBoshManifestFilePath string
 
 		instanceIDFilePath        string
 		dashboardPlanFilePath     string
@@ -163,12 +169,17 @@ var _ = Describe("Command line handler", func() {
 		dashboardManifestFilePath = createTempFile()
 	}
 
+	createTempFilesForDeprovision := func() {
+		deprovisionInstanceIDFilePath = createTempFile()
+		deprovisionBoshVMsFilePath = createTempFile()
+		deprovisionBoshManifestFilePath = createTempFile()
+	}
+
 	BeforeEach(func() {
 		createTempFilesForGenerateManifest()
-
 		createTempFilesForBinding()
-
 		createTempFilesForDashboardURL()
+		createTempFilesForDeprovision()
 
 		doNotImplementInterfaces = false
 	})
@@ -197,6 +208,10 @@ var _ = Describe("Command line handler", func() {
 			fmt.Sprintf("%s=%s", testvariables.BindingVmsFileKey, boshVMsFilePath),
 			fmt.Sprintf("%s=%s", testvariables.BindingManifestFileKey, boshManifestFilePath),
 			fmt.Sprintf("%s=%s", testvariables.BindingParamsFileKey, bindingParamsFilePath),
+
+			fmt.Sprintf("%s=%s", testvariables.DeprovisionInstanceIDFileKey, deprovisionInstanceIDFilePath),
+			fmt.Sprintf("%s=%s", testvariables.DeprovisionVmsFileKey, deprovisionBoshVMsFilePath),
+			fmt.Sprintf("%s=%s", testvariables.DeprovisionManifestFileKey, deprovisionBoshManifestFilePath),
 
 			fmt.Sprintf("%s=%s", testvariables.DashboardURLInstanceIDKey, instanceIDFilePath),
 			fmt.Sprintf("%s=%s", testvariables.DashboardURLPlanKey, dashboardPlanFilePath),
@@ -430,6 +445,52 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
+	Context("deprovisioning", func() {
+		var (
+			actualInstanceID   string
+			actualBoshVMs      bosh.BoshVMs
+			actualBoshManifest bosh.BoshManifest
+		)
+
+		JustBeforeEach(func() {
+			jsonDeserialise(deprovisionInstanceIDFilePath, &actualInstanceID)
+			jsonDeserialise(deprovisionBoshVMsFilePath, &actualBoshVMs)
+			yamlDeserialise(deprovisionBoshManifestFilePath, &actualBoshManifest)
+		})
+
+		BeforeEach(func() {
+			args = []string{"pre-delete-deployment", expectedInstanceID, toJson(expectedBoshVMs), toYaml(expectedManifest)}
+			operationFails = ""
+		})
+
+		It("exits with 0", func() {
+			Expect(exitCode).To(Equal(0))
+		})
+
+		It("reads the instance id", func() {
+			Expect(actualInstanceID).To(Equal(expectedInstanceID))
+		})
+
+		It("deserializes the bosh vms", func() {
+			Expect(actualBoshVMs).To(Equal(expectedBoshVMs))
+		})
+
+		It("deserializes the manifest", func() {
+			Expect(actualBoshManifest).To(Equal(expectedManifest))
+		})
+
+		Context("deprovisioning fails", func() {
+			BeforeEach(func() {
+				operationFails = "true"
+			})
+
+			It("Fails and logs", func() {
+				Expect(exitCode).To(Equal(1))
+				Expect(stdout.String()).To(Equal("An error occurred"))
+			})
+		})
+	})
+
 	Context("dashboard-url", func() {
 		var (
 			actualInstanceID string
@@ -522,6 +583,16 @@ var _ = Describe("Command line handler", func() {
 		Context("dashboard url generator isn't implemented", func() {
 			BeforeEach(func() {
 				args = []string{"dashboard-url", "id", toJson(expectedCurrentPlan), "null"}
+			})
+
+			It("exits with 10", func() {
+				Expect(exitCode).To(Equal(10))
+			})
+		})
+
+		Context("deprovisioner isn't implemented", func() {
+			BeforeEach(func() {
+				args = []string{"pre-delete-deployment", "id", "null", "null"}
 			})
 
 			It("exits with 10", func() {
