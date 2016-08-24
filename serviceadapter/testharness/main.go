@@ -28,9 +28,6 @@ func main() {
 		testvariables.BindingVmsFileKey,
 		testvariables.BindingManifestFileKey,
 		testvariables.BindingParamsFileKey,
-		testvariables.DeprovisionInstanceIDFileKey,
-		testvariables.DeprovisionVmsFileKey,
-		testvariables.DeprovisionManifestFileKey,
 		testvariables.DashboardURLInstanceIDKey,
 		testvariables.DashboardURLPlanKey,
 		testvariables.DashboardURLManifestKey,
@@ -42,7 +39,7 @@ func main() {
 	}
 
 	if os.Getenv(testvariables.DoNotImplementInterfacesKey) == "true" {
-		serviceadapter.HandleCommandLineInvocation(os.Args, nil, nil, nil, nil)
+		serviceadapter.HandleCommandLineInvocation(os.Args, nil, nil, nil)
 		return
 	}
 
@@ -61,19 +58,13 @@ func main() {
 		requestParamsFilePath:      os.Getenv(testvariables.BindingParamsFileKey),
 	}
 
-	dep := &deprovisioner{
-		instanceIDFilePath:         os.Getenv(testvariables.DeprovisionInstanceIDFileKey),
-		deploymentTopologyFilePath: os.Getenv(testvariables.DeprovisionVmsFileKey),
-		manifestFilePath:           os.Getenv(testvariables.DeprovisionManifestFileKey),
-	}
-
 	d := &dashboard{
 		instanceIDFilePath: os.Getenv(testvariables.DashboardURLInstanceIDKey),
 		planFilePath:       os.Getenv(testvariables.DashboardURLPlanKey),
 		manifestFilePath:   os.Getenv(testvariables.DashboardURLManifestKey),
 	}
 
-	serviceadapter.HandleCommandLineInvocation(os.Args, manGen, b, dep, d)
+	serviceadapter.HandleCommandLineInvocation(os.Args, manGen, b, d)
 }
 
 type manifestGenerator struct {
@@ -197,32 +188,6 @@ func (b *binder) serialiseBindingParams(bindingID string, deploymentTopology bos
 	}
 
 	return jsonSerialiseToFile(b.requestParamsFilePath, requestParams)
-}
-
-type deprovisioner struct {
-	instanceIDFilePath         string
-	deploymentTopologyFilePath string
-	manifestFilePath           string
-}
-
-func (d *deprovisioner) PreDeleteDeployment(instanceID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest) error {
-	if err := jsonSerialiseToFile(d.instanceIDFilePath, instanceID); err != nil {
-		return err
-	}
-
-	if err := jsonSerialiseToFile(d.deploymentTopologyFilePath, deploymentTopology); err != nil {
-		return err
-	}
-
-	if err := yamlSerialiseToFile(d.manifestFilePath, manifest); err != nil {
-		return err
-	}
-
-	if os.Getenv(testvariables.OperationFailsKey) == OperationShouldFail {
-		return errors.New("An error occurred")
-	}
-
-	return nil
 }
 
 type dashboard struct {
