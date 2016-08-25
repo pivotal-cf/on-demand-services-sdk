@@ -39,7 +39,7 @@ func GenerateInstanceGroupsWithNoProperties(
 			Instances:          instanceGroup.Instances,
 			Stemcell:           stemcell,
 			VMType:             instanceGroup.VMType,
-			PersistentDiskType: instanceGroup.PersistentDisk,
+			PersistentDiskType: instanceGroup.PersistentDiskType,
 			AZs:                instanceGroup.AZs,
 			Networks:           networks,
 			Jobs:               boshJobs,

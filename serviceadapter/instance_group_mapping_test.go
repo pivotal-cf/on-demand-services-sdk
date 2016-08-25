@@ -26,20 +26,20 @@ var _ = Describe("Instance Groups Mapping", func() {
 	BeforeEach(func() {
 		instanceGroups = []InstanceGroup{
 			{
-				Name:           "real-instance-group",
-				VMType:         "a-vm",
-				PersistentDisk: "such-persistence",
-				Instances:      7,
-				Networks:       []string{"an-etwork", "another-etwork"},
-				AZs:            []string{"an-az", "jay-z"},
+				Name:               "real-instance-group",
+				VMType:             "a-vm",
+				PersistentDiskType: "such-persistence",
+				Instances:          7,
+				Networks:           []string{"an-etwork", "another-etwork"},
+				AZs:                []string{"an-az", "jay-z"},
 			},
 			{
-				Name:           "another-instance-group",
-				VMType:         "another-vm",
-				PersistentDisk: "such-persistence",
-				Instances:      7,
-				Networks:       []string{"another-etwork"},
-				AZs:            []string{"another-az"},
+				Name:               "another-instance-group",
+				VMType:             "another-vm",
+				PersistentDiskType: "such-persistence",
+				Instances:          7,
+				Networks:           []string{"another-etwork"},
+				AZs:                []string{"another-az"},
 			},
 		}
 

@@ -113,13 +113,13 @@ func (p Plan) Validate() error {
 }
 
 type InstanceGroup struct {
-	Name           string   `json:"name" validate:"required"`
-	VMType         string   `yaml:"vm_type" json:"vm_type" validate:"required"`
-	PersistentDisk string   `yaml:"persistent_disk,omitempty" json:"persistent_disk_type,omitempty"`
-	Instances      int      `json:"instances" validate:"min=1"`
-	Networks       []string `json:"networks" validate:"required"`
-	AZs            []string `json:"azs" validate:"required,min=1"`
-	Lifecycle      string   `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
+	Name               string   `json:"name" validate:"required"`
+	VMType             string   `yaml:"vm_type" json:"vm_type" validate:"required"`
+	PersistentDiskType string   `yaml:"persistent_disk_type,omitempty" json:"persistent_disk_type,omitempty"`
+	Instances          int      `json:"instances" validate:"min=1"`
+	Networks           []string `json:"networks" validate:"required"`
+	AZs                []string `json:"azs" validate:"required,min=1"`
+	Lifecycle          string   `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
 }
 
 type Update struct {

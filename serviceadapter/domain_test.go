@@ -67,13 +67,13 @@ var _ = Describe("Domain", func() {
 
 			expectedPlan := serviceadapter.Plan{
 				InstanceGroups: []serviceadapter.InstanceGroup{{
-					Name:           "example-server",
-					VMType:         "small",
-					PersistentDisk: "ten",
-					Networks:       []string{"example-network"},
-					AZs:            []string{"example-az"},
-					Instances:      1,
-					Lifecycle:      "errand",
+					Name:               "example-server",
+					VMType:             "small",
+					PersistentDiskType: "ten",
+					Networks:           []string{"example-network"},
+					AZs:                []string{"example-az"},
+					Instances:          1,
+					Lifecycle:          "errand",
 				}},
 				Properties: serviceadapter.Properties{"example": "property"},
 				Update: &serviceadapter.Update{
