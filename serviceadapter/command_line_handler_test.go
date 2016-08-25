@@ -428,6 +428,17 @@ var _ = Describe("Command line handler", func() {
 				Expect(stdout.String()).To(Equal("An error occurred"))
 			})
 		})
+
+		Context("binding not found", func() {
+			BeforeEach(func() {
+				operationFails = testvariables.ErrBindingNotFound
+			})
+
+			It("Fails and logs", func() {
+				Expect(stdout.String()).To(Equal(""))
+				Expect(exitCode).To(Equal(41))
+			})
+		})
 	})
 
 	Context("dashboard-url", func() {

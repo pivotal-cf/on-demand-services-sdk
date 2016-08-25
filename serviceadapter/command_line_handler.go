@@ -133,7 +133,10 @@ func (p commandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML s
 	p.must(json.Unmarshal([]byte(requestParams), &params), "unmarshalling request binding parameters")
 
 	err := p.binder.DeleteBinding(bindingID, boshVMs, manifest, params)
-	if err != nil {
+	switch err.(type) {
+	case BindingNotFoundError:
+		failWithCodeAndNotifyUser(41, err.Error())
+	case error:
 		failWithCodeAndNotifyUser(1, err.Error())
 	}
 }

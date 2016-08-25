@@ -167,7 +167,10 @@ func (b *binder) DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs
 		return err
 	}
 
-	if os.Getenv(testvariables.OperationFailsKey) == OperationShouldFail {
+	switch os.Getenv(testvariables.OperationFailsKey) {
+	case testvariables.ErrBindingNotFound:
+		return serviceadapter.NewBindingNotFoundError()
+	case OperationShouldFail:
 		return errors.New("An error occurred")
 	}
 

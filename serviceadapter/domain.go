@@ -31,11 +31,18 @@ type BindingAlreadyExistsError struct {
 type AppGuidNotProvidedError struct {
 }
 
+type BindingNotFoundError struct {
+}
+
 func (BindingAlreadyExistsError) Error() string {
 	return ""
 }
 
 func (AppGuidNotProvidedError) Error() string {
+	return ""
+}
+
+func (BindingNotFoundError) Error() string {
 	return ""
 }
 
@@ -45,6 +52,10 @@ func NewBindingAlreadyExistsError() BindingAlreadyExistsError {
 
 func NewAppGuidNotProvidedError() AppGuidNotProvidedError {
 	return AppGuidNotProvidedError{}
+}
+
+func NewBindingNotFoundError() BindingNotFoundError {
+	return BindingNotFoundError{}
 }
 
 type RequestParameters map[string]interface{}

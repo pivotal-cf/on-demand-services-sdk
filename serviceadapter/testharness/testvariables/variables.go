@@ -24,6 +24,7 @@ const (
 
 	ErrAppGuidNotProvided   = "no app guid"
 	ErrBindingAlreadyExists = "binding already exists"
+	ErrBindingNotFound      = "binding not found"
 )
 
 var SuccessfulBinding = serviceadapter.Binding{
