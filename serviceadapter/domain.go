@@ -25,6 +25,14 @@ type DashboardUrl struct {
 	DashboardUrl string `json:"dashboard_url"`
 }
 
+const (
+	ErrorExitCode                     = 1
+	NotImplementedErrorExitCode       = 10
+	BindingNotFoundErrorExitCode      = 41
+	AppGuidNotProvidedErrorExitCode   = 42
+	BindingAlreadyExistsErrorExitCode = 49
+)
+
 type BindingAlreadyExistsError struct {
 }
 
