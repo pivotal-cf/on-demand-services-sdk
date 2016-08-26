@@ -28,7 +28,7 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			previousPlanJSON := args[6]
 			handler.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON)
 		} else {
-			failWithCode(NotImplementedErrorExitCode, "manifest generator not implemented")
+			failWithCode(NotImplementedExitCode, "manifest generator not implemented")
 		}
 
 	case "create-binding":
@@ -39,7 +39,7 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			bindingArbitraryParams := args[5]
 			handler.createBinding(bindingID, boshVMsJSON, manifestYAML, bindingArbitraryParams)
 		} else {
-			failWithCode(NotImplementedErrorExitCode, "binder not implemented")
+			failWithCode(NotImplementedExitCode, "binder not implemented")
 		}
 	case "delete-binding":
 		if handler.binder != nil {
@@ -49,7 +49,7 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			unbindingRequestParams := args[5]
 			handler.deleteBinding(bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams)
 		} else {
-			failWithCode(NotImplementedErrorExitCode, "binder not implemented")
+			failWithCode(NotImplementedExitCode, "binder not implemented")
 		}
 	case "dashboard-url":
 		if dashboardUrlGenerator != nil {
@@ -58,7 +58,7 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			manifestYAML := args[4]
 			handler.dashboardUrl(instanceID, planJSON, manifestYAML)
 		} else {
-			failWithCode(NotImplementedErrorExitCode, "dashboard-url not implemented")
+			failWithCode(NotImplementedExitCode, "dashboard-url not implemented")
 		}
 	default:
 		fail("unknown subcommand: %s", args[1])

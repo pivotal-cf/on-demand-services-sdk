@@ -27,7 +27,7 @@ type DashboardUrl struct {
 
 const (
 	ErrorExitCode                     = 1
-	NotImplementedErrorExitCode       = 10
+	NotImplementedExitCode            = 10
 	BindingNotFoundErrorExitCode      = 41
 	AppGuidNotProvidedErrorExitCode   = 42
 	BindingAlreadyExistsErrorExitCode = 49
