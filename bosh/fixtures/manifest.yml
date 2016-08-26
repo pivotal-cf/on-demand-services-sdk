@@ -30,6 +30,7 @@ instance_groups:
     networks:
       - name: a-network
         static_ips: [10.0.0.0]
+        default: [dns]
 
   - name: an-errand
     lifecycle: errand

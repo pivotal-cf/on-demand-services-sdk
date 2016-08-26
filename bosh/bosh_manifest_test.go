@@ -60,6 +60,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 					{
 						Name:      "a-network",
 						StaticIPs: []string{"10.0.0.0"},
+						Default:   []string{"dns"},
 					},
 				},
 			},
