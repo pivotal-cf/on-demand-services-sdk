@@ -36,8 +36,8 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			bindingID := args[2]
 			boshVMsJSON := args[3]
 			manifestYAML := args[4]
-			bindingArbitraryParams := args[5]
-			handler.createBinding(bindingID, boshVMsJSON, manifestYAML, bindingArbitraryParams)
+			reqParams := args[5]
+			handler.createBinding(bindingID, boshVMsJSON, manifestYAML, reqParams)
 		} else {
 			failWithCode(NotImplementedExitCode, "binder not implemented")
 		}
@@ -104,10 +104,10 @@ func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	var manifest bosh.BoshManifest
 	p.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
 
-	var params map[string]interface{}
-	p.must(json.Unmarshal([]byte(requestParams), &params), "unmarshalling request binding parameters")
+	var reqParams map[string]interface{}
+	p.must(json.Unmarshal([]byte(requestParams), &reqParams), "unmarshalling request binding parameters")
 
-	binding, err := p.binder.CreateBinding(bindingID, boshVMs, manifest, params)
+	binding, err := p.binder.CreateBinding(bindingID, boshVMs, manifest, reqParams)
 	switch err := err.(type) {
 	case BindingAlreadyExistsError:
 		failWithCodeAndNotifyUser(BindingAlreadyExistsErrorExitCode, err.Error())
