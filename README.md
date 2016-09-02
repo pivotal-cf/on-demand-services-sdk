@@ -1,4 +1,4 @@
-# PCF On Demand Service Adapter SDK
+# PCF On Demand Service Broker SDK
 
 This project relies on the Pivotal Services SDK, available to customers and partners for download at [network.pivotal.io](http://network.pivotal.io)
 
