@@ -1,6 +1,10 @@
-# on-demand-service-broker-sdk
+# PCF On Demand Service Broker SDK
 
-Golang Service Adapter SDK for building On-Demand Services for Pivotal CF.
+This project relies on the Pivotal Services SDK, available to customers and partners for download at network.pivotal.io.
+
+---
+
+Build Service Adapters for the PCF On-Demand Service Broker in Golang! 
 
 SDK Documentation: https://docs.pivotal.io/on-demand-service-broker/creating.html#sdk
 
