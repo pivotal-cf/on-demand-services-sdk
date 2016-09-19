@@ -12,7 +12,7 @@ var adapterBin string
 
 var _ = BeforeSuite(func() {
 	var err error
-	adapterBin, err = gexec.Build("github.com/pivotal-cf/on-demand-service-broker-sdk/serviceadapter/testharness")
+	adapterBin, err = gexec.Build("github.com/pivotal-cf/on-demand-services-sdk/serviceadapter/testharness")
 	Expect(err).NotTo(HaveOccurred())
 })
 

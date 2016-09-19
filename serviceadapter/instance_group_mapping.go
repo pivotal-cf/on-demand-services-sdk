@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pivotal-cf/on-demand-service-broker-sdk/bosh"
+	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 )
 
 func GenerateInstanceGroupsWithNoProperties(

@@ -3,7 +3,7 @@ package serviceadapter
 import (
 	"errors"
 
-	"github.com/pivotal-cf/on-demand-service-broker-sdk/bosh"
+	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 
 	"gopkg.in/go-playground/validator.v8"
 )

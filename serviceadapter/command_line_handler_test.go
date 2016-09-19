@@ -14,9 +14,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"github.com/pivotal-cf/on-demand-service-broker-sdk/bosh"
-	"github.com/pivotal-cf/on-demand-service-broker-sdk/serviceadapter"
-	"github.com/pivotal-cf/on-demand-service-broker-sdk/serviceadapter/testharness/testvariables"
+	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
+	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
+	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter/testharness/testvariables"
 )
 
 var _ = Describe("Command line handler", func() {

@@ -1,6 +1,6 @@
 package testvariables
 
-import "github.com/pivotal-cf/on-demand-service-broker-sdk/serviceadapter"
+import "github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
 
 const (
 	OperationFailsKey = "OPERATION_FAILS"
