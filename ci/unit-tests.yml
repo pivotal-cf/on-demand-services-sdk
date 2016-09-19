@@ -6,7 +6,7 @@ image_resource:
   source: {repository: pcfservicesenablement/services-enablement-ci}
 
 inputs:
-  - name: on-demand-service-broker-sdk
+  - name: on-demand-services-sdk
 
 run:
-  path: on-demand-service-broker-sdk/ci/unit-tests.sh
+  path: on-demand-services-sdk/ci/unit-tests.sh
