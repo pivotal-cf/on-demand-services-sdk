@@ -349,8 +349,7 @@ var _ = Describe("Command line handler", func() {
 					operationFails = testvariables.ErrBindingAlreadyExists
 				})
 
-				It("Fails and logs", func() {
-					Expect(stdout.String()).To(Equal(""))
+				It("exits with 49", func() {
 					Expect(exitCode).To(Equal(49))
 				})
 			})
@@ -360,8 +359,7 @@ var _ = Describe("Command line handler", func() {
 					operationFails = testvariables.ErrAppGuidNotProvided
 				})
 
-				It("Fails and logs", func() {
-					Expect(stdout.String()).To(Equal(""))
+				It("exits with 42", func() {
 					Expect(exitCode).To(Equal(42))
 				})
 			})
@@ -434,8 +432,7 @@ var _ = Describe("Command line handler", func() {
 				operationFails = testvariables.ErrBindingNotFound
 			})
 
-			It("Fails and logs", func() {
-				Expect(stdout.String()).To(Equal(""))
+			It("exits with 41", func() {
 				Expect(exitCode).To(Equal(41))
 			})
 		})

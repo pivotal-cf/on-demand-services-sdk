@@ -152,9 +152,9 @@ func (b *binder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs
 
 	switch os.Getenv(testvariables.OperationFailsKey) {
 	case testvariables.ErrAppGuidNotProvided:
-		return errs(serviceadapter.NewAppGuidNotProvidedError())
+		return errs(serviceadapter.NewAppGuidNotProvidedError(nil))
 	case testvariables.ErrBindingAlreadyExists:
-		return errs(serviceadapter.NewBindingAlreadyExistsError())
+		return errs(serviceadapter.NewBindingAlreadyExistsError(nil))
 	case OperationShouldFail:
 		return errs(errors.New("An internal error occured."))
 	}
@@ -169,7 +169,7 @@ func (b *binder) DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs
 
 	switch os.Getenv(testvariables.OperationFailsKey) {
 	case testvariables.ErrBindingNotFound:
-		return serviceadapter.NewBindingNotFoundError()
+		return serviceadapter.NewBindingNotFoundError(nil)
 	case OperationShouldFail:
 		return errors.New("An error occurred")
 	}

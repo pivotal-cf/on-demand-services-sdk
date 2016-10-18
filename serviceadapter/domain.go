@@ -2,6 +2,7 @@ package serviceadapter
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 
@@ -34,36 +35,27 @@ const (
 )
 
 type BindingAlreadyExistsError struct {
+	error
 }
 
 type AppGuidNotProvidedError struct {
+	error
 }
 
 type BindingNotFoundError struct {
+	error
 }
 
-func (BindingAlreadyExistsError) Error() string {
-	return ""
+func NewBindingAlreadyExistsError(err error) BindingAlreadyExistsError {
+	return BindingAlreadyExistsError{error: fmt.Errorf("binding already exists: %s", err)}
 }
 
-func (AppGuidNotProvidedError) Error() string {
-	return ""
+func NewAppGuidNotProvidedError(err error) AppGuidNotProvidedError {
+	return AppGuidNotProvidedError{error: fmt.Errorf("app GUID not provided: %s", err)}
 }
 
-func (BindingNotFoundError) Error() string {
-	return ""
-}
-
-func NewBindingAlreadyExistsError() BindingAlreadyExistsError {
-	return BindingAlreadyExistsError{}
-}
-
-func NewAppGuidNotProvidedError() AppGuidNotProvidedError {
-	return AppGuidNotProvidedError{}
-}
-
-func NewBindingNotFoundError() BindingNotFoundError {
-	return BindingNotFoundError{}
+func NewBindingNotFoundError(err error) BindingNotFoundError {
+	return BindingNotFoundError{error: fmt.Errorf("binding not found: %s", err)}
 }
 
 type RequestParameters map[string]interface{}
