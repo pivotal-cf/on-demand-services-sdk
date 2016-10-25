@@ -42,6 +42,7 @@ var _ = Describe("Domain", func() {
 					{
 						"name": "example-server",
 						"vm_type": "small",
+						"vm_extensions": ["public_ip"],
 						"persistent_disk_type": "ten",
 						"networks": [
 							"example-network"
@@ -69,6 +70,7 @@ var _ = Describe("Domain", func() {
 				InstanceGroups: []serviceadapter.InstanceGroup{{
 					Name:               "example-server",
 					VMType:             "small",
+					VMExtensions:       []string{"public_ip"},
 					PersistentDiskType: "ten",
 					Networks:           []string{"example-network"},
 					AZs:                []string{"example-az"},

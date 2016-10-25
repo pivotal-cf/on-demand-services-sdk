@@ -53,6 +53,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 					},
 				},
 				VMType:             "massive",
+				VMExtensions:       []string{"extended"},
 				PersistentDiskType: "big",
 				AZs:                []string{"az1", "az2"},
 				Stemcell:           "greatest",
@@ -135,6 +136,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("static_ips:"))
 		Expect(content).NotTo(ContainSubstring("lifecycle:"))
 		Expect(content).NotTo(ContainSubstring("azs:"))
+		Expect(content).NotTo(ContainSubstring("vm_extensions:"))
 		Expect(content).NotTo(ContainSubstring("persistent_disk_type:"))
 		Expect(content).NotTo(ContainSubstring("jobs:"))
 		Expect(content).NotTo(ContainSubstring("provides:"))

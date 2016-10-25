@@ -28,6 +28,7 @@ var _ = Describe("Instance Groups Mapping", func() {
 			{
 				Name:               "real-instance-group",
 				VMType:             "a-vm",
+				VMExtensions:       []string{"what an extension"},
 				PersistentDiskType: "such-persistence",
 				Instances:          7,
 				Networks:           []string{"an-etwork", "another-etwork"},
@@ -60,6 +61,7 @@ var _ = Describe("Instance Groups Mapping", func() {
 				Name:               "real-instance-group",
 				Instances:          7,
 				VMType:             "a-vm",
+				VMExtensions:       []string{"what an extension"},
 				PersistentDiskType: "such-persistence",
 				Networks:           []bosh.Network{{Name: "an-etwork"}, {Name: "another-etwork"}},
 				AZs:                []string{"an-az", "jay-z"},

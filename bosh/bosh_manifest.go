@@ -26,6 +26,7 @@ type InstanceGroup struct {
 	Instances          int                    `yaml:"instances"`
 	Jobs               []Job                  `yaml:"jobs,omitempty"`
 	VMType             string                 `yaml:"vm_type"`
+	VMExtensions       []string               `yaml:"vm_extensions,omitempty"`
 	Stemcell           string                 `yaml:"stemcell"`
 	PersistentDiskType string                 `yaml:"persistent_disk_type,omitempty"`
 	AZs                []string               `yaml:"azs,omitempty"`

@@ -126,6 +126,7 @@ func (p Plan) Validate() error {
 type InstanceGroup struct {
 	Name               string   `json:"name" validate:"required"`
 	VMType             string   `yaml:"vm_type" json:"vm_type" validate:"required"`
+	VMExtensions       []string `yaml:"vm_extensions,omitempty" json:"vm_extensions,omitempty"`
 	PersistentDiskType string   `yaml:"persistent_disk_type,omitempty" json:"persistent_disk_type,omitempty"`
 	Instances          int      `json:"instances" validate:"min=1"`
 	Networks           []string `json:"networks" validate:"required"`

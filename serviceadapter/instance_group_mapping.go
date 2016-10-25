@@ -39,6 +39,7 @@ func GenerateInstanceGroupsWithNoProperties(
 			Instances:          instanceGroup.Instances,
 			Stemcell:           stemcell,
 			VMType:             instanceGroup.VMType,
+			VMExtensions:       instanceGroup.VMExtensions,
 			PersistentDiskType: instanceGroup.PersistentDiskType,
 			AZs:                instanceGroup.AZs,
 			Networks:           networks,
