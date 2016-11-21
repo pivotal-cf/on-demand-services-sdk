@@ -1,5 +1,6 @@
-#On-Demand Services SDK
-Build Service Adapters for the PCF On-Demand Service Broker in Golang!
+#Build Service Adapters for the PCF On-Demand Service Broker in Golang
+##Part of the On-Demand Services SDK
+
 
 ---
 
