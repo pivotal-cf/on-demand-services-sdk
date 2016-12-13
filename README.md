@@ -14,18 +14,13 @@ On-Demand Services Documentation: https://docs.pivotal.io/on-demand-service-brok
 
 ---
 
-PIVOTAL SDK - MODIFIABLE CODE NOTICE 
+On Demand Services SDK
 
-The contents of this GitHub repository available at https://github.com/pivotal-cf/on-demand-services-sdk are licensed to you 
-under the terms of the Pivotal Software Development Kit License Agreement ("SDK EULA") 
-and are designated by Pivotal Software, Inc. as "Modifiable Code."
+Copyright (c) 2016 - Present Pivotal Software, Inc. All Rights Reserved. 
 
-Your rights to distribute, modify or create derivative works of all or portions of this 
-Modifiable Code are described in the Pivotal Software Development Kit License Agreement 
-("SDK EULA") and this Modifiable Code may only be used in accordance with the terms and
-conditions of the SDK EULA.
+This product is licensed to you under the Apache License, Version 2.0 (the "License").  
+You may not use this product except in compliance with the License.  
 
-Unless required by applicable law or agreed to in writing, this Modifiable Code is 
-provided on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either 
-express or implied. See the SDK EULA for the specific language governing permissions and
-limitations for this Modifiable Code under the SDK EULA. 
+This product may include a number of subcomponents with separate copyright notices 
+and license terms. Your use of these subcomponents is subject to the terms and 
+conditions of the subcomponent's license, as noted in the LICENSE file.
