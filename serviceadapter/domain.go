@@ -138,15 +138,33 @@ func (p Plan) Validate() error {
 	return validate.Struct(p)
 }
 
+type VMExtensions []string
+
+func (e *VMExtensions) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var ext []string
+
+	if err := unmarshal(&ext); err != nil {
+		return err
+	}
+
+	for _, st := range ext {
+		if st != "" {
+			*e = append(*e, st)
+		}
+	}
+
+	return nil
+}
+
 type InstanceGroup struct {
-	Name               string   `json:"name" validate:"required"`
-	VMType             string   `yaml:"vm_type" json:"vm_type" validate:"required"`
-	VMExtensions       []string `yaml:"vm_extensions,omitempty" json:"vm_extensions,omitempty"`
-	PersistentDiskType string   `yaml:"persistent_disk_type,omitempty" json:"persistent_disk_type,omitempty"`
-	Instances          int      `json:"instances" validate:"min=1"`
-	Networks           []string `json:"networks" validate:"required"`
-	AZs                []string `json:"azs" validate:"required,min=1"`
-	Lifecycle          string   `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
+	Name               string       `json:"name" validate:"required"`
+	VMType             string       `yaml:"vm_type" json:"vm_type" validate:"required"`
+	VMExtensions       VMExtensions `yaml:"vm_extensions,omitempty" json:"vm_extensions,omitempty"`
+	PersistentDiskType string       `yaml:"persistent_disk_type,omitempty" json:"persistent_disk_type,omitempty"`
+	Instances          int          `json:"instances" validate:"min=1"`
+	Networks           []string     `json:"networks" validate:"required"`
+	AZs                []string     `json:"azs" validate:"required,min=1"`
+	Lifecycle          string       `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
 }
 
 type Update struct {

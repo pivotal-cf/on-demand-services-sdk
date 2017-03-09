@@ -18,6 +18,8 @@ package serviceadapter_test
 import (
 	"encoding/json"
 
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
 
 	. "github.com/onsi/ginkgo"
@@ -29,7 +31,7 @@ var _ = Describe("Domain", func() {
 		return &b
 	}
 
-	Context("RequestParameters", func() {
+	Describe("RequestParameters", func() {
 		Context("when arbitraryParams are present", func() {
 			It("can extract arbitraryParams", func() {
 				params := serviceadapter.RequestParameters{"parameters": map[string]interface{}{"foo": "bar"}}
@@ -44,14 +46,38 @@ var _ = Describe("Domain", func() {
 			})
 		})
 	})
-	Context("DashboardUrl", func() {
+
+	Describe("DashboardUrl", func() {
 		It("serializes dashboard_url", func() {
 			dashboardUrl := serviceadapter.DashboardUrl{DashboardUrl: "https://someurl.com"}
 			Expect(toJson(dashboardUrl)).To(MatchJSON(`{ "dashboard_url": "https://someurl.com"}`))
 		})
 	})
-	Context("plan", func() {
-		Describe("(de)serialising", func() {
+
+	Describe("InstanceGroup", func() {
+		Describe("YAML unmarshalling", func() {
+			Context("when vm_extensions contains empty strings", func() {
+				var (
+					expected = serviceadapter.InstanceGroup{
+						VMExtensions: []string{"foo", "bar"},
+					}
+
+					yamlStr = []byte("---\nvm_extensions: [~, null, '', foo, bar, '']")
+				)
+
+				It("strips out the empty strings", func() {
+					var actual = new(serviceadapter.InstanceGroup)
+
+					err := yaml.Unmarshal(yamlStr, actual)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(actual.VMExtensions).To(Equal(expected.VMExtensions))
+				})
+			})
+		})
+	})
+
+	Describe("plan", func() {
+		Describe("(de)serialising from/to JSON", func() {
 			planJson := []byte(`{
 				"instance_groups": [
 					{
