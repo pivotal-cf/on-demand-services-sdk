@@ -56,21 +56,56 @@ var _ = Describe("Domain", func() {
 
 	Describe("InstanceGroup", func() {
 		Describe("YAML unmarshalling", func() {
+			var (
+				yamlStr []byte
+				actual  serviceadapter.InstanceGroup
+			)
+
+			BeforeEach(func() {
+				yamlStr = []byte("---\nname: 'Foo'\nvm_extensions: [~, null, '', foo, bar, '']")
+			})
+
+			It("unmarshals correctly", func() {
+				expected := serviceadapter.InstanceGroup{
+					Name:         "Foo",
+					VMExtensions: []string{"foo", "bar"},
+				}
+
+				err := yaml.Unmarshal(yamlStr, &actual)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actual).To(Equal(expected))
+			})
+
 			Context("when vm_extensions contains empty strings", func() {
-				var (
-					expected = serviceadapter.InstanceGroup{
+				BeforeEach(func() {
+					yamlStr = []byte("---\nvm_extensions: [~, null, '', foo, bar, '']")
+				})
+
+				It("strips out the empty strings", func() {
+					expected := serviceadapter.InstanceGroup{
 						VMExtensions: []string{"foo", "bar"},
 					}
 
-					yamlStr = []byte("---\nvm_extensions: [~, null, '', foo, bar, '']")
-				)
+					err := yaml.Unmarshal(yamlStr, &actual)
 
-				It("strips out the empty strings", func() {
-					var actual = new(serviceadapter.InstanceGroup)
-
-					err := yaml.Unmarshal(yamlStr, actual)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(actual.VMExtensions).To(Equal(expected.VMExtensions))
+				})
+			})
+
+			Context("when vm_extensions is set to null", func() {
+				BeforeEach(func() {
+					yamlStr = []byte("---\nvm_extensions: null")
+				})
+
+				It("initializes an empty slice of strings", func() {
+					expected := serviceadapter.VMExtensions{}
+
+					err := yaml.Unmarshal(yamlStr, &actual)
+
+					Expect(err).NotTo(HaveOccurred())
+					Expect(actual.VMExtensions).To(Equal(expected))
 				})
 			})
 		})

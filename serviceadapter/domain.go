@@ -147,9 +147,9 @@ func (e *VMExtensions) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 
-	for _, st := range ext {
-		if st != "" {
-			*e = append(*e, st)
+	for _, s := range ext {
+		if s != "" {
+			*e = append(*e, s)
 		}
 	}
 
@@ -165,6 +165,23 @@ type InstanceGroup struct {
 	Networks           []string     `json:"networks" validate:"required"`
 	AZs                []string     `json:"azs" validate:"required,min=1"`
 	Lifecycle          string       `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
+}
+
+func (i *InstanceGroup) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type aux InstanceGroup
+
+	var tmp aux
+	if err := unmarshal(&tmp); err != nil {
+		return err
+	}
+
+	if tmp.VMExtensions == nil {
+		tmp.VMExtensions = VMExtensions{}
+	}
+
+	*i = InstanceGroup(tmp)
+
+	return nil
 }
 
 type Update struct {
