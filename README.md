@@ -1,10 +1,15 @@
-#Build Service Adapters for the PCF On-Demand Service Broker in Golang
-##Part of the On-Demand Services SDK
-
+# Build Service Adapters for the PCF On-Demand Service Broker in Golang
+## Part of the On-Demand Services SDK
 
 ---
 
 This project relies on the Pivotal Services SDK, available to customers and partners for download at [network.pivotal.io](http://network.pivotal.io)
+
+---
+
+Please use the SDK tag that matches the ODB release you are targetting.
+
+For example if using ODB 0.15.1 release, use the [0.15.1 SDK tag](https://github.com/pivotal-cf/on-demand-services-sdk/tree/v0.15.1).
 
 ---
 
