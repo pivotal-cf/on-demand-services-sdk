@@ -30,6 +30,11 @@ var _ = Describe("bosh jobs", func() {
 		Expect(job.Consumes["bar"]).To(Equal(bosh.ConsumesLink{From: "other-job"}))
 	})
 
+	It("can cross deployment links", func() {
+		job := bosh.Job{}.AddCrossDeploymentConsumesLink("foo", "a-job", "a-deployment")
+		Expect(job.Consumes["foo"]).To(Equal(bosh.ConsumesLink{From: "a-job", Deployment: "a-deployment"}))
+	})
+
 	It("can add nullified links", func() {
 		job := bosh.Job{}.AddNullifiedConsumesLink("not-wired")
 		Expect(job.Consumes["not-wired"]).To(Equal("nil")) // Yes, this really should be string "nil"
