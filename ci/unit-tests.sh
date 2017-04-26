@@ -24,4 +24,7 @@ cd src/github.com/pivotal-cf/on-demand-services-sdk
 
 go get -v github.com/tools/godep
 godep restore
+
+go get github.com/onsi/ginkgo/ginkgo
+
 scripts/run-tests.sh
