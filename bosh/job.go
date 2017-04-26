@@ -28,11 +28,16 @@ type ProvidesLink struct {
 }
 
 type ConsumesLink struct {
-	From string `yaml:"from"`
+	From       string `yaml:"from"`
+	Deployment string `yaml:"deployment,omitempty"`
 }
 
 func (j Job) AddConsumesLink(name, fromJob string) Job {
 	return j.addConsumesLink(name, ConsumesLink{From: fromJob})
+}
+
+func (j Job) AddCrossDeploymentConsumesLink(name, fromJob string, deployment string) Job {
+	return j.addConsumesLink(name, ConsumesLink{From: fromJob, Deployment: deployment})
 }
 
 func (j Job) AddNullifiedConsumesLink(name string) Job {
