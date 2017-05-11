@@ -1,5 +1,12 @@
 # Build Service Adapters for the On-Demand Service Broker (ODB) in Golang
-## Part of the On-Demand Services SDK
+
+---
+
+This is an SDK for writing service adapters for ODB in Golang. It encapsulates the command line invocation handling, parameter parsing, response serialization and error handling so the adapter authors can focus on the service-specific logic in the adapter.
+
+Before creating a service adapter you will need to have [BOSH release](https://bosh.io/docs) for the service that you wish to deploy.
+
+After creating the service adapter and service BOSH release, you will be able to [configure the ODB](https://docs.pivotal.io/svc-sdk/odb/operating.html) provision new dedicated service instances from Cloud Foundry!
 
 ---
 
