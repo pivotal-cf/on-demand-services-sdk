@@ -2,7 +2,7 @@
 
 ---
 
-This is an SDK for writing service adapters for ODB in Golang. It encapsulates the command line invocation handling, parameter parsing, response serialization and error handling so the adapter authors can focus on the service-specific logic in the adapter.
+This is an SDK for writing service adapters for ODB in Golang. It encapsulates the command line invocation handling, parameter parsing, response serialization and error handling so the adapter authors can focus on the service-specific logic in the adapter. This will speed up the time to meeting the service author deliverables outlined [here](https://docs.pivotal.io/svc-sdk/odb/creating.html).
 
 Before creating a service adapter you will need to have [BOSH release](https://bosh.io/docs) for the service that you wish to deploy.
 
