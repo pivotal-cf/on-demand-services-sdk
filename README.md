@@ -3,15 +3,15 @@
 
 ---
 
-This project relies on the Pivotal Services SDK, available to customers and partners for download at [network.pivotal.io](http://network.pivotal.io)
-
----
-
 ## Usage 
 
 Please use the SDK tag that matches the ODB release you are targeting.
 
 For example if using ODB 0.15.1 release, use the [0.15.1 SDK tag](https://github.com/pivotal-cf/on-demand-services-sdk/tree/v0.15.1).
+
+### Getting Started
+
+Follow [this guide](https://docs.pivotal.io/svc-sdk/odb/getting-started.html) to try out an example product.
 
 ### Examples Service Adapters
 
