@@ -23,6 +23,7 @@ Follow [this guide](https://docs.pivotal.io/svc-sdk/odb/getting-started.html) to
 ### Examples Service Adapters
 
 Kafka Service Adapter: https://github.com/pivotal-cf-experimental/kafka-example-service-adapter
+
 Redis Service Adapter: https://github.com/pivotal-cf-experimental/redis-example-service-adapter
 
 ### Packaging 
@@ -32,6 +33,7 @@ To integrate with the ODB we recommend that you package the service adapter in a
 #### Examples
 
 Kafka Service Adapter Release: https://github.com/pivotal-cf-experimental/kafka-example-service-adapter-release
+
 Redis Service Adapter Release: https://github.com/pivotal-cf-experimental/redis-example-service-adapter-release
 
 ---
