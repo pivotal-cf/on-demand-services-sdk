@@ -22,6 +22,13 @@ type BoshManifest struct {
 	InstanceGroups []InstanceGroup        `yaml:"instance_groups"`
 	Update         Update                 `yaml:"update"`
 	Properties     map[string]interface{} `yaml:"properties,omitempty"`
+	Variables      []Variable             `yaml:"variables,omitempty"`
+}
+
+type Variable struct {
+	Name    string                 `yaml:"name"`
+	Type    string                 `yaml:"type"`
+	Options map[string]interface{} `yaml:"options,omitempty"`
 }
 
 type Release struct {

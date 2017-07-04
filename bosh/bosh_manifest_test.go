@@ -109,6 +109,21 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 			MaxInFlight:     4,
 			Serial:          boolPointer(false),
 		},
+		Variables: []bosh.Variable{
+			bosh.Variable{
+				Name: "admin_password",
+				Type: "password",
+			},
+			bosh.Variable{
+				Name: "default_ca",
+				Type: "certificate",
+				Options: map[string]interface{}{
+					"is_ca":             true,
+					"common_name":       "some-ca",
+					"alternative_names": []string{"some-other-ca"},
+				},
+			},
+		},
 	}
 
 	It("serialises bosh manifests", func() {
@@ -143,6 +158,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 				UpdateWatchTime: "30000-180000",
 				MaxInFlight:     4,
 			},
+			Variables: []bosh.Variable{},
 		}
 
 		content, err := yaml.Marshal(emptyManifest)
@@ -158,5 +174,22 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("consumes:"))
 		Expect(content).NotTo(ContainSubstring("properties:"))
 		Expect(content).NotTo(ContainSubstring("serial:"))
+		Expect(content).NotTo(ContainSubstring("variables:"))
 	})
+
+	It("omits optional options from Variables", func() {
+		emptyManifest := bosh.BoshManifest{
+			Variables: []bosh.Variable{
+				bosh.Variable{
+					Name: "admin_password",
+					Type: "password",
+				},
+			},
+		}
+
+		content, err := yaml.Marshal(emptyManifest)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(content).NotTo(ContainSubstring("options:"))
+	})
+
 })
