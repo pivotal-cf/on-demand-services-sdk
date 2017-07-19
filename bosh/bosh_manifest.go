@@ -54,6 +54,11 @@ type InstanceGroup struct {
 	AZs                []string               `yaml:"azs,omitempty"`
 	Networks           []Network              `yaml:"networks"`
 	Properties         map[string]interface{} `yaml:"properties,omitempty"`
+	MigratedFrom       []Migration            `yaml:"migrated_from,omitempty"`
+}
+
+type Migration struct {
+	Name string `yaml:"name"`
 }
 
 type Network struct {

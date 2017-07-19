@@ -165,6 +165,7 @@ type InstanceGroup struct {
 	Networks           []string     `json:"networks" validate:"required"`
 	AZs                []string     `json:"azs" validate:"required,min=1"`
 	Lifecycle          string       `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
+	MigratedFrom       []Migration  `yaml:"migrated_from,omitempty" json:"migrated_from,omitempty"`
 }
 
 func (i *InstanceGroup) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -182,6 +183,10 @@ func (i *InstanceGroup) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*i = InstanceGroup(tmp)
 
 	return nil
+}
+
+type Migration struct {
+	Name string `yaml:"name" json:"name"`
 }
 
 type Update struct {

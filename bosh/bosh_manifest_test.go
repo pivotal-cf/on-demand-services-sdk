@@ -79,6 +79,11 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 						Default:   []string{"dns"},
 					},
 				},
+				MigratedFrom: []bosh.Migration{
+					{
+						Name: "old-instance-group-name",
+					},
+				},
 			},
 			{
 				Name:      "an-errand",
@@ -175,6 +180,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("properties:"))
 		Expect(content).NotTo(ContainSubstring("serial:"))
 		Expect(content).NotTo(ContainSubstring("variables:"))
+		Expect(content).NotTo(ContainSubstring("migrated_from:"))
 	})
 
 	It("omits optional options from Variables", func() {

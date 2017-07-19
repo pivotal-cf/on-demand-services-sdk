@@ -32,6 +32,8 @@ instance_groups:
       - name: a-network
         static_ips: [10.0.0.0]
         default: [dns]
+    migrated_from:
+    - name: old-instance-group-name
 
   - name: an-errand
     lifecycle: errand

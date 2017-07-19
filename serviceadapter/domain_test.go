@@ -127,7 +127,10 @@ var _ = Describe("Domain", func() {
 							"example-az"
 						],
 						"instances": 1,
-						"lifecycle": "errand"
+						"lifecycle": "errand",
+						"migrated_from": [
+							{"name": "old-server"}
+						]
 					}
 				],
 				"properties": {
@@ -152,6 +155,9 @@ var _ = Describe("Domain", func() {
 					AZs:                []string{"example-az"},
 					Instances:          1,
 					Lifecycle:          "errand",
+					MigratedFrom: []serviceadapter.Migration{
+						{Name: "old-server"},
+					},
 				}},
 				Properties: serviceadapter.Properties{"example": "property"},
 				Update: &serviceadapter.Update{
