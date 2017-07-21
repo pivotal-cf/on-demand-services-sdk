@@ -49,6 +49,15 @@ func GenerateInstanceGroupsWithNoProperties(
 		if err != nil {
 			return nil, err
 		}
+
+		var migrations []bosh.Migration
+
+		if len(instanceGroup.MigratedFrom) > 0 {
+			for _, migration := range instanceGroup.MigratedFrom {
+				migrations = append(migrations, bosh.Migration{Name: migration.Name})
+			}
+		}
+
 		boshInstanceGroup := bosh.InstanceGroup{
 			Name:               instanceGroup.Name,
 			Instances:          instanceGroup.Instances,
@@ -60,6 +69,7 @@ func GenerateInstanceGroupsWithNoProperties(
 			Networks:           networks,
 			Jobs:               boshJobs,
 			Lifecycle:          instanceGroup.Lifecycle,
+			MigratedFrom:       migrations,
 		}
 		boshInstanceGroups = append(boshInstanceGroups, boshInstanceGroup)
 	}

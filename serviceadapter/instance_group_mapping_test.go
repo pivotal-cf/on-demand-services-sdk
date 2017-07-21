@@ -48,6 +48,7 @@ var _ = Describe("Instance Groups Mapping", func() {
 				Instances:          7,
 				Networks:           []string{"an-etwork", "another-etwork"},
 				AZs:                []string{"an-az", "jay-z"},
+				MigratedFrom:       []Migration{{Name: "old-instance-group"}},
 			},
 			{
 				Name:               "another-instance-group",
@@ -84,6 +85,9 @@ var _ = Describe("Instance Groups Mapping", func() {
 				Jobs: []bosh.Job{
 					{Name: "important-job", Release: "real-release"},
 					{Name: "extra-job", Release: "good-release"},
+				},
+				MigratedFrom: []bosh.Migration{
+					{Name: "old-instance-group"},
 				},
 			},
 				bosh.InstanceGroup{
