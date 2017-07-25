@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"os"
 
+	"strings"
+
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"gopkg.in/yaml.v2"
 )
@@ -31,8 +33,15 @@ type commandLineHandler struct {
 }
 
 func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenerator, binder Binder, dashboardUrlGenerator DashboardUrlGenerator) {
-	fmt.Fprintf(os.Stderr, "[odb-sdk] handling %s\n", args[1])
 	handler := commandLineHandler{manifestGenerator: manifestGenerator, binder: binder, dashboardURLGenerator: dashboardUrlGenerator}
+	supportedCommands := generateSupportedCommandsMessage(handler, dashboardUrlGenerator)
+
+	if len(args) < 2 {
+		failWithCode(ErrorExitCode, fmt.Sprintf("the following commands are supported: %s", supportedCommands))
+	}
+
+	fmt.Fprintf(os.Stderr, "[odb-sdk] handling %s\n", args[1])
+
 	switch args[1] {
 	case "generate-manifest":
 		if handler.manifestGenerator != nil {
@@ -76,8 +85,24 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 			failWithCode(NotImplementedExitCode, "dashboard-url not implemented")
 		}
 	default:
-		fail("unknown subcommand: %s", args[1])
+		failWithCode(ErrorExitCode, fmt.Sprintf("unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands))
 	}
+}
+func generateSupportedCommandsMessage(handler commandLineHandler, dashboardUrlGenerator DashboardUrlGenerator) string {
+	var commands []string
+	if handler.manifestGenerator != nil {
+		commands = append(commands, "generate-manifest")
+	}
+
+	if handler.binder != nil {
+		commands = append(commands, "create-binding, delete-binding")
+	}
+
+	if dashboardUrlGenerator != nil {
+		commands = append(commands, "dashboard-url")
+	}
+
+	return strings.Join(commands, ", ")
 }
 
 func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON string) {
@@ -171,6 +196,7 @@ func (p commandLineHandler) dashboardUrl(instanceID, planJSON, manifestYAML stri
 
 	p.must(json.NewEncoder(os.Stdout).Encode(dashboardUrl), "marshalling dashboardUrl")
 }
+
 func (p commandLineHandler) must(err error, msg string) {
 	if err != nil {
 		fail("error %s: %s\n", msg, err)

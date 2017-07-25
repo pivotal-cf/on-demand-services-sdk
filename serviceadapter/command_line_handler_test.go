@@ -238,6 +238,30 @@ var _ = Describe("Command line handler", func() {
 		Expect(yaml.Unmarshal(fileBytes, pointer)).To(Succeed())
 	}
 
+	Context("command is called without arguments", func() {
+		BeforeEach(func() {
+			args = []string{}
+		})
+
+		It("exits with 1", func() {
+			Expect(exitCode).To(Equal(1))
+			Expect(stderr.String()).To(Equal("[odb-sdk] the following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url\n"))
+		})
+	})
+
+	Context("command is called with an unknown subcommand", func() {
+		BeforeEach(func() {
+			args = []string{"non-existing-subcommand"}
+		})
+
+		It("exits with 1", func() {
+			Expect(exitCode).To(Equal(1))
+			Expect(stderr.String()).To(Equal(`[odb-sdk] handling non-existing-subcommand
+[odb-sdk] unknown subcommand: non-existing-subcommand. The following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url
+`))
+		})
+	})
+
 	Context("generating a manifest", func() {
 		BeforeEach(func() {
 			args = []string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"}
@@ -505,9 +529,22 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
-	Describe("supporting parts of the interface", func() {
+	Context("no interfaces have been implemented", func() {
 		BeforeEach(func() {
 			doNotImplementInterfaces = true
+		})
+
+		Context("command is called with an unknown subcommand", func() {
+			BeforeEach(func() {
+				args = []string{"non-existing-subcommand"}
+			})
+
+			It("exits with 1", func() {
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(Equal(`[odb-sdk] handling non-existing-subcommand
+[odb-sdk] unknown subcommand: non-existing-subcommand. The following commands are supported: 
+`))
+			})
 		})
 
 		Context("manifest generator isn't implemented", func() {
