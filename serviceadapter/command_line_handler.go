@@ -54,7 +54,6 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 		} else {
 			failWithCode(NotImplementedExitCode, "manifest generator not implemented")
 		}
-
 	case "create-binding":
 		if handler.binder != nil {
 			bindingID := args[2]
