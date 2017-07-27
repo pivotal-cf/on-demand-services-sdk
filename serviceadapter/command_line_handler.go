@@ -22,6 +22,8 @@ import (
 
 	"strings"
 
+	"path/filepath"
+
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"gopkg.in/yaml.v2"
 )
@@ -45,12 +47,16 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 	switch args[1] {
 	case "generate-manifest":
 		if handler.manifestGenerator != nil {
+			if len(args) < 7 {
+				failWithMissingArgsError(args)
+			}
 			serviceDeploymentJSON := args[2]
 			planJSON := args[3]
 			argsJSON := args[4]
 			previousManifestYAML := args[5]
 			previousPlanJSON := args[6]
 			handler.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON)
+
 		} else {
 			failWithCode(NotImplementedExitCode, "manifest generator not implemented")
 		}
@@ -86,6 +92,15 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 	default:
 		failWithCode(ErrorExitCode, fmt.Sprintf("unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands))
 	}
+}
+func failWithMissingArgsError(args []string) {
+	failWithCode(
+		ErrorExitCode,
+		fmt.Sprintf(
+			"Missing arguments for generate-manifest. Usage: %s generate-manifest <service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>",
+			filepath.Base(args[0]),
+		),
+	)
 }
 func generateSupportedCommandsMessage(handler commandLineHandler, dashboardUrlGenerator DashboardUrlGenerator) string {
 	var commands []string

@@ -161,7 +161,7 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
-	Describe("command with an unknown subcommand argument", func() {
+	Describe("an unknown subcommand argument", func() {
 		It("logs and exits with 1", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"non-existing-subcommand"})
 
@@ -172,7 +172,13 @@ var _ = Describe("Command line handler", func() {
 
 	Describe("generate-manifest without optional parameters", func() {
 		It("succeeds", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
+			exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest",
+				toJson(expectedServiceDeployment),
+				toJson(expectedCurrentPlan),
+				toJson(expectedRequestParams),
+				"",
+				"null",
+			})
 			actualServiceDeployment, actualCurrentPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan := decodeAndVerifyGenerateManifestResponse()
 
 			Expect(exitCode).To(Equal(0))
@@ -187,7 +193,14 @@ var _ = Describe("Command line handler", func() {
 
 	Describe("generate-manifest with optional parameters", func() {
 		It("succeeds", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), toYaml(expectedPreviousManifest), toJson(expectedPreviousPlan)})
+			exitCode = startPassingCommandAndGetExitCode([]string{
+				"generate-manifest",
+				toJson(expectedServiceDeployment),
+				toJson(expectedCurrentPlan),
+				toJson(expectedRequestParams),
+				toYaml(expectedPreviousManifest),
+				toJson(expectedPreviousPlan),
+			})
 			_, _, _, actualPreviousManifest, actualPreviousPlan := decodeAndVerifyGenerateManifestResponse()
 
 			Expect(actualPreviousManifest).To(Equal(&expectedPreviousManifest))
@@ -195,9 +208,25 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
+	Describe("generate-manifest with missing arguments error", func() {
+		It("succeeds", func() {
+			exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest"})
+
+			Expect(exitCode).To(Equal(1))
+			Expect(stderr.String()).To(ContainSubstring(
+				"Missing arguments for generate-manifest. Usage: testharness generate-manifest <service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>"))
+		})
+	})
+
 	Describe("generate-manifest with general error", func() {
 		It("exits 10 and logs", func() {
-			exitCode = startFailingCommandAndGetExitCode([]string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"}, "true")
+			exitCode = startFailingCommandAndGetExitCode([]string{"generate-manifest",
+				toJson(expectedServiceDeployment),
+				toJson(expectedCurrentPlan),
+				toJson(expectedRequestParams),
+				"",
+				"null",
+			}, "true")
 			decodeAndVerifyGenerateManifestResponse()
 
 			Expect(exitCode).To(Equal(1))
