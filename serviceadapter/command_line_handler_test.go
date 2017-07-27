@@ -209,7 +209,7 @@ var _ = Describe("Command line handler", func() {
 	})
 
 	Describe("generate-manifest with missing arguments error", func() {
-		It("succeeds", func() {
+		It("logs and exits with 1", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest"})
 
 			Expect(exitCode).To(Equal(1))
@@ -286,6 +286,17 @@ var _ = Describe("Command line handler", func() {
 			Expect(actualBoshVMs).To(Equal(expectedBoshVMs))
 			Expect(actualBoshManifest).To(Equal(expectedManifest))
 			Expect(actualRequestParams).To(Equal(expectedUnbindingRequestParams))
+		})
+	})
+
+	Describe("delete-binding with missing paramters", func() {
+		It("logs and exits with 1", func() {
+			exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding"})
+
+			Expect(exitCode).To(Equal(1))
+			Expect(stderr.String()).To(ContainSubstring(
+				"Missing arguments for delete-binding. Usage: testharness delete-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>",
+			))
 		})
 	})
 

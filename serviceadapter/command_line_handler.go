@@ -48,7 +48,7 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 	case "generate-manifest":
 		if handler.manifestGenerator != nil {
 			if len(args) < 7 {
-				failWithMissingArgsError(args)
+				failWithMissingArgsError(args, "<service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>")
 			}
 			serviceDeploymentJSON := args[2]
 			planJSON := args[3]
@@ -72,6 +72,9 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 		}
 	case "delete-binding":
 		if handler.binder != nil {
+			if len(args) < 6 {
+				failWithMissingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
+			}
 			bindingID := args[2]
 			boshVMsJSON := args[3]
 			manifestYAML := args[4]
@@ -93,12 +96,15 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 		failWithCode(ErrorExitCode, fmt.Sprintf("unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands))
 	}
 }
-func failWithMissingArgsError(args []string) {
+func failWithMissingArgsError(args []string, argumentNames string) {
 	failWithCode(
 		ErrorExitCode,
 		fmt.Sprintf(
-			"Missing arguments for generate-manifest. Usage: %s generate-manifest <service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>",
+			"Missing arguments for %s. Usage: %s %s %s",
+			args[1],
 			filepath.Base(args[0]),
+			args[1],
+			argumentNames,
 		),
 	)
 }
