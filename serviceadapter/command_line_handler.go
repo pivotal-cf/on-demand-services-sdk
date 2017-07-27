@@ -88,6 +88,9 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 		}
 	case "dashboard-url":
 		if dashboardUrlGenerator != nil {
+			if len(args) < 5 {
+				failWithMissingArgsError(args, "<instance-ID> <plan-JSON> <manifest-YAML>")
+			}
 			instanceID := args[2]
 			planJSON := args[3]
 			manifestYAML := args[4]

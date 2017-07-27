@@ -248,7 +248,7 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
-	Describe("create-binding with missing parameters", func() {
+	Describe("create-binding with missing arguments error", func() {
 		It("logs and exits with 1", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"create-binding"})
 
@@ -300,7 +300,7 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
-	Describe("delete-binding with missing parameters", func() {
+	Describe("delete-binding with missing arguments error", func() {
 		It("logs and exits with 1", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding"})
 
@@ -340,6 +340,17 @@ var _ = Describe("Command line handler", func() {
 			Expect(actualPlan).To(Equal(expectedPlan))
 			Expect(actualManifest).To(Equal(expectedManifest))
 			Expect(stdout.Bytes()).To(MatchJSON(`{ "dashboard_url": "http://dashboard.com"}`))
+		})
+	})
+
+	Describe("dashboard-url with missing arguments error", func() {
+		It("logs and exits with 1", func() {
+			exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url"})
+
+			Expect(exitCode).To(Equal(1))
+			Expect(stderr.String()).To(ContainSubstring(
+				"Missing arguments for dashboard-url. Usage: testharness dashboard-url <instance-ID> <plan-JSON> <manifest-YAML>",
+			))
 		})
 	})
 
