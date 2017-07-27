@@ -248,6 +248,17 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
+	Describe("create-binding with missing parameters", func() {
+		It("logs and exits with 1", func() {
+			exitCode = startPassingCommandAndGetExitCode([]string{"create-binding"})
+
+			Expect(exitCode).To(Equal(1))
+			Expect(stderr.String()).To(ContainSubstring(
+				"Missing arguments for create-binding. Usage: testharness create-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>",
+			))
+		})
+	})
+
 	Describe("create-binding where binding already exists", func() {
 		It("exits with 49", func() {
 			exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, testvariables.ErrBindingAlreadyExists)
@@ -289,7 +300,7 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
-	Describe("delete-binding with missing paramters", func() {
+	Describe("delete-binding with missing parameters", func() {
 		It("logs and exits with 1", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding"})
 

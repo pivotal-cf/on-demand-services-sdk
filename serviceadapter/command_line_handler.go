@@ -62,6 +62,9 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 		}
 	case "create-binding":
 		if handler.binder != nil {
+			if len(args) < 6 {
+				failWithMissingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
+			}
 			bindingID := args[2]
 			boshVMsJSON := args[3]
 			manifestYAML := args[4]
