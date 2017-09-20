@@ -129,6 +129,10 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 				},
 			},
 		},
+		Tags: map[string]interface{}{
+			"quadrata": "parrot",
+			"secondTag" : "tagValue",
+		},
 	}
 
 	It("serialises bosh manifests", func() {
@@ -164,6 +168,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 				MaxInFlight:     4,
 			},
 			Variables: []bosh.Variable{},
+			Tags: map[string]interface{}{},
 		}
 
 		content, err := yaml.Marshal(emptyManifest)
@@ -181,6 +186,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("serial:"))
 		Expect(content).NotTo(ContainSubstring("variables:"))
 		Expect(content).NotTo(ContainSubstring("migrated_from:"))
+		Expect(content).NotTo(ContainSubstring("tags:"))
 	})
 
 	It("omits optional options from Variables", func() {

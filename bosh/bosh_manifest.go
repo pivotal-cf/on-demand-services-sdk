@@ -23,6 +23,7 @@ type BoshManifest struct {
 	Update         Update                 `yaml:"update"`
 	Properties     map[string]interface{} `yaml:"properties,omitempty"`
 	Variables      []Variable             `yaml:"variables,omitempty"`
+	Tags           map[string]interface{} `yaml:"tags,omitempty"`
 }
 
 type Variable struct {
