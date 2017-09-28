@@ -76,35 +76,40 @@ func GenerateInstanceGroupsWithNoProperties(
 	return boshInstanceGroups, nil
 }
 
-func findReleaseForJob(jobName string, releases ServiceReleases) (string, error) {
-	releasesThatMentionJob := []string{}
+func FindReleaseForJob(jobName string, releases ServiceReleases) (ServiceRelease, error) {
+	releasesThatMentionJob := []ServiceRelease{}
 	for _, release := range releases {
 		for _, job := range release.Jobs {
 			if job == jobName {
-				releasesThatMentionJob = append(releasesThatMentionJob, release.Name)
+				releasesThatMentionJob = append(releasesThatMentionJob, release)
 			}
 		}
 	}
 
 	if len(releasesThatMentionJob) == 0 {
-		return "", fmt.Errorf("job '%s' not provided", jobName)
+		return ServiceRelease{}, fmt.Errorf("job '%s' not provided", jobName)
 	}
 
 	if len(releasesThatMentionJob) > 1 {
-		return "", fmt.Errorf("job '%s' provided %d times, by %s", jobName, len(releasesThatMentionJob), strings.Join(releasesThatMentionJob, ", "))
+		releaseNames := []string{}
+		for _, release := range releasesThatMentionJob {
+			releaseNames = append(releaseNames, release.Name)
+		}
+		return ServiceRelease{}, fmt.Errorf("job '%s' provided %d times, by %s", jobName, len(releasesThatMentionJob), strings.Join(releaseNames, ", "))
 	}
 
 	return releasesThatMentionJob[0], nil
 }
+
 func generateJobsForInstanceGroup(instanceGroupName string, deploymentInstanceGroupsToJobs map[string][]string, serviceReleases ServiceReleases) ([]bosh.Job, error) {
 	boshJobs := []bosh.Job{}
 	for _, job := range deploymentInstanceGroupsToJobs[instanceGroupName] {
-		release, err := findReleaseForJob(job, serviceReleases)
+		release, err := FindReleaseForJob(job, serviceReleases)
 		if err != nil {
 			return nil, err
 		}
 
-		boshJobs = append(boshJobs, bosh.Job{Name: job, Release: release})
+		boshJobs = append(boshJobs, bosh.Job{Name: job, Release: release.Name})
 	}
 	return boshJobs, nil
 }
