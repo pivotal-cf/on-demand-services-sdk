@@ -114,7 +114,16 @@ func (m *manifestGenerator) GenerateManifest(serviceDeployment serviceadapter.Se
 				OS:      "Windows",
 				Version: "3.1",
 			},
-		}}, nil
+		},
+		InstanceGroups: []bosh.InstanceGroup{
+			{
+				Name: "Test",
+				Properties: map[string]interface{}{
+					"parseSymbols": "yes%[===",
+				},
+			},
+		},
+	}, nil
 }
 
 func jsonSerialiseToFile(filePath string, obj interface{}) error {

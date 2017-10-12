@@ -101,7 +101,16 @@ var (
 				OS:      "Windows",
 				Version: "3.1",
 			},
-		}}
+		},
+		InstanceGroups: []bosh.InstanceGroup{
+			{
+				Name: "Test",
+				Properties: map[string]interface{}{
+					"parseSymbols": "yes%[===",
+				},
+			},
+		},
+	}
 
 	expectedPreviousPlan = serviceadapter.Plan{
 		InstanceGroups: []serviceadapter.InstanceGroup{{

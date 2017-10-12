@@ -160,7 +160,7 @@ func (p commandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 		fail("error marshalling bosh manifest: %s", err)
 	}
 
-	fmt.Fprintf(os.Stdout, string(manifestBytes))
+	fmt.Fprint(os.Stdout, string(manifestBytes))
 }
 
 func (p commandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, requestParams string) {
