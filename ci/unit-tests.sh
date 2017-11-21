@@ -22,9 +22,6 @@ mkdir -p src/github.com/pivotal-cf/
 ln -s $(pwd)/on-demand-services-sdk src/github.com/pivotal-cf/
 cd src/github.com/pivotal-cf/on-demand-services-sdk
 
-go get -v github.com/tools/godep
-godep restore
-
 go get github.com/onsi/ginkgo/ginkgo
 
 scripts/run-tests.sh
