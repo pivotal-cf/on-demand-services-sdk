@@ -45,6 +45,20 @@ var _ = Describe("Domain", func() {
 				Expect(params.ArbitraryParams()).To(Equal(map[string]interface{}{}))
 			})
 		})
+
+		Context("when bindResource is present", func() {
+			It("can extract bindResource", func() {
+				params := serviceadapter.RequestParameters{"bind_resource": map[string]interface{}{"foo": "bar"}}
+				Expect(params.BindResource()).To(Equal(map[string]interface{}{"foo": "bar"}))
+			})
+		})
+
+		Context("when bindResource is absent", func() {
+			It("bindResources is empty", func() {
+				params := serviceadapter.RequestParameters{"plan_id": "baz"}
+				Expect(params.BindResource()).To(Equal(map[string]interface{}{}))
+			})
+		})
 	})
 
 	Describe("DashboardUrl", func() {

@@ -82,6 +82,13 @@ func (s RequestParameters) ArbitraryParams() map[string]interface{} {
 	return s["parameters"].(map[string]interface{})
 }
 
+func (s RequestParameters) BindResource() map[string]interface{} {
+	if s["bind_resource"] == nil {
+		return map[string]interface{}{}
+	}
+	return s["bind_resource"].(map[string]interface{})
+}
+
 var validate *validator.Validate
 
 func init() {
