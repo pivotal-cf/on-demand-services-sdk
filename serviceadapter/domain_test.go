@@ -20,6 +20,7 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
+	"github.com/pivotal-cf/brokerapi"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
 
 	. "github.com/onsi/ginkgo"
@@ -48,15 +49,22 @@ var _ = Describe("Domain", func() {
 
 		Context("when bindResource is present", func() {
 			It("can extract bindResource", func() {
-				params := serviceadapter.RequestParameters{"bind_resource": map[string]interface{}{"foo": "bar"}}
-				Expect(params.BindResource()).To(Equal(map[string]interface{}{"foo": "bar"}))
+				params := serviceadapter.RequestParameters{"bind_resource": map[string]interface{}{"app_guid": "foo"}}
+				Expect(params.BindResource()).To(Equal(brokerapi.BindResource{AppGuid: "foo"}))
 			})
 		})
 
 		Context("when bindResource is absent", func() {
 			It("bindResources is empty", func() {
 				params := serviceadapter.RequestParameters{"plan_id": "baz"}
-				Expect(params.BindResource()).To(Equal(map[string]interface{}{}))
+				Expect(params.BindResource()).To(Equal(brokerapi.BindResource{}))
+			})
+		})
+
+		Context("when bindResource is not a JSON", func() {
+			It("bindResources is empty", func() {
+				params := serviceadapter.RequestParameters{"bind_resource": func() {}}
+				Expect(params.BindResource()).To(Equal(brokerapi.BindResource{}))
 			})
 		})
 	})
