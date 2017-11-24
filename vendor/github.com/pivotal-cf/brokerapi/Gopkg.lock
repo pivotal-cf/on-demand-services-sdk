@@ -3,8 +3,13 @@
 
 [[projects]]
   name = "code.cloudfoundry.org/lager"
-  packages = ["."]
+  packages = [".","lagerctx","lagertest"]
   revision = "0bfa98e49e7a976af91e918d47978f07c00b081f"
+
+[[projects]]
+  name = "github.com/drewolson/testflight"
+  packages = ["."]
+  revision = "7040c250b4721006c536587ff8ee8ff573838edb"
 
 [[projects]]
   name = "github.com/gorilla/context"
@@ -15,8 +20,7 @@
 [[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
-  revision = "7f08801859139f86dfafd1c296e2cba9a80d292e"
-  version = "v1.6.0"
+  revision = "cf79e51a62d8219d52060dfc1b4e810414ba2d15"
 
 [[projects]]
   name = "github.com/onsi/ginkgo"
@@ -25,25 +29,18 @@
 
 [[projects]]
   name = "github.com/onsi/gomega"
-  packages = [".","format","gbytes","gexec","internal/assertion","internal/asyncassertion","internal/oraclematcher","internal/testingtsupport","matchers","matchers/support/goraph/bipartitegraph","matchers/support/goraph/edge","matchers/support/goraph/node","matchers/support/goraph/util","types"]
+  packages = [".","format","gbytes","internal/assertion","internal/asyncassertion","internal/oraclematcher","internal/testingtsupport","matchers","matchers/support/goraph/bipartitegraph","matchers/support/goraph/edge","matchers/support/goraph/node","matchers/support/goraph/util","types"]
   revision = "c90bd38f8da6e92f8b114953db2f0ad7361fb4b4"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/pivotal-cf/brokerapi"
-  packages = [".","auth"]
-  revision = "61af3c362c579b641bbffd7cb6355e5c4bfa5eda"
+  name = "github.com/pborman/uuid"
+  packages = ["."]
+  revision = "c55201b036063326c5b1b89ccfe45a184973d073"
 
 [[projects]]
   name = "golang.org/x/sys"
   packages = ["unix"]
   revision = "a408501be4d17ee978c04a618e7a1b22af058c0e"
-
-[[projects]]
-  name = "gopkg.in/go-playground/validator.v8"
-  packages = ["."]
-  revision = "5f57d2222ad794d0dffb07e664ea05e2ee07d60c"
-  version = "v8.18.1"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -53,6 +50,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2c10fd8cc2d11181925755b697c8be246b9199f696e3987e6d56c905791a2309"
+  inputs-digest = "c7fa45d440275d0771b076da933b2136c5573ea86746d2874094c7b2276c00b3"
   solver-name = "gps-cdcl"
   solver-version = 1
