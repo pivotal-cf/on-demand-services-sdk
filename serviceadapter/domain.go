@@ -167,8 +167,8 @@ func (e *VMExtensions) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 type LifecycleErrands struct {
-	PostDeploy Errand `json:"post_deploy,omitempty"`
-	PreDelete  Errand `json:"pre_delete,omitempty"`
+	PostDeploy Errand `json:"post_deploy,omitempty" yaml:"post_deploy,omitempty"`
+	PreDelete  Errand `json:"pre_delete,omitempty" yaml:"pre_delete,omitempty"`
 }
 
 type Errand struct {
