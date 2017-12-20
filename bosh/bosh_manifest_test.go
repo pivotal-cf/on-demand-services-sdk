@@ -84,6 +84,16 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 						Name: "old-instance-group-name",
 					},
 				},
+				Env: map[string]interface{}{
+					"bosh": map[string]interface{}{
+						"password":                "passwerd",
+						"keep_root_password":      true,
+						"remove_dev_tools":        false,
+						"remove_static_libraries": false,
+						"swap_size":               0,
+					},
+					"something_else": "foo",
+				},
 			},
 			{
 				Name:      "an-errand",
@@ -130,8 +140,8 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 			},
 		},
 		Tags: map[string]interface{}{
-			"quadrata": "parrot",
-			"secondTag" : "tagValue",
+			"quadrata":  "parrot",
+			"secondTag": "tagValue",
 		},
 	}
 
@@ -168,7 +178,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 				MaxInFlight:     4,
 			},
 			Variables: []bosh.Variable{},
-			Tags: map[string]interface{}{},
+			Tags:      map[string]interface{}{},
 		}
 
 		content, err := yaml.Marshal(emptyManifest)

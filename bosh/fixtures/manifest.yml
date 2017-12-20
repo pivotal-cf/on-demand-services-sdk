@@ -34,6 +34,14 @@ instance_groups:
         default: [dns]
     migrated_from:
     - name: old-instance-group-name
+    env:
+      bosh:
+        password: passwerd
+        keep_root_password: true
+        remove_dev_tools: false
+        remove_static_libraries: false
+        swap_size: 0
+      something_else: foo
 
   - name: an-errand
     lifecycle: errand
