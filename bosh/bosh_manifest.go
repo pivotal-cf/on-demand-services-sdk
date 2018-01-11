@@ -28,9 +28,8 @@ type BoshManifest struct {
 }
 
 type Addon struct {
-	Name    string                 `yaml:"name"`
-	Jobs    []Job                  `yaml:"jobs"`
-	Include map[string]interface{} `yaml:"include,omitempty"`
+	Name string `yaml:"name"`
+	Jobs []Job  `yaml:"jobs"`
 }
 
 type Variable struct {
