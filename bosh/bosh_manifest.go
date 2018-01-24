@@ -15,13 +15,19 @@
 
 package bosh
 
+import (
+	"fmt"
+
+	"regexp"
+)
+
 type BoshManifest struct {
 	Addons         []Addon                `yaml:"addons,omitempty"`
 	Name           string                 `yaml:"name"`
 	Releases       []Release              `yaml:"releases"`
 	Stemcells      []Stemcell             `yaml:"stemcells"`
 	InstanceGroups []InstanceGroup        `yaml:"instance_groups"`
-	Update         Update                 `yaml:"update"`
+	Update         *Update                `yaml:"update"`
 	Properties     map[string]interface{} `yaml:"properties,omitempty"`
 	Variables      []Variable             `yaml:"variables,omitempty"`
 	Tags           map[string]interface{} `yaml:"tags,omitempty"`
@@ -75,10 +81,58 @@ type Network struct {
 	Default   []string `yaml:"default,omitempty"`
 }
 
+// MaxInFlightValue holds a value of one of these types:
+//
+//	int, for YAML numbers
+//	string, for YAML string literals representing a percentage
+//
+type MaxInFlightValue interface{}
+
 type Update struct {
-	Canaries        int    `yaml:"canaries"`
-	CanaryWatchTime string `yaml:"canary_watch_time"`
-	UpdateWatchTime string `yaml:"update_watch_time"`
-	MaxInFlight     int    `yaml:"max_in_flight"`
-	Serial          *bool  `yaml:"serial,omitempty"`
+	Canaries        int              `yaml:"canaries"`
+	CanaryWatchTime string           `yaml:"canary_watch_time"`
+	UpdateWatchTime string           `yaml:"update_watch_time"`
+	MaxInFlight     MaxInFlightValue `yaml:"max_in_flight"`
+	Serial          *bool            `yaml:"serial,omitempty"`
+}
+
+type UpdateAlias Update
+
+func (u *Update) MarshalYAML() (interface{}, error) {
+	if u != nil {
+		switch v := u.MaxInFlight.(type) {
+		case string:
+			matched, err := regexp.Match(`\d+%`, []byte(v))
+			if !matched || err != nil {
+				return []byte{}, fmt.Errorf("MaxInFlight must be either an integer or a percentage. Got %v", v)
+			}
+		case int:
+		default:
+			return []byte{}, fmt.Errorf("MaxInFlight must be either an integer or a percentage. Got %v", v)
+		}
+	}
+
+	return (*UpdateAlias)(u), nil
+}
+
+func (u *Update) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	err := unmarshal((*UpdateAlias)(u))
+	if err != nil {
+		return err
+	}
+
+	if u != nil {
+		switch v := u.MaxInFlight.(type) {
+		case string:
+			matched, err := regexp.Match(`\d+%`, []byte(v))
+			if !matched || err != nil {
+				return fmt.Errorf("MaxInFlight must be either an integer or a percentage. Got %v", v)
+			}
+		case int:
+		default:
+			return fmt.Errorf("MaxInFlight must be either an integer or a percentage. Got %v", v)
+		}
+	}
+
+	return nil
 }

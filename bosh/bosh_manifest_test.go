@@ -16,18 +16,22 @@
 package bosh_test
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"gopkg.in/yaml.v2"
 )
 
-var _ = Describe("de(serialising) BOSH manifests", func() {
+var _ = Describe("(de)serialising BOSH manifests", func() {
 	boolPointer := func(b bool) *bool {
 		return &b
 	}
@@ -117,7 +121,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 		Properties: map[string]interface{}{
 			"foo": "bar",
 		},
-		Update: bosh.Update{
+		Update: &bosh.Update{
 			Canaries:        1,
 			CanaryWatchTime: "30000-180000",
 			UpdateWatchTime: "30000-180000",
@@ -171,7 +175,7 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 					},
 				},
 			},
-			Update: bosh.Update{
+			Update: &bosh.Update{
 				Canaries:        1,
 				CanaryWatchTime: "30000-180000",
 				UpdateWatchTime: "30000-180000",
@@ -214,4 +218,64 @@ var _ = Describe("de(serialising) BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("options:"))
 	})
 
+	DescribeTable(
+		"marshalling when max in flight set to",
+		func(maxInFlight bosh.MaxInFlightValue, expectedErr error, expectedContent string) {
+			manifest := bosh.BoshManifest{
+				Update: &bosh.Update{
+					MaxInFlight: maxInFlight,
+				},
+			}
+			content, err := yaml.Marshal(&manifest)
+
+			if expectedErr != nil {
+				Expect(err).To(MatchError(expectedErr))
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(content)).To(ContainSubstring(expectedContent))
+			}
+		},
+		Entry("a percentage", "25%", nil, "max_in_flight: 25%"),
+		Entry("an integer", 4, nil, "max_in_flight: 4"),
+		Entry("a float", 0.2, errors.New("MaxInFlight must be either an integer or a percentage. Got 0.2"), ""),
+		Entry("nil", nil, errors.New("MaxInFlight must be either an integer or a percentage. Got <nil>"), ""),
+		Entry("a bool", true, errors.New("MaxInFlight must be either an integer or a percentage. Got true"), ""),
+		Entry("a non percentage string", "some instances", errors.New("MaxInFlight must be either an integer or a percentage. Got some instances"), ""),
+		Entry("a numeric string", "24", errors.New("MaxInFlight must be either an integer or a percentage. Got 24"), ""),
+	)
+
+	DescribeTable(
+		"unmarshalling when max in flight set to",
+		func(maxInFlight bosh.MaxInFlightValue, expectedErr error) {
+			cwd, err := os.Getwd()
+			Expect(err).NotTo(HaveOccurred())
+			tmpl, err := template.ParseFiles(filepath.Join(cwd, "fixtures", "manifest_template.yml"))
+			Expect(err).NotTo(HaveOccurred())
+
+			type params struct {
+				MaxInFlight bosh.MaxInFlightValue
+			}
+			p := params{maxInFlight}
+
+			output := gbytes.NewBuffer()
+			err = tmpl.Execute(output, p)
+			Expect(err).NotTo(HaveOccurred())
+
+			var manifest bosh.BoshManifest
+			err = yaml.Unmarshal(output.Contents(), &manifest)
+
+			if expectedErr != nil {
+				Expect(err).To(MatchError(expectedErr))
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+				Expect(manifest.Update.MaxInFlight).To(Equal(maxInFlight))
+			}
+		},
+		Entry("a percentage", "25%", nil),
+		Entry("an integer", 4, nil),
+		Entry("a float", 0.2, errors.New("MaxInFlight must be either an integer or a percentage. Got 0.2")),
+		Entry("null", "null", errors.New("MaxInFlight must be either an integer or a percentage. Got <nil>")),
+		Entry("a bool", true, errors.New("MaxInFlight must be either an integer or a percentage. Got true")),
+		Entry("a non percentage string", "some instances", errors.New("MaxInFlight must be either an integer or a percentage. Got some instances")),
+	)
 })
