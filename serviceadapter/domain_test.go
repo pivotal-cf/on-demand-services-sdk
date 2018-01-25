@@ -17,6 +17,8 @@ package serviceadapter_test
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 
 	yaml "gopkg.in/yaml.v2"
 
@@ -24,14 +26,12 @@ import (
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 )
 
 var _ = Describe("Domain", func() {
-	booleanPointer := func(b bool) *bool {
-		return &b
-	}
-
 	Describe("RequestParameters", func() {
 		Context("when arbitraryParams are present", func() {
 			It("can extract arbitraryParams", func() {
@@ -135,92 +135,6 @@ var _ = Describe("Domain", func() {
 
 	Describe("plan", func() {
 		Describe("(de)serialising from/to JSON", func() {
-			planJson := []byte(`{
-				"lifecycle_errands": {
-					"post_deploy": {
-						"name": "health-check",
-						"instances": ["redis-server/0"]
-					},
-					"pre_delete": {
-						"name": "cleanup-data",
-						"instances": ["redis-server/0"]
-					}
-				},
-				"instance_groups": [
-					{
-						"name": "example-server",
-						"vm_type": "small",
-						"vm_extensions": ["public_ip"],
-						"persistent_disk_type": "ten",
-						"networks": [
-							"example-network"
-						],
-						"azs": [
-							"example-az"
-						],
-						"instances": 1,
-						"lifecycle": "errand",
-						"migrated_from": [
-							{"name": "old-server"}
-						]
-					}
-				],
-				"properties": {
-					"example": "property"
-				},
-				"update": {
-					"canaries": 1,
-					"max_in_flight": 10,
-					"canary_watch_time": "1000-30000",
-					"update_watch_time": "1000-30000",
-					"serial": false
-				}
-			}`)
-
-			expectedPlan := serviceadapter.Plan{
-				LifecycleErrands: serviceadapter.LifecycleErrands{
-					PostDeploy: serviceadapter.Errand{
-						Name:      "health-check",
-						Instances: []string{"redis-server/0"},
-					},
-					PreDelete: serviceadapter.Errand{
-						Name:      "cleanup-data",
-						Instances: []string{"redis-server/0"},
-					},
-				},
-				InstanceGroups: []serviceadapter.InstanceGroup{{
-					Name:               "example-server",
-					VMType:             "small",
-					VMExtensions:       []string{"public_ip"},
-					PersistentDiskType: "ten",
-					Networks:           []string{"example-network"},
-					AZs:                []string{"example-az"},
-					Instances:          1,
-					Lifecycle:          "errand",
-					MigratedFrom: []serviceadapter.Migration{
-						{Name: "old-server"},
-					},
-				}},
-				Properties: serviceadapter.Properties{"example": "property"},
-				Update: &serviceadapter.Update{
-					Canaries:        1,
-					MaxInFlight:     10,
-					CanaryWatchTime: "1000-30000",
-					UpdateWatchTime: "1000-30000",
-					Serial:          booleanPointer(false),
-				},
-			}
-
-			It("deserialises plan object containing all optional fields from json", func() {
-				var plan serviceadapter.Plan
-				Expect(json.Unmarshal(planJson, &plan)).To(Succeed())
-				Expect(plan).To(Equal(expectedPlan))
-			})
-
-			It("serialises plan object containing all optional fields to json", func() {
-				Expect(toJson(expectedPlan)).To(MatchJSON(planJson))
-			})
-
 			It("serialises plan object containing only mandatory fields to json", func() {
 				expectedPlan := serviceadapter.Plan{
 					InstanceGroups: []serviceadapter.InstanceGroup{{
@@ -294,6 +208,53 @@ var _ = Describe("Domain", func() {
 				planJson := toJson(plan)
 
 				Expect(planJson).NotTo(ContainSubstring("serial"))
+			})
+
+			It("fails with an error when deserialising a JSON without update.max_in_flight property", func() {
+				j := []byte(
+					`{
+						"lifecycle_errands": {
+							"post_deploy": {
+								"name": "health-check",
+								"instances": ["redis-server/0"]
+							},
+							"pre_delete": {
+								"name": "cleanup-data",
+								"instances": ["redis-server/0"]
+							}
+						},
+						"instance_groups": [
+							{
+								"name": "example-server",
+								"vm_type": "small",
+								"vm_extensions": ["public_ip"],
+								"persistent_disk_type": "ten",
+								"networks": [
+									"example-network"
+								],
+								"azs": [
+									"example-az"
+								],
+								"instances": 1,
+								"lifecycle": "errand",
+								"migrated_from": [
+									{"name": "old-server"}
+								]
+							}
+						],
+						"properties": {
+							"example": "property"
+						},
+						"update": {
+							"canaries": 1,
+							"canary_watch_time": "1000-30000",
+							"update_watch_time": "1000-30000",
+							"serial": false
+						}	
+					}`)
+
+				var p serviceadapter.Plan
+				Expect(json.Unmarshal(j, &p)).To(MatchError("MaxInFlight must be either an integer or a percentage. Got <nil>"))
 			})
 		})
 
@@ -389,5 +350,224 @@ var _ = Describe("Domain", func() {
 				})
 			})
 		})
+
+		DescribeTable(
+			"unmarshalling from JSON",
+			func(maxInFlight bosh.MaxInFlightValue, expectedErr error) {
+				j := jsonPlanWithMaxInFlight(maxInFlight)
+
+				var plan serviceadapter.Plan
+				err := json.Unmarshal(j, &plan)
+
+				if expectedErr != nil {
+					Expect(err).To(MatchError(expectedErr))
+				} else {
+					Expect(err).NotTo(HaveOccurred())
+					Expect(plan).To(Equal(planWithMaxInFlight(maxInFlight)))
+				}
+			},
+			Entry("a percentage", "25%", nil),
+			Entry("an integer", 4, nil),
+			Entry("a float", 0.2, errors.New("MaxInFlight must be either an integer or a percentage. Got 0.2")),
+			Entry("a bool", true, errors.New("MaxInFlight must be either an integer or a percentage. Got true")),
+			Entry("a non percentage string", "some instances", errors.New("MaxInFlight must be either an integer or a percentage. Got some instances")),
+		)
+
+		DescribeTable(
+			"marshalling to JSON",
+			func(maxInFlight bosh.MaxInFlightValue, expectedErr error) {
+				p := planWithMaxInFlight(maxInFlight)
+
+				j, err := json.Marshal(&p)
+				if expectedErr != nil {
+					Expect(err).To(HaveOccurred())
+					e, ok := err.(*json.MarshalerError)
+					Expect(ok).To(BeTrue())
+					Expect(e.Err).To(MatchError(expectedErr))
+				} else {
+					Expect(err).NotTo(HaveOccurred())
+					Expect(j).To(MatchJSON(jsonPlanWithMaxInFlight(maxInFlight)))
+				}
+			},
+			Entry("a percentage", "25%", nil),
+			Entry("an integer", 4, nil),
+			Entry("a float", 0.2, errors.New("MaxInFlight must be either an integer or a percentage. Got 0.2")),
+			Entry("a bool", true, errors.New("MaxInFlight must be either an integer or a percentage. Got true")),
+			Entry("a non percentage string", "some instances", errors.New("MaxInFlight must be either an integer or a percentage. Got some instances")),
+		)
+
+		DescribeTable(
+			"unmarshalling from YAML",
+			func(maxInFlight bosh.MaxInFlightValue, expectedErr error) {
+				y := yamlPlanWithMaxInFlight(maxInFlight)
+
+				var p serviceadapter.Plan
+				err := yaml.Unmarshal(y, &p)
+				if expectedErr != nil {
+					Expect(err).To(MatchError(expectedErr))
+				} else {
+					Expect(err).NotTo(HaveOccurred())
+					Expect(p).To(Equal(planWithMaxInFlight(maxInFlight)))
+				}
+			},
+			Entry("a percentage", "25%", nil),
+			Entry("an integer", 4, nil),
+			Entry("a float", 0.2, errors.New("MaxInFlight must be either an integer or a percentage. Got 0.2")),
+			Entry("null", "null", errors.New("MaxInFlight must be either an integer or a percentage. Got <nil>")),
+			Entry("null", "~", errors.New("MaxInFlight must be either an integer or a percentage. Got <nil>")),
+			Entry("a bool", true, errors.New("MaxInFlight must be either an integer or a percentage. Got true")),
+			Entry("a non percentage string", "some instances", errors.New("MaxInFlight must be either an integer or a percentage. Got some instances")),
+		)
+
+		DescribeTable(
+			"marshalling to YAML",
+			func(maxInFlight bosh.MaxInFlightValue, expectedErr error) {
+				p := planWithMaxInFlight(maxInFlight)
+
+				content, err := yaml.Marshal(p)
+				if expectedErr != nil {
+					Expect(err).To(MatchError(expectedErr))
+				} else {
+					Expect(err).NotTo(HaveOccurred())
+					Expect(content).To(MatchYAML(yamlPlanWithMaxInFlight(maxInFlight)))
+				}
+			},
+			Entry("a percentage", "25%", nil),
+			Entry("an integer", 4, nil),
+			Entry("a float", 0.2, errors.New("MaxInFlight must be either an integer or a percentage. Got 0.2")),
+			Entry("nil", nil, errors.New("MaxInFlight must be either an integer or a percentage. Got <nil>")),
+			Entry("a bool", true, errors.New("MaxInFlight must be either an integer or a percentage. Got true")),
+			Entry("a non percentage string", "some instances", errors.New("MaxInFlight must be either an integer or a percentage. Got some instances")),
+		)
 	})
 })
+
+func planWithMaxInFlight(maxInFlight bosh.MaxInFlightValue) serviceadapter.Plan {
+	return serviceadapter.Plan{
+		LifecycleErrands: serviceadapter.LifecycleErrands{
+			PostDeploy: serviceadapter.Errand{
+				Name:      "health-check",
+				Instances: []string{"redis-server/0"},
+			},
+			PreDelete: serviceadapter.Errand{
+				Name:      "cleanup-data",
+				Instances: []string{"redis-server/0"},
+			},
+		},
+		InstanceGroups: []serviceadapter.InstanceGroup{{
+			Name:               "example-server",
+			VMType:             "small",
+			VMExtensions:       []string{"public_ip"},
+			PersistentDiskType: "ten",
+			Networks:           []string{"example-network"},
+			AZs:                []string{"example-az"},
+			Instances:          1,
+			Lifecycle:          "errand",
+			MigratedFrom: []serviceadapter.Migration{
+				{Name: "old-server"},
+			},
+		}},
+		Properties: serviceadapter.Properties{"example": "property"},
+		Update: &serviceadapter.Update{
+			Canaries:        1,
+			MaxInFlight:     maxInFlight,
+			CanaryWatchTime: "1000-30000",
+			UpdateWatchTime: "1000-30000",
+			Serial:          booleanPointer(false),
+		},
+	}
+}
+
+func jsonPlanWithMaxInFlight(maxInFlight bosh.MaxInFlightValue) []byte {
+	var m bosh.MaxInFlightValue
+
+	switch maxInFlight.(type) {
+	case string:
+		m = fmt.Sprintf("\"%s\"", maxInFlight)
+	default:
+		m = maxInFlight
+	}
+
+	return []byte(fmt.Sprintf(`{
+		"lifecycle_errands": {
+			"post_deploy": {
+				"name": "health-check",
+				"instances": ["redis-server/0"]
+			},
+			"pre_delete": {
+				"name": "cleanup-data",
+				"instances": ["redis-server/0"]
+			}
+		},
+		"instance_groups": [
+			{
+				"name": "example-server",
+				"vm_type": "small",
+				"vm_extensions": ["public_ip"],
+				"persistent_disk_type": "ten",
+				"networks": [
+					"example-network"
+				],
+				"azs": [
+					"example-az"
+				],
+				"instances": 1,
+				"lifecycle": "errand",
+				"migrated_from": [
+					{"name": "old-server"}
+				]
+			}
+		],
+		"properties": {
+			"example": "property"
+		},
+		"update": {
+			"canaries": 1,
+			"max_in_flight": %v,
+			"canary_watch_time": "1000-30000",
+			"update_watch_time": "1000-30000",
+			"serial": false
+		}	
+	}`, m))
+}
+
+func yamlPlanWithMaxInFlight(maxInFlight bosh.MaxInFlightValue) []byte {
+	return []byte(fmt.Sprintf(`
+---
+lifecycle_errands:
+  post_deploy:
+    name: health-check
+    instances:
+    - redis-server/0
+  pre_delete:
+    name: cleanup-data
+    instances:
+    - redis-server/0
+instance_groups:
+- name: example-server
+  vm_type: small
+  vm_extensions:
+  - public_ip
+  persistent_disk_type: ten
+  networks:
+  - example-network
+  azs:
+  - example-az
+  instances: 1
+  lifecycle: errand
+  migrated_from:
+  - name: old-server
+properties:
+  example: property
+update:
+  canaries: 1
+  max_in_flight: %v
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+  serial: false
+`, maxInFlight))
+}
+
+func booleanPointer(b bool) *bool {
+	return &b
+}

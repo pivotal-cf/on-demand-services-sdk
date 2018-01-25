@@ -17,7 +17,6 @@ package bosh
 
 import (
 	"fmt"
-
 	"regexp"
 )
 
@@ -96,42 +95,41 @@ type Update struct {
 	Serial          *bool            `yaml:"serial,omitempty"`
 }
 
-type UpdateAlias Update
+type updateAlias Update
 
 func (u *Update) MarshalYAML() (interface{}, error) {
 	if u != nil {
-		switch v := u.MaxInFlight.(type) {
-		case string:
-			matched, err := regexp.Match(`\d+%`, []byte(v))
-			if !matched || err != nil {
-				return []byte{}, fmt.Errorf("MaxInFlight must be either an integer or a percentage. Got %v", v)
-			}
-		case int:
-		default:
-			return []byte{}, fmt.Errorf("MaxInFlight must be either an integer or a percentage. Got %v", v)
+		if err := ValidateMaxInFlight(u.MaxInFlight); err != nil {
+			return []byte{}, err
 		}
 	}
 
-	return (*UpdateAlias)(u), nil
+	return (*updateAlias)(u), nil
 }
 
 func (u *Update) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	err := unmarshal((*UpdateAlias)(u))
+	err := unmarshal((*updateAlias)(u))
 	if err != nil {
 		return err
 	}
 
 	if u != nil {
-		switch v := u.MaxInFlight.(type) {
-		case string:
-			matched, err := regexp.Match(`\d+%`, []byte(v))
-			if !matched || err != nil {
-				return fmt.Errorf("MaxInFlight must be either an integer or a percentage. Got %v", v)
-			}
-		case int:
-		default:
+		return ValidateMaxInFlight(u.MaxInFlight)
+	}
+
+	return nil
+}
+
+func ValidateMaxInFlight(m MaxInFlightValue) error {
+	switch v := m.(type) {
+	case string:
+		matched, err := regexp.Match(`\d+%`, []byte(v))
+		if !matched || err != nil {
 			return fmt.Errorf("MaxInFlight must be either an integer or a percentage. Got %v", v)
 		}
+	case int:
+	default:
+		return fmt.Errorf("MaxInFlight must be either an integer or a percentage. Got %v", v)
 	}
 
 	return nil

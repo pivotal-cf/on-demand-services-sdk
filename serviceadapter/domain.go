@@ -23,6 +23,8 @@ import (
 	"github.com/pivotal-cf/brokerapi"
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 
+	"bytes"
+
 	"gopkg.in/go-playground/validator.v8"
 )
 
@@ -139,8 +141,8 @@ type Properties map[string]interface{}
 
 type Plan struct {
 	Properties       Properties       `json:"properties"`
-	LifecycleErrands LifecycleErrands `json:"lifecycle_errands,omitempty"`
-	InstanceGroups   []InstanceGroup  `json:"instance_groups" validate:"required,dive"`
+	LifecycleErrands LifecycleErrands `json:"lifecycle_errands,omitempty" yaml:"lifecycle_errands"`
+	InstanceGroups   []InstanceGroup  `json:"instance_groups" validate:"required,dive" yaml:"instance_groups"`
 	Update           *Update          `json:"update,omitempty"`
 }
 
@@ -210,11 +212,62 @@ type Migration struct {
 }
 
 type Update struct {
-	Canaries        int    `json:"canaries" yaml:"canaries"`
-	CanaryWatchTime string `json:"canary_watch_time" yaml:"canary_watch_time"`
-	UpdateWatchTime string `json:"update_watch_time" yaml:"update_watch_time"`
-	MaxInFlight     int    `json:"max_in_flight" yaml:"max_in_flight"`
-	Serial          *bool  `json:"serial,omitempty" yaml:"serial,omitempty"`
+	Canaries        int                   `json:"canaries" yaml:"canaries"`
+	CanaryWatchTime string                `json:"canary_watch_time" yaml:"canary_watch_time"`
+	UpdateWatchTime string                `json:"update_watch_time" yaml:"update_watch_time"`
+	MaxInFlight     bosh.MaxInFlightValue `json:"max_in_flight, " yaml:"max_in_flight"`
+	Serial          *bool                 `json:"serial,omitempty" yaml:"serial,omitempty"`
+}
+
+type updateAlias Update
+
+func (u *Update) UnmarshalJSON(data []byte) error {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	err := decoder.Decode((*updateAlias)(u))
+	if err != nil {
+		return err
+	}
+
+	v, ok := u.MaxInFlight.(json.Number)
+	if ok {
+		int64v, err := v.Int64()
+		if err == nil {
+			u.MaxInFlight = int(int64v)
+		}
+	}
+
+	return bosh.ValidateMaxInFlight(u.MaxInFlight)
+}
+
+func (u *Update) MarshalJSON() ([]byte, error) {
+	if u.MaxInFlight == nil {
+		u.MaxInFlight = 0
+	}
+
+	err := bosh.ValidateMaxInFlight(u.MaxInFlight)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return json.Marshal((*updateAlias)(u))
+}
+
+func (u *Update) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	err := unmarshal((*updateAlias)(u))
+	if err != nil {
+		return err
+	}
+
+	return bosh.ValidateMaxInFlight(u.MaxInFlight)
+}
+
+func (u *Update) MarshalYAML() (interface{}, error) {
+	err := bosh.ValidateMaxInFlight(u.MaxInFlight)
+	if err != nil {
+		return []byte{}, err
+	}
+	return (*updateAlias)(u), nil
 }
 
 type Binding struct {
