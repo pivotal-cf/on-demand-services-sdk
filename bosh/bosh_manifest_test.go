@@ -147,6 +147,14 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 			"quadrata":  "parrot",
 			"secondTag": "tagValue",
 		},
+		Features: bosh.BoshFeatures{
+			UseDNSAddresses:      true,
+			RandomizeAZPlacement: true,
+			UseShortDNSAddresses: true,
+			ExtraFeatures: map[string]interface{}{
+				"another_feature": "ok",
+			},
+		},
 	}
 
 	It("serialises bosh manifests", func() {

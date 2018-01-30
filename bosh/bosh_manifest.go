@@ -30,6 +30,14 @@ type BoshManifest struct {
 	Properties     map[string]interface{} `yaml:"properties,omitempty"`
 	Variables      []Variable             `yaml:"variables,omitempty"`
 	Tags           map[string]interface{} `yaml:"tags,omitempty"`
+	Features       BoshFeatures           `yaml:"features"`
+}
+
+type BoshFeatures struct {
+	UseDNSAddresses      bool                   `yaml:"use_dns_addresses"`
+	RandomizeAZPlacement bool                   `yaml:"randomize_az_placement"`
+	UseShortDNSAddresses bool                   `yaml:"use_short_dns_addresses"`
+	ExtraFeatures        map[string]interface{} `yaml:"extra_features,inline"`
 }
 
 type Addon struct {
