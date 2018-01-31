@@ -21,11 +21,17 @@
 #  version = "2.4.0"
 
 
+[prune]
+  unused-packages = true
+  go-tests = true
+
 [[constraint]]
   name = "github.com/onsi/ginkgo"
+  version = "1.4.0"
 
 [[constraint]]
   name = "github.com/onsi/gomega"
+  version = "1.2.0"
 
 [[constraint]]
   name = "gopkg.in/go-playground/validator.v8"
@@ -33,3 +39,4 @@
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"
+  branch = "v2"
