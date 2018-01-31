@@ -30,14 +30,18 @@ type BoshManifest struct {
 	Properties     map[string]interface{} `yaml:"properties,omitempty"`
 	Variables      []Variable             `yaml:"variables,omitempty"`
 	Tags           map[string]interface{} `yaml:"tags,omitempty"`
-	Features       BoshFeatures           `yaml:"features"`
+	Features       BoshFeatures           `yaml:"features,omitempty"`
 }
 
 type BoshFeatures struct {
-	UseDNSAddresses      bool                   `yaml:"use_dns_addresses"`
-	RandomizeAZPlacement bool                   `yaml:"randomize_az_placement"`
-	UseShortDNSAddresses bool                   `yaml:"use_short_dns_addresses"`
+	UseDNSAddresses      *bool                  `yaml:"use_dns_addresses,omitempty"`
+	RandomizeAZPlacement *bool                  `yaml:"randomize_az_placement,omitempty"`
+	UseShortDNSAddresses *bool                  `yaml:"use_short_dns_addresses,omitempty"`
 	ExtraFeatures        map[string]interface{} `yaml:"extra_features,inline"`
+}
+
+func BoolPointer(val bool) *bool {
+	return &val
 }
 
 type Addon struct {

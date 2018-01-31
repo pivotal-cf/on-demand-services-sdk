@@ -148,9 +148,8 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 			"secondTag": "tagValue",
 		},
 		Features: bosh.BoshFeatures{
-			UseDNSAddresses:      true,
-			RandomizeAZPlacement: true,
-			UseShortDNSAddresses: true,
+			RandomizeAZPlacement: bosh.BoolPointer(true),
+			UseShortDNSAddresses: bosh.BoolPointer(false),
 			ExtraFeatures: map[string]interface{}{
 				"another_feature": "ok",
 			},
@@ -166,6 +165,19 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 		serialisedManifest, err := yaml.Marshal(sampleManifest)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(serialisedManifest).To(MatchYAML(manifestBytes))
+	})
+
+	It("deserialises bosh manifest features into struct", func() {
+		cwd, err := os.Getwd()
+		Expect(err).NotTo(HaveOccurred())
+		manifestBytes, err := ioutil.ReadFile(filepath.Join(cwd, "fixtures", "manifest.yml"))
+		Expect(err).NotTo(HaveOccurred())
+
+		manifest := bosh.BoshManifest{}
+		err = yaml.Unmarshal(manifestBytes, &manifest)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(manifest.Features).To(Equal(sampleManifest.Features))
 	})
 
 	It("omits optional keys", func() {
@@ -209,6 +221,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("variables:"))
 		Expect(content).NotTo(ContainSubstring("migrated_from:"))
 		Expect(content).NotTo(ContainSubstring("tags:"))
+		Expect(content).NotTo(ContainSubstring("features:"))
 	})
 
 	It("omits optional options from Variables", func() {
@@ -224,6 +237,22 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 		content, err := yaml.Marshal(emptyManifest)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(content).NotTo(ContainSubstring("options:"))
+	})
+
+	It("includes set properties and omits unset properties in Features", func() {
+		emptyishManifest := bosh.BoshManifest{
+			Features: bosh.BoshFeatures{
+				UseDNSAddresses:      bosh.BoolPointer(true),
+				UseShortDNSAddresses: bosh.BoolPointer(false),
+				// RandomizeAZPlacement is deliberately omitted
+			},
+		}
+
+		content, err := yaml.Marshal(emptyishManifest)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(content)).To(ContainSubstring("use_dns_addresses:"))
+		Expect(string(content)).To(ContainSubstring("use_short_dns_addresses:"))
+		Expect(string(content)).NotTo(ContainSubstring("randomize_az_placement:"))
 	})
 
 	DescribeTable(
