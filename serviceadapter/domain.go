@@ -86,6 +86,20 @@ func (s RequestParameters) ArbitraryParams() map[string]interface{} {
 	return s["parameters"].(map[string]interface{})
 }
 
+func (s RequestParameters) ArbitraryContext() map[string]interface{} {
+	if s["context"] == nil {
+		return map[string]interface{}{}
+	}
+	return s["context"].(map[string]interface{})
+}
+
+func (s RequestParameters) Platform() string {
+	context := s.ArbitraryContext()
+	platform := context["platform"]
+	platformStr, _ := platform.(string)
+	return platformStr
+}
+
 func (s RequestParameters) BindResource() brokerapi.BindResource {
 	marshalledParams, _ := json.Marshal(s["bind_resource"])
 	res := brokerapi.BindResource{}

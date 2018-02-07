@@ -67,6 +67,63 @@ var _ = Describe("Domain", func() {
 				Expect(params.BindResource()).To(Equal(brokerapi.BindResource{}))
 			})
 		})
+
+		Context("Arbitrary Context", func() {
+			It("is empty when not passed", func() {
+				params := serviceadapter.RequestParameters{"plan_id": "baz"}
+				Expect(params.ArbitraryContext()).To(Equal(map[string]interface{}{}))
+			})
+
+			It("extracts the context", func() {
+				expectedContext := map[string]interface{}{
+					"platform":   "cloudfoundry",
+					"space_guid": "final",
+				}
+				params := serviceadapter.RequestParameters{
+					"context": expectedContext,
+				}
+				Expect(params.ArbitraryContext()).To(Equal(expectedContext))
+			})
+		})
+
+		Context("Platform", func() {
+			It("is empty when not passed", func() {
+				params := serviceadapter.RequestParameters{"plan_id": "baz"}
+				Expect(params.Platform()).To(BeEmpty())
+			})
+
+			It("extracts the platform from context if present", func() {
+				expectedContext := map[string]interface{}{
+					"platform":   "cloudfoundry",
+					"space_guid": "final",
+				}
+				params := serviceadapter.RequestParameters{
+					"context": expectedContext,
+				}
+				Expect(params.Platform()).To(Equal("cloudfoundry"))
+			})
+
+			It("is empty if context exists but it has no platform", func() {
+				expectedContext := map[string]interface{}{
+					"space_guid": "final",
+				}
+				params := serviceadapter.RequestParameters{
+					"context": expectedContext,
+				}
+				Expect(params.Platform()).To(BeEmpty())
+			})
+
+			It("is empty if platform is not a string", func() {
+				expectedContext := map[string]interface{}{
+					"platform":   1,
+					"space_guid": "final",
+				}
+				params := serviceadapter.RequestParameters{
+					"context": expectedContext,
+				}
+				Expect(params.Platform()).To(BeEmpty())
+			})
+		})
 	})
 
 	Describe("DashboardUrl", func() {
