@@ -25,6 +25,7 @@ instance_groups:
           some_property: some_value
     vm_type: massive
     vm_extensions: [extended]
+    persistent_disk: 1000
     persistent_disk_type: big
     azs: [az1, az2]
     stemcell: greatest
