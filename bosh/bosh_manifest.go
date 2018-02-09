@@ -74,6 +74,7 @@ type InstanceGroup struct {
 	VMType             string                 `yaml:"vm_type"`
 	VMExtensions       []string               `yaml:"vm_extensions,omitempty"`
 	Stemcell           string                 `yaml:"stemcell"`
+	PersistentDisk     int                    `yaml:"persistent_disk,omitempty"`
 	PersistentDiskType string                 `yaml:"persistent_disk_type,omitempty"`
 	AZs                []string               `yaml:"azs,omitempty"`
 	Networks           []Network              `yaml:"networks"`

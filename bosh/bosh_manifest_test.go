@@ -73,6 +73,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 				},
 				VMType:             "massive",
 				VMExtensions:       []string{"extended"},
+				PersistentDisk:     1000,
 				PersistentDiskType: "big",
 				AZs:                []string{"az1", "az2"},
 				Stemcell:           "greatest",
@@ -222,6 +223,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("migrated_from:"))
 		Expect(content).NotTo(ContainSubstring("tags:"))
 		Expect(content).NotTo(ContainSubstring("features:"))
+		Expect(content).NotTo(ContainSubstring("persistent_disk:"))
 	})
 
 	It("omits optional options from Variables", func() {
