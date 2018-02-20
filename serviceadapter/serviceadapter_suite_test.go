@@ -18,24 +18,26 @@ package serviceadapter_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 
+	"encoding/json"
 	"testing"
+
+	"gopkg.in/yaml.v2"
 )
-
-var adapterBin string
-
-var _ = BeforeSuite(func() {
-	var err error
-	adapterBin, err = gexec.Build("github.com/pivotal-cf/on-demand-services-sdk/serviceadapter/testharness")
-	Expect(err).NotTo(HaveOccurred())
-})
-
-var _ = AfterSuite(func() {
-	gexec.CleanupBuildArtifacts()
-})
 
 func TestServiceadapter(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Service adapter Suite")
+}
+
+func toJson(obj interface{}) string {
+	str, err := json.Marshal(obj)
+	Expect(err).NotTo(HaveOccurred())
+	return string(str)
+}
+
+func toYaml(obj interface{}) string {
+	str, err := yaml.Marshal(obj)
+	Expect(err).NotTo(HaveOccurred())
+	return string(str)
 }

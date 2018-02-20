@@ -11,8 +11,8 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
+	"github.com/pivotal-cf/on-demand-services-sdk/integration_tests/testharness/testvariables"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
-	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter/testharness/testvariables"
 )
 
 const OperationShouldFail = "true"
@@ -40,6 +40,8 @@ func main() {
 
 	if os.Getenv(testvariables.DoNotImplementInterfacesKey) == "true" {
 		serviceadapter.HandleCommandLineInvocation(os.Args, nil, nil, nil)
+		//handler := serviceadapter.CommandLineHandler{}
+		//handler.HandleCLI(os.Args)
 		return
 	}
 
@@ -65,6 +67,12 @@ func main() {
 	}
 
 	serviceadapter.HandleCommandLineInvocation(os.Args, manGen, b, d)
+	//handler := serviceadapter.CommandLineHandler{
+	//	manGen,
+	//	b,
+	//	d,
+	//}
+	//err := handler.HandleCLI(os.Args)
 }
 
 type manifestGenerator struct {
