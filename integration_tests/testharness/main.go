@@ -40,8 +40,6 @@ func main() {
 
 	if os.Getenv(testvariables.DoNotImplementInterfacesKey) == "true" {
 		serviceadapter.HandleCommandLineInvocation(os.Args, nil, nil, nil)
-		//handler := serviceadapter.CommandLineHandler{}
-		//handler.HandleCLI(os.Args)
 		return
 	}
 
@@ -67,12 +65,6 @@ func main() {
 	}
 
 	serviceadapter.HandleCommandLineInvocation(os.Args, manGen, b, d)
-	//handler := serviceadapter.CommandLineHandler{
-	//	manGen,
-	//	b,
-	//	d,
-	//}
-	//err := handler.HandleCLI(os.Args)
 }
 
 type manifestGenerator struct {

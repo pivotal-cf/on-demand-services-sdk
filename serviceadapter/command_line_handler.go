@@ -35,11 +35,6 @@ type CommandLineHandler struct {
 	ManifestGenerator     ManifestGenerator
 	Binder                Binder
 	DashboardURLGenerator DashboardUrlGenerator
-
-	// Defaults to os.Stdout
-	OutputWriter io.Writer
-	// Defaults to os.Stderr
-	ErrorWriter io.Writer
 }
 
 type CLIHandlerError struct {
@@ -62,7 +57,14 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 		Binder:                binder,
 		DashboardURLGenerator: dashboardUrlGenerator,
 	}
-	err := handler.HandleCLI(args)
+	HandleCLI(args, handler)
+}
+
+// HandleCLI calls the correct Service Adapter handler method based on command
+// line arguments. The first argument at the command line should be one of:
+// generate-manifest, create-binding, delete-binding, dashboard-url.
+func HandleCLI(args []string, handler CommandLineHandler) {
+	err := handler.Handle(args, os.Stdout, os.Stderr)
 	switch e := err.(type) {
 	case nil:
 	case CLIHandlerError:
@@ -72,21 +74,8 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 	}
 }
 
-func (h *CommandLineHandler) setDefaultWriters() {
-	if h.OutputWriter == nil {
-		h.OutputWriter = os.Stdout
-	}
-	if h.ErrorWriter == nil {
-		h.ErrorWriter = os.Stderr
-	}
-}
-
-// HandleCLI calls the correct Service Adapter handler method based on command
-// line arguments. The first argument at the command line should be one of:
-// generate-manifest, create-binding, delete-binding, dashboard-url.
-func (h CommandLineHandler) HandleCLI(args []string) error {
-	h.setDefaultWriters()
-
+// Handle executes required action and returns an error. Writes responses to the writer provided
+func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.Writer) error {
 	supportedCommands := h.generateSupportedCommandsMessage()
 
 	if len(args) < 2 {
@@ -96,7 +85,7 @@ func (h CommandLineHandler) HandleCLI(args []string) error {
 		}
 	}
 
-	fmt.Fprintf(h.ErrorWriter, "[odb-sdk] handling %s\n", args[1])
+	fmt.Fprintf(errorWriter, "[odb-sdk] handling %s\n", args[1])
 
 	switch args[1] {
 	case "generate-manifest":
@@ -113,7 +102,7 @@ func (h CommandLineHandler) HandleCLI(args []string) error {
 		argsJSON := args[4]
 		previousManifestYAML := args[5]
 		previousPlanJSON := args[6]
-		return h.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON)
+		return h.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON, outputWriter)
 
 	case "create-binding":
 		if h.Binder != nil {
@@ -202,7 +191,7 @@ func (h CommandLineHandler) generateSupportedCommandsMessage() string {
 	return strings.Join(commands, ", ")
 }
 
-func (h CommandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON string) error {
+func (h CommandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON string, outputWriter io.Writer) error {
 	var serviceDeployment ServiceDeployment
 
 	if err := json.Unmarshal([]byte(serviceDeploymentJSON), &serviceDeployment); err != nil {
@@ -242,7 +231,7 @@ func (h CommandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 
 	manifest, err := h.ManifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan)
 	if err != nil {
-		fmt.Fprintf(h.OutputWriter, err.Error())
+		fmt.Fprintf(outputWriter, err.Error())
 		return CLIHandlerError{ErrorExitCode, err.Error()}
 	}
 
@@ -251,7 +240,7 @@ func (h CommandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 		return errors.Wrap(err, "error marshalling bosh manifest")
 	}
 
-	fmt.Fprint(h.OutputWriter, string(manifestBytes))
+	fmt.Fprint(outputWriter, string(manifestBytes))
 	return nil
 }
 
