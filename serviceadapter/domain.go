@@ -44,6 +44,29 @@ type DashboardUrlGenerator interface {
 	DashboardUrl(instanceID string, plan Plan, manifest bosh.BoshManifest) (DashboardUrl, error)
 }
 
+//go:generate counterfeiter -o fakes/schema_generator.go . SchemaGenerator
+type SchemaGenerator interface {
+	GeneratePlanSchema(plan Plan) (PlanSchema, error)
+}
+
+type ServiceInstanceSchema struct {
+	Create JSONSchemas `json:"create"`
+	Update JSONSchemas `json:"update"`
+}
+
+type JSONSchemas struct {
+	Parameters map[string]interface{} `json:"parameters"`
+}
+
+type ServiceBindingSchema struct {
+	Create JSONSchemas `json:"create"`
+}
+
+type PlanSchema struct {
+	ServiceInstance ServiceInstanceSchema `json:"service_instance"`
+	ServiceBinding  ServiceBindingSchema  `json:"service_binding"`
+}
+
 type DashboardUrl struct {
 	DashboardUrl string `json:"dashboard_url"`
 }

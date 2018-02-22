@@ -56,7 +56,7 @@ var (
 	dashboardPlanFilePath     string
 	dashboardManifestFilePath string
 
-	doNotImplementInterfaces = false
+	doNotImplementInterfaces bool
 
 	expectedServiceDeployment = serviceadapter.ServiceDeployment{
 		DeploymentName: "service-instance-deployment",
@@ -155,6 +155,7 @@ var (
 var _ = Describe("Command line handler", func() {
 
 	BeforeEach(func() {
+		doNotImplementInterfaces = false
 		stdout = new(bytes.Buffer)
 		stderr = new(bytes.Buffer)
 
@@ -402,6 +403,60 @@ var _ = Describe("Command line handler", func() {
 		It("dashboard-url exits with 10", func() {
 			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"dashboard-url", "id", toJson(expectedCurrentPlan), "null"})
 
+			Expect(exitCode).To(Equal(10))
+		})
+	})
+
+	Describe("generate-plan-schemas command", func() {
+		It("returns 0 and output the schema for a plan", func() {
+			exitCode = startPassingCommandAndGetExitCode([]string{"generate-plan-schemas", "--plan-json", toJson(expectedPlan)})
+			schemas := serviceadapter.JSONSchemas{
+				Parameters: map[string]interface{}{
+					"$schema": "http://json-schema.org/draft-04/schema#",
+					"type":    "object",
+					"properties": map[string]interface{}{
+						"billing-account": map[string]interface{}{
+							"description": "Billing account number used to charge use of shared fake server.",
+							"type":        "string",
+						},
+					},
+				},
+			}
+			expectedPlanSchema := serviceadapter.PlanSchema{
+				ServiceInstance: serviceadapter.ServiceInstanceSchema{
+					Create: schemas,
+					Update: schemas,
+				},
+				ServiceBinding: serviceadapter.ServiceBindingSchema{
+					Create: schemas,
+				},
+			}
+			Expect(exitCode).To(Equal(0))
+			Expect(stdout.Bytes()).To(MatchJSON(toJson(expectedPlanSchema)))
+		})
+	})
+
+	Describe("generate-plan-schemas with general error", func() {
+		It("returns 1 if an error occurred while parsing the CLI args", func() {
+			exitCode = startPassingCommandAndGetExitCode([]string{"generate-plan-schemas"})
+
+			Expect(exitCode).To(Equal(1))
+			Expect(stderr.String()).To(ContainSubstring(
+				"Incorrect arguments for generate-plan-schemas",
+			))
+		})
+
+		It("returns 1 if an error occurred while generating the schema", func() {
+			exitCode = startFailingCommandAndGetExitCode([]string{
+				"generate-plan-schemas", "--plan-json", toJson(expectedPlan),
+			}, "true")
+
+			Expect(exitCode).To(Equal(1))
+			Expect(stderr.String()).To(MatchRegexp(`\[odb-sdk\] An error occurred`))
+		})
+
+		It("returns 10 (not implemented) when the command is not implement", func() {
+			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-plan-schemas", "--plan-json", toJson(expectedCurrentPlan)})
 			Expect(exitCode).To(Equal(10))
 		})
 	})

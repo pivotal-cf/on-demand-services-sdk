@@ -25,6 +25,8 @@ import (
 
 	"path/filepath"
 
+	"flag"
+
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -35,6 +37,7 @@ type CommandLineHandler struct {
 	ManifestGenerator     ManifestGenerator
 	Binder                Binder
 	DashboardURLGenerator DashboardUrlGenerator
+	SchemaGenerator       SchemaGenerator
 }
 
 type CLIHandlerError struct {
@@ -142,10 +145,38 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		} else {
 			failWithCode(NotImplementedExitCode, "dashboard-url not implemented")
 		}
+	case "generate-plan-schemas":
+		if h.SchemaGenerator == nil {
+			return CLIHandlerError{NotImplementedExitCode, "plan schema generator not implemented"}
+		}
+
+		planJson, err := parseGeneratePlanSchemaArguments(args, errorWriter)
+		if err != nil {
+			return err
+		}
+		return h.generatePlanSchema(planJson, outputWriter)
+
 	default:
 		failWithCode(ErrorExitCode, fmt.Sprintf("unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands))
 	}
 	return nil
+}
+
+func parseGeneratePlanSchemaArguments(args []string, errorWriter io.Writer) (string, error) {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	flagPlanJSON := fs.String("plan-json", "", "Plan JSON")
+	fs.SetOutput(errorWriter)
+
+	err := fs.Parse(args[2:])
+	if err != nil {
+		return "", incorrectArgsError(args[1])
+	}
+
+	if *flagPlanJSON == "" {
+		return "", incorrectArgsError(args[1])
+	}
+
+	return *flagPlanJSON, nil
 }
 
 func failWithMissingArgsError(args []string, argumentNames string) {
@@ -159,6 +190,13 @@ func failWithMissingArgsError(args []string, argumentNames string) {
 			argumentNames,
 		),
 	)
+}
+
+func incorrectArgsError(cmd string) error {
+	return CLIHandlerError{
+		ErrorExitCode,
+		fmt.Sprintf("Incorrect arguments for %s", cmd),
+	}
 }
 
 func missingArgsError(args []string, argumentNames string) error {
@@ -302,6 +340,24 @@ func (h CommandLineHandler) dashboardUrl(instanceID, planJSON, manifestYAML stri
 	}
 
 	h.must(json.NewEncoder(os.Stdout).Encode(dashboardUrl), "marshalling dashboardUrl")
+}
+
+func (h CommandLineHandler) generatePlanSchema(planJSON string, outputWriter io.Writer) error {
+	var plan Plan
+	if err := json.Unmarshal([]byte(planJSON), &plan); err != nil {
+		return errors.Wrap(err, "error unmarshalling plan JSON")
+	}
+	schema, err := h.SchemaGenerator.GeneratePlanSchema(plan)
+	if err != nil {
+		fmt.Fprintf(outputWriter, err.Error())
+		return CLIHandlerError{ErrorExitCode, err.Error()}
+	}
+	err = json.NewEncoder(outputWriter).Encode(schema)
+	if err != nil {
+		return errors.Wrap(err, "error marshalling plan schema")
+	}
+
+	return nil
 }
 
 func (h CommandLineHandler) must(err error, msg string) {

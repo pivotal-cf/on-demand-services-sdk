@@ -39,7 +39,7 @@ func main() {
 	}
 
 	if os.Getenv(testvariables.DoNotImplementInterfacesKey) == "true" {
-		serviceadapter.HandleCommandLineInvocation(os.Args, nil, nil, nil)
+		serviceadapter.HandleCLI(os.Args, serviceadapter.CommandLineHandler{})
 		return
 	}
 
@@ -64,7 +64,16 @@ func main() {
 		manifestFilePath:   os.Getenv(testvariables.DashboardURLManifestKey),
 	}
 
-	serviceadapter.HandleCommandLineInvocation(os.Args, manGen, b, d)
+	s := &schemaGenerator{}
+
+	handler := serviceadapter.CommandLineHandler{
+		ManifestGenerator:     manGen,
+		Binder:                b,
+		DashboardURLGenerator: d,
+		SchemaGenerator:       s,
+	}
+
+	serviceadapter.HandleCLI(os.Args, handler)
 }
 
 type manifestGenerator struct {
@@ -230,4 +239,38 @@ func (d *dashboard) DashboardUrl(instanceID string, plan serviceadapter.Plan, ma
 	}
 
 	return serviceadapter.DashboardUrl{DashboardUrl: "http://dashboard.com"}, nil
+}
+
+type schemaGenerator struct{}
+
+func (s *schemaGenerator) GeneratePlanSchema(plan serviceadapter.Plan) (serviceadapter.PlanSchema, error) {
+	errs := func(err error) (serviceadapter.PlanSchema, error) {
+		return serviceadapter.PlanSchema{}, err
+	}
+
+	if os.Getenv(testvariables.OperationFailsKey) == OperationShouldFail {
+		return errs(errors.New("An error occurred"))
+	}
+
+	schemas := serviceadapter.JSONSchemas{
+		Parameters: map[string]interface{}{
+			"$schema": "http://json-schema.org/draft-04/schema#",
+			"type":    "object",
+			"properties": map[string]interface{}{
+				"billing-account": map[string]interface{}{
+					"description": "Billing account number used to charge use of shared fake server.",
+					"type":        "string",
+				},
+			},
+		},
+	}
+	return serviceadapter.PlanSchema{
+		ServiceInstance: serviceadapter.ServiceInstanceSchema{
+			Create: schemas,
+			Update: schemas,
+		},
+		ServiceBinding: serviceadapter.ServiceBindingSchema{
+			Create: schemas,
+		},
+	}, nil
 }
