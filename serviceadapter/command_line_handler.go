@@ -226,6 +226,10 @@ func (h CommandLineHandler) generateSupportedCommandsMessage() string {
 		commands = append(commands, "dashboard-url")
 	}
 
+	if h.SchemaGenerator != nil {
+		commands = append(commands, "generate-plan-schemas")
+	}
+
 	return strings.Join(commands, ", ")
 }
 

@@ -167,7 +167,7 @@ var _ = Describe("Command line handler", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{})
 
 			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(Equal("[odb-sdk] the following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url\n"))
+			Expect(stderr.String()).To(Equal("[odb-sdk] the following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas\n"))
 		})
 	})
 
@@ -176,7 +176,7 @@ var _ = Describe("Command line handler", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"non-existing-subcommand"})
 
 			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(ContainSubstring(`[odb-sdk] unknown subcommand: non-existing-subcommand. The following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url`))
+			Expect(stderr.String()).To(ContainSubstring(`[odb-sdk] unknown subcommand: non-existing-subcommand. The following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas`))
 		})
 	})
 

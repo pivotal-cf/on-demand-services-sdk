@@ -124,7 +124,24 @@ var _ = Describe("CommandLineHandler", func() {
 
 	It("when no arguments passed returns error", func() {
 		err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer)
-		assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "following commands are supported")
+		assertCLIHandlerErr(
+			err,
+			serviceadapter.ErrorExitCode,
+			"the following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas",
+		)
+	})
+
+	It("does not output optional commands if not implemented", func() {
+		handler.DashboardURLGenerator = nil
+		handler.SchemaGenerator = nil
+		err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer)
+		assertCLIHandlerErr(
+			err,
+			serviceadapter.ErrorExitCode,
+			"the following commands are supported: generate-manifest, create-binding, delete-binding",
+		)
+		Expect(err.Error()).NotTo(ContainSubstring("dashboard-url"))
+		Expect(err.Error()).NotTo(ContainSubstring("generate-plan-schemas"))
 	})
 
 	Describe("Generate Manifest", func() {
