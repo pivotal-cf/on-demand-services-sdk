@@ -332,6 +332,13 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).To(MatchError(ContainSubstring("unmarshalling plan JSON")))
 		})
 
+		It("returns an error if the plan JSON is invalid", func() {
+			err := handler.Handle([]string{
+				commandName, "generate-plan-schemas", "--plan-json", `{}`,
+			}, outputBuffer, errorBuffer)
+			Expect(err).To(MatchError(ContainSubstring("error validating plan JSON")))
+		})
+
 		It("returns an error if the args are not correct", func() {
 			err := handler.Handle([]string{
 				commandName, "generate-plan-schemas", "a", planJSON,

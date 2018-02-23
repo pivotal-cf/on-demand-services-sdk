@@ -351,6 +351,9 @@ func (h CommandLineHandler) generatePlanSchema(planJSON string, outputWriter io.
 	if err := json.Unmarshal([]byte(planJSON), &plan); err != nil {
 		return errors.Wrap(err, "error unmarshalling plan JSON")
 	}
+	if err := plan.Validate(); err != nil {
+		return errors.Wrap(err, "error validating plan JSON")
+	}
 	schema, err := h.SchemaGenerator.GeneratePlanSchema(plan)
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())
