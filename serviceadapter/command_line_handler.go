@@ -108,18 +108,18 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		return h.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON, outputWriter)
 
 	case "create-binding":
-		if h.Binder != nil {
-			if len(args) < 6 {
-				failWithMissingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
-			}
-			bindingID := args[2]
-			boshVMsJSON := args[3]
-			manifestYAML := args[4]
-			reqParams := args[5]
-			h.createBinding(bindingID, boshVMsJSON, manifestYAML, reqParams)
-		} else {
-			failWithCode(NotImplementedExitCode, "binder not implemented")
+		if h.Binder == nil {
+			return CLIHandlerError{NotImplementedExitCode, "binder not implemented"}
 		}
+		if len(args) < 6 {
+			return missingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
+		}
+
+		bindingID := args[2]
+		boshVMsJSON := args[3]
+		manifestYAML := args[4]
+		reqParams := args[5]
+		return h.createBinding(bindingID, boshVMsJSON, manifestYAML, reqParams, outputWriter)
 	case "delete-binding":
 		if h.Binder != nil {
 			if len(args) < 6 {
@@ -286,29 +286,40 @@ func (h CommandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, ar
 	return nil
 }
 
-func (h CommandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, requestParams string) {
+func (h CommandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, requestParams string, outputWriter io.Writer) error {
 	var boshVMs map[string][]string
-	h.must(json.Unmarshal([]byte(boshVMsJSON), &boshVMs), "unmarshalling BOSH VMs")
-
-	var manifest bosh.BoshManifest
-	h.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
-
-	var reqParams map[string]interface{}
-	h.must(json.Unmarshal([]byte(requestParams), &reqParams), "unmarshalling request binding parameters")
-
-	binding, err := h.Binder.CreateBinding(bindingID, boshVMs, manifest, reqParams)
-	switch err := err.(type) {
-	case BindingAlreadyExistsError:
-		failWithCodeAndNotifyUser(BindingAlreadyExistsErrorExitCode, err.Error())
-	case AppGuidNotProvidedError:
-		failWithCodeAndNotifyUser(AppGuidNotProvidedErrorExitCode, err.Error())
-	case error:
-		failWithCodeAndNotifyUser(ErrorExitCode, err.Error())
-	default:
-		break
+	if err := json.Unmarshal([]byte(boshVMsJSON), &boshVMs); err != nil {
+		return errors.Wrap(err, "unmarshalling BOSH VMs")
 	}
 
-	h.must(json.NewEncoder(os.Stdout).Encode(binding), "marshalling binding")
+	var manifest bosh.BoshManifest
+	if err := yaml.Unmarshal([]byte(manifestYAML), &manifest); err != nil {
+		return errors.Wrap(err, "unmarshalling manifest YAML")
+	}
+
+	var reqParams map[string]interface{}
+	if err := json.Unmarshal([]byte(requestParams), &reqParams); err != nil {
+		return errors.Wrap(err, "unmarshalling request binding parameters")
+	}
+
+	binding, err := h.Binder.CreateBinding(bindingID, boshVMs, manifest, reqParams)
+	if err != nil {
+		fmt.Fprintf(outputWriter, err.Error())
+		switch err := err.(type) {
+		case BindingAlreadyExistsError:
+			return CLIHandlerError{BindingAlreadyExistsErrorExitCode, err.Error()}
+		case AppGuidNotProvidedError:
+			return CLIHandlerError{AppGuidNotProvidedErrorExitCode, err.Error()}
+		default:
+			return CLIHandlerError{ErrorExitCode, err.Error()}
+		}
+	}
+
+	if err := json.NewEncoder(outputWriter).Encode(binding); err != nil {
+		return errors.Wrap(err, "marshalling binding")
+	}
+
+	return nil
 }
 
 func (h CommandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML string, requestParams string) {
