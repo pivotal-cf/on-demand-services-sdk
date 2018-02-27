@@ -121,18 +121,18 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		reqParams := args[5]
 		return h.createBinding(bindingID, boshVMsJSON, manifestYAML, reqParams, outputWriter)
 	case "delete-binding":
-		if h.Binder != nil {
-			if len(args) < 6 {
-				failWithMissingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
-			}
-			bindingID := args[2]
-			boshVMsJSON := args[3]
-			manifestYAML := args[4]
-			unbindingRequestParams := args[5]
-			h.deleteBinding(bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams)
-		} else {
-			failWithCode(NotImplementedExitCode, "binder not implemented")
+		if h.Binder == nil {
+			return CLIHandlerError{NotImplementedExitCode, "binder not implemented"}
 		}
+		if len(args) < 6 {
+			return missingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
+		}
+
+		bindingID := args[2]
+		boshVMsJSON := args[3]
+		manifestYAML := args[4]
+		unbindingRequestParams := args[5]
+		return h.deleteBinding(bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams, outputWriter)
 	case "dashboard-url":
 		if h.DashboardURLGenerator != nil {
 			if len(args) < 5 {
@@ -322,23 +322,33 @@ func (h CommandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, 
 	return nil
 }
 
-func (h CommandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML string, requestParams string) {
+func (h CommandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML string, requestParams string, outputWriter io.Writer) error {
 	var boshVMs bosh.BoshVMs
-	h.must(json.Unmarshal([]byte(boshVMsJSON), &boshVMs), "unmarshalling BOSH VMs")
+	if err := json.Unmarshal([]byte(boshVMsJSON), &boshVMs); err != nil {
+		return errors.Wrap(err, "unmarshalling BOSH VMs")
+	}
 
 	var manifest bosh.BoshManifest
-	h.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
-
-	var params RequestParameters
-	h.must(json.Unmarshal([]byte(requestParams), &params), "unmarshalling request binding parameters")
-
-	err := h.Binder.DeleteBinding(bindingID, boshVMs, manifest, params)
-	switch err.(type) {
-	case BindingNotFoundError:
-		failWithCodeAndNotifyUser(BindingNotFoundErrorExitCode, err.Error())
-	case error:
-		failWithCodeAndNotifyUser(ErrorExitCode, err.Error())
+	if err := yaml.Unmarshal([]byte(manifestYAML), &manifest); err != nil {
+		return errors.Wrap(err, "unmarshalling manifest YAML")
 	}
+
+	var reqParams RequestParameters
+	if err := json.Unmarshal([]byte(requestParams), &reqParams); err != nil {
+		return errors.Wrap(err, "unmarshalling request binding parameters")
+	}
+
+	err := h.Binder.DeleteBinding(bindingID, boshVMs, manifest, reqParams)
+	if err != nil {
+		fmt.Fprintf(outputWriter, err.Error())
+		switch err.(type) {
+		case BindingNotFoundError:
+			return CLIHandlerError{BindingNotFoundErrorExitCode, err.Error()}
+		default:
+			return CLIHandlerError{ErrorExitCode, err.Error()}
+		}
+	}
+	return nil
 }
 
 func (h CommandLineHandler) dashboardUrl(instanceID, planJSON, manifestYAML string) {
