@@ -134,17 +134,17 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		unbindingRequestParams := args[5]
 		return h.deleteBinding(bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams, outputWriter)
 	case "dashboard-url":
-		if h.DashboardURLGenerator != nil {
-			if len(args) < 5 {
-				failWithMissingArgsError(args, "<instance-ID> <plan-JSON> <manifest-YAML>")
-			}
-			instanceID := args[2]
-			planJSON := args[3]
-			manifestYAML := args[4]
-			h.dashboardUrl(instanceID, planJSON, manifestYAML)
-		} else {
-			failWithCode(NotImplementedExitCode, "dashboard-url not implemented")
+		if h.DashboardURLGenerator == nil {
+			return CLIHandlerError{NotImplementedExitCode, "dashboard-url not implemented"}
 		}
+		if len(args) < 5 {
+			return missingArgsError(args, "<instance-ID> <plan-JSON> <manifest-YAML>")
+		}
+
+		instanceID := args[2]
+		planJSON := args[3]
+		manifestYAML := args[4]
+		return h.dashboardUrl(instanceID, planJSON, manifestYAML, outputWriter)
 	case "generate-plan-schemas":
 		if h.SchemaGenerator == nil {
 			return CLIHandlerError{NotImplementedExitCode, "plan schema generator not implemented"}
@@ -351,20 +351,31 @@ func (h CommandLineHandler) deleteBinding(bindingID, boshVMsJSON, manifestYAML s
 	return nil
 }
 
-func (h CommandLineHandler) dashboardUrl(instanceID, planJSON, manifestYAML string) {
+func (h CommandLineHandler) dashboardUrl(instanceID, planJSON, manifestYAML string, outputWriter io.Writer) error {
 	var plan Plan
-	h.must(json.Unmarshal([]byte(planJSON), &plan), "unmarshalling service plan")
-	h.must(plan.Validate(), "validating service plan")
+	if err := json.Unmarshal([]byte(planJSON), &plan); err != nil {
+		return errors.Wrap(err, "unmarshalling service plan")
+	}
+	if err := plan.Validate(); err != nil {
+		return errors.Wrap(err, "validating service plan")
+	}
 
 	var manifest bosh.BoshManifest
-	h.must(yaml.Unmarshal([]byte(manifestYAML), &manifest), "unmarshalling manifest")
+	if err := yaml.Unmarshal([]byte(manifestYAML), &manifest); err != nil {
+		return errors.Wrap(err, "unmarshalling manifest")
+	}
 
 	dashboardUrl, err := h.DashboardURLGenerator.DashboardUrl(instanceID, plan, manifest)
 	if err != nil {
-		failWithCodeAndNotifyUser(ErrorExitCode, err.Error())
+		fmt.Fprintf(outputWriter, err.Error())
+		return CLIHandlerError{ErrorExitCode, err.Error()}
 	}
 
-	h.must(json.NewEncoder(os.Stdout).Encode(dashboardUrl), "marshalling dashboardUrl")
+	if err := json.NewEncoder(outputWriter).Encode(dashboardUrl); err != nil {
+		return errors.Wrap(err, "marshalling dashboardUrl")
+	}
+
+	return nil
 }
 
 func (h CommandLineHandler) generatePlanSchema(planJSON string, outputWriter io.Writer) error {

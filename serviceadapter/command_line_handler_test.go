@@ -38,6 +38,7 @@ var _ = Describe("CommandLineHandler", func() {
 		requestParams         serviceadapter.RequestParameters
 		requestParamsJSON     string
 		bindingID             string
+		instanceID            string
 		boshVMs               bosh.BoshVMs
 		boshVMsJSON           string
 
@@ -124,6 +125,7 @@ var _ = Describe("CommandLineHandler", func() {
 		requestParams = serviceadapter.RequestParameters{"key": "foo", "bar": "baz"}
 		requestParamsJSON = toJson(requestParams)
 		bindingID = "my-binding-id"
+		instanceID = "my-instance-id"
 		boshVMs = bosh.BoshVMs{"kafka": []string{"a", "b"}}
 		boshVMsJSON = toJson(boshVMs)
 		expectedBinding = serviceadapter.Binding{
@@ -450,6 +452,74 @@ var _ = Describe("CommandLineHandler", func() {
 
 			assertCLIHandlerErr(err, serviceadapter.BindingNotFoundErrorExitCode, "binding not found")
 			Expect(outputBuffer).To(gbytes.Say("binding not found"))
+		})
+	})
+
+	Describe("Dashboard URL", func() {
+		It("calls the supplied handler passing args through", func() {
+			fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{DashboardUrl: "http://url.example.com"}, nil)
+
+			err := handler.Handle([]string{
+				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+			}, outputBuffer, errorBuffer)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeDashboardUrlGenerator.DashboardUrlCallCount()).To(Equal(1))
+			actualInstanceID, actualPlanJSON, actualManifestYAML := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
+
+			Expect(actualInstanceID).To(Equal(instanceID))
+			Expect(actualPlanJSON).To(Equal(plan))
+			Expect(actualManifestYAML).To(Equal(previousManifest))
+			Expect(outputBuffer).To(gbytes.Say("http://url.example.com"))
+		})
+
+		It("returns a not-implemented error where there is no dashboard-url handler", func() {
+			handler.DashboardURLGenerator = nil
+			err := handler.Handle([]string{
+				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+			}, outputBuffer, errorBuffer)
+			assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "dashboard-url not implemented")
+		})
+
+		It("returns a missing args error when the manifest is missing", func() {
+			err := handler.Handle([]string{
+				commandName, "dashboard-url", instanceID, planJSON,
+			}, outputBuffer, errorBuffer)
+			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for dashboard-url. Usage:`)
+		})
+
+		It("fails with an error when planJSON is corrupt", func() {
+			planJSON += `aaa`
+			err := handler.Handle([]string{
+				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+			}, outputBuffer, errorBuffer)
+			Expect(err).To(MatchError(ContainSubstring("unmarshalling service plan")))
+		})
+
+		It("fails with an error when planJSON is invalid", func() {
+			planJSON = `{}`
+			err := handler.Handle([]string{
+				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+			}, outputBuffer, errorBuffer)
+			Expect(err).To(MatchError(ContainSubstring("validating service plan")))
+		})
+
+		It("fails with an error when previous manifest is corrupt", func() {
+			previousManifestYAML = previousPlanJSON
+			err := handler.Handle([]string{
+				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+			}, outputBuffer, errorBuffer)
+			Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest")))
+		})
+
+		It("returns an error when the dashboard URL generator fails", func() {
+			fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{}, errors.New("oops"))
+			err := handler.Handle([]string{
+				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+			}, outputBuffer, errorBuffer)
+
+			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+			Expect(outputBuffer).To(gbytes.Say("oops"))
 		})
 	})
 
