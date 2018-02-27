@@ -20,8 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"os"
 	"os/exec"
 
 	"gopkg.in/yaml.v2"
@@ -158,30 +156,24 @@ var _ = Describe("Command line handler", func() {
 		doNotImplementInterfaces = false
 		stdout = new(bytes.Buffer)
 		stderr = new(bytes.Buffer)
-
-		resetTempFiles()
 	})
 
-	Describe("command without arguments", func() {
-		It("logs and exits with 1", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{})
+	It("logs and exits with 1 if called without args", func() {
+		exitCode = startPassingCommandAndGetExitCode([]string{})
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(Equal("[odb-sdk] the following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas\n"))
-		})
+		Expect(exitCode).To(Equal(1))
+		Expect(stderr.String()).To(Equal("[odb-sdk] the following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas\n"))
 	})
 
-	Describe("an unknown subcommand argument", func() {
-		It("logs and exits with 1", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"non-existing-subcommand"})
+	It("logs and exits with 1 if called with a non-existing subcommand", func() {
+		exitCode = startPassingCommandAndGetExitCode([]string{"non-existing-subcommand"})
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(ContainSubstring(`[odb-sdk] unknown subcommand: non-existing-subcommand. The following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas`))
-		})
+		Expect(exitCode).To(Equal(1))
+		Expect(stderr.String()).To(ContainSubstring(`[odb-sdk] unknown subcommand: non-existing-subcommand. The following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas`))
 	})
 
-	Describe("generate-manifest without optional parameters", func() {
-		It("succeeds", func() {
+	Describe("generate-manifest command", func() {
+		It("succeeds without optional parameters", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest",
 				toJson(expectedServiceDeployment),
 				toJson(expectedCurrentPlan),
@@ -189,20 +181,16 @@ var _ = Describe("Command line handler", func() {
 				"",
 				"null",
 			})
-			actualServiceDeployment, actualCurrentPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan := decodeAndVerifyGenerateManifestResponse()
-
 			Expect(exitCode).To(Equal(0))
-			Expect(actualServiceDeployment).To(Equal(expectedServiceDeployment))
-			Expect(actualCurrentPlan).To(Equal(expectedCurrentPlan))
-			Expect(actualRequestParams).To(Equal(expectedRequestParams))
-			Expect(actualPreviousManifest).To(BeNil())
-			Expect(actualPreviousPlan).To(BeNil())
 			Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
 		})
-	})
 
-	Describe("generate-manifest with optional parameters", func() {
-		It("succeeds", func() {
+		It("generate-manifest exits with 10", func() {
+			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
+			Expect(exitCode).To(Equal(10))
+		})
+
+		It("succeeds with optional parameters", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{
 				"generate-manifest",
 				toJson(expectedServiceDeployment),
@@ -211,25 +199,19 @@ var _ = Describe("Command line handler", func() {
 				toYaml(expectedPreviousManifest),
 				toJson(expectedPreviousPlan),
 			})
-			_, _, _, actualPreviousManifest, actualPreviousPlan := decodeAndVerifyGenerateManifestResponse()
-
-			Expect(actualPreviousManifest).To(Equal(&expectedPreviousManifest))
-			Expect(actualPreviousPlan).To(Equal(&expectedPreviousPlan))
+			Expect(exitCode).To(Equal(0))
+			Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
 		})
-	})
 
-	Describe("generate-manifest with missing arguments error", func() {
-		It("logs and exits with 1", func() {
+		It("logs and exits with 1 when an argument is missing", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest"})
 
 			Expect(exitCode).To(Equal(1))
 			Expect(stderr.String()).To(ContainSubstring(
 				"Missing arguments for generate-manifest. Usage: testharness generate-manifest <service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>"))
 		})
-	})
 
-	Describe("generate-manifest with general error", func() {
-		It("exits 10 and logs", func() {
+		It("exits 1 and logs when a generic error occurs", func() {
 			exitCode = startFailingCommandAndGetExitCode([]string{"generate-manifest",
 				toJson(expectedServiceDeployment),
 				toJson(expectedCurrentPlan),
@@ -237,29 +219,25 @@ var _ = Describe("Command line handler", func() {
 				"",
 				"null",
 			}, "true")
-			decodeAndVerifyGenerateManifestResponse()
 
 			Expect(exitCode).To(Equal(1))
 			Expect(stdout.String()).To(Equal("some message to the user"))
 		})
 	})
 
-	Describe("create-binding", func() {
+	Describe("create-binding command", func() {
 		It("succeeds", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)})
-			actualBindingId, actualBoshVMs, actualBoshManifest, actualBindingParams := decodeAndVerifyCreateBindingResponse()
-
 			Expect(exitCode).To(Equal(0))
-			Expect(actualBindingId).To(Equal(expectedBindingID))
-			Expect(actualBoshVMs).To(Equal(expectedBoshVMs))
-			Expect(actualBoshManifest).To(Equal(expectedManifest))
-			Expect(actualBindingParams).To(Equal(expectedRequestParams))
 			Expect(stdout.String()).To(MatchJSON(toJson(testvariables.SuccessfulBinding)))
 		})
-	})
 
-	Describe("create-binding with missing arguments error", func() {
-		It("logs and exits with 1", func() {
+		It("create-binding exits with 10", func() {
+			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"create-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
+			Expect(exitCode).To(Equal(10))
+		})
+
+		It("logs and exits with 1 when an argument is missing", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"create-binding"})
 
 			Expect(exitCode).To(Equal(1))
@@ -267,30 +245,21 @@ var _ = Describe("Command line handler", func() {
 				"Missing arguments for create-binding. Usage: testharness create-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>",
 			))
 		})
-	})
 
-	Describe("create-binding where binding already exists", func() {
-		It("exits with 49", func() {
+		It("exits with 49 when a binding already exists", func() {
 			exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, testvariables.ErrBindingAlreadyExists)
-			decodeAndVerifyCreateBindingResponse()
 
 			Expect(exitCode).To(Equal(49))
 		})
-	})
 
-	Describe("create-binding where app_guid isn't provided", func() {
-		It("exits with 42", func() {
+		It("exits with 42 when app_guid is not provided", func() {
 			exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, testvariables.ErrAppGuidNotProvided)
-			decodeAndVerifyCreateBindingResponse()
 
 			Expect(exitCode).To(Equal(42))
 		})
-	})
 
-	Describe("create-binding fails where there is an internal error", func() {
-		It("exits with failure", func() {
+		It("exits with 1 when an error occurs", func() {
 			exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, "true")
-			decodeAndVerifyCreateBindingResponse()
 
 			Expect(exitCode).To(Equal(1))
 			Expect(stdout.String()).To(Equal("An internal error occured."))
@@ -300,18 +269,16 @@ var _ = Describe("Command line handler", func() {
 	Describe("delete-binding", func() {
 		It("succeeds", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)})
-			actualBindingId, actualBoshVMs, actualBoshManifest, actualRequestParams := decodeAndVerifyDeleteBindingResponse()
-
 			Expect(exitCode).To(Equal(0))
-			Expect(actualBindingId).To(Equal(expectedBindingID))
-			Expect(actualBoshVMs).To(Equal(expectedBoshVMs))
-			Expect(actualBoshManifest).To(Equal(expectedManifest))
-			Expect(actualRequestParams).To(Equal(expectedUnbindingRequestParams))
+			Expect(stdout.String()).To(BeEmpty())
 		})
-	})
 
-	Describe("delete-binding with missing arguments error", func() {
-		It("logs and exits with 1", func() {
+		It("delete-binding exits with 10", func() {
+			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"delete-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
+			Expect(exitCode).To(Equal(10))
+		})
+
+		It("logs and exits with 1 when an argument is missing", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding"})
 
 			Expect(exitCode).To(Equal(1))
@@ -319,42 +286,35 @@ var _ = Describe("Command line handler", func() {
 				"Missing arguments for delete-binding. Usage: testharness delete-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>",
 			))
 		})
-	})
 
-	Describe("delete-binding where binding not found", func() {
-		It("exits with 41", func() {
+		It("exits with 41 when the binding is not found", func() {
 			exitCode = startFailingCommandAndGetExitCode([]string{"delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)}, testvariables.ErrBindingNotFound)
-			decodeAndVerifyDeleteBindingResponse()
 
 			Expect(exitCode).To(Equal(41))
+			Expect(stdout.String()).To(ContainSubstring("binding not found"))
 		})
-	})
 
-	Describe("delete-binding with general error", func() {
-		It("exits with a failure", func() {
+		It("exits with a failure when a generic error occurs", func() {
 			exitCode = startFailingCommandAndGetExitCode([]string{"delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)}, "true")
-			decodeAndVerifyDeleteBindingResponse()
 
 			Expect(exitCode).To(Equal(1))
 			Expect(stdout.String()).To(Equal("An error occurred"))
 		})
 	})
 
-	Describe("dashboard-url", func() {
+	Describe("dashboard-url command", func() {
 		It("succeeds", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)})
-			actualPlan, actualManifest, actualInstanceID := decodeAndVerifyDashboardURLResponse()
-
 			Expect(exitCode).To(Equal(0))
-			Expect(actualInstanceID).To(Equal("instance-identifier"))
-			Expect(actualPlan).To(Equal(expectedPlan))
-			Expect(actualManifest).To(Equal(expectedManifest))
 			Expect(stdout.Bytes()).To(MatchJSON(`{ "dashboard_url": "http://dashboard.com"}`))
 		})
-	})
 
-	Describe("dashboard-url with missing arguments error", func() {
-		It("logs and exits with 1", func() {
+		It("dashboard-url exits with 10", func() {
+			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"dashboard-url", "id", toJson(expectedCurrentPlan), "null"})
+			Expect(exitCode).To(Equal(10))
+		})
+
+		It("logs and exits with 1 when an argument is missing", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url"})
 
 			Expect(exitCode).To(Equal(1))
@@ -362,48 +322,12 @@ var _ = Describe("Command line handler", func() {
 				"Missing arguments for dashboard-url. Usage: testharness dashboard-url <instance-ID> <plan-JSON> <manifest-YAML>",
 			))
 		})
-	})
 
-	Describe("dashboard-url with general error", func() {
-		It("exits with failure", func() {
+		It("exits with 1 if a generic error occurs", func() {
 			exitCode = startFailingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)}, "true")
-			decodeAndVerifyDashboardURLResponse()
 
 			Expect(exitCode).To(Equal(1))
 			Expect(stdout.String()).To(Equal("An error occurred"))
-		})
-	})
-
-	Describe("no interfaces have been implemented", func() {
-		It("unknown subcommand exits with 1", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"non-existing-subcommand"})
-
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(ContainSubstring(`[odb-sdk] unknown subcommand: non-existing-subcommand. The following commands are supported:`))
-		})
-
-		It("generate-manifest exits with 10", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
-
-			Expect(exitCode).To(Equal(10))
-		})
-
-		It("create-binding exits with 10", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"create-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
-
-			Expect(exitCode).To(Equal(10))
-		})
-
-		It("delete-binding exits with 10", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"delete-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
-
-			Expect(exitCode).To(Equal(10))
-		})
-
-		It("dashboard-url exits with 10", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"dashboard-url", "id", toJson(expectedCurrentPlan), "null"})
-
-			Expect(exitCode).To(Equal(10))
 		})
 	})
 
@@ -434,9 +358,7 @@ var _ = Describe("Command line handler", func() {
 			Expect(exitCode).To(Equal(0))
 			Expect(stdout.Bytes()).To(MatchJSON(toJson(expectedPlanSchema)))
 		})
-	})
 
-	Describe("generate-plan-schemas with general error", func() {
 		It("returns 1 if an error occurred while parsing the CLI args", func() {
 			exitCode = startPassingCommandAndGetExitCode([]string{"generate-plan-schemas"})
 
@@ -461,70 +383,6 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 })
-
-func decodeAndVerifyGenerateManifestResponse() (serviceadapter.ServiceDeployment, serviceadapter.Plan, map[string]interface{}, *bosh.BoshManifest, *serviceadapter.Plan) {
-	var (
-		actualServiceDeployment serviceadapter.ServiceDeployment
-		actualCurrentPlan       serviceadapter.Plan
-		actualRequestParams     map[string]interface{}
-		actualPreviousManifest  *bosh.BoshManifest
-		actualPreviousPlan      *serviceadapter.Plan
-	)
-
-	jsonDeserialise(serviceDeploymentFilePath, &actualServiceDeployment)
-	jsonDeserialise(planFilePath, &actualCurrentPlan)
-	jsonDeserialise(requestParamsFilePath, &actualRequestParams)
-	yamlDeserialise(previousManifestFilePath, &actualPreviousManifest)
-	jsonDeserialise(previousPlanFilePath, &actualPreviousPlan)
-
-	return actualServiceDeployment, actualCurrentPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan
-}
-
-func decodeAndVerifyCreateBindingResponse() (string, bosh.BoshVMs, bosh.BoshManifest, map[string]interface{}) {
-	var (
-		actualBindingId     string
-		actualBoshVMs       bosh.BoshVMs
-		actualBoshManifest  bosh.BoshManifest
-		actualBindingParams map[string]interface{}
-	)
-
-	jsonDeserialise(bindingIdFilePath, &actualBindingId)
-	jsonDeserialise(boshVMsFilePath, &actualBoshVMs)
-	yamlDeserialise(boshManifestFilePath, &actualBoshManifest)
-	jsonDeserialise(bindingParamsFilePath, &actualBindingParams)
-
-	return actualBindingId, actualBoshVMs, actualBoshManifest, actualBindingParams
-}
-
-func decodeAndVerifyDeleteBindingResponse() (string, bosh.BoshVMs, bosh.BoshManifest, serviceadapter.RequestParameters) {
-	var (
-		actualBindingId     string
-		actualBoshVMs       bosh.BoshVMs
-		actualBoshManifest  bosh.BoshManifest
-		actualRequestParams serviceadapter.RequestParameters
-	)
-
-	jsonDeserialise(bindingIdFilePath, &actualBindingId)
-	jsonDeserialise(boshVMsFilePath, &actualBoshVMs)
-	yamlDeserialise(boshManifestFilePath, &actualBoshManifest)
-	jsonDeserialise(bindingParamsFilePath, &actualRequestParams)
-
-	return actualBindingId, actualBoshVMs, actualBoshManifest, actualRequestParams
-}
-
-func decodeAndVerifyDashboardURLResponse() (serviceadapter.Plan, bosh.BoshManifest, string) {
-	var (
-		actualInstanceID string
-		actualPlan       serviceadapter.Plan
-		actualManifest   bosh.BoshManifest
-	)
-
-	jsonDeserialise(instanceIDFilePath, &actualInstanceID)
-	jsonDeserialise(dashboardPlanFilePath, &actualPlan)
-	yamlDeserialise(dashboardManifestFilePath, &actualManifest)
-
-	return actualPlan, actualManifest, actualInstanceID
-}
 
 func startEmptyImplementationCommandAndGetExitCode(args []string) int {
 	doNotImplementInterfaces = true
@@ -557,86 +415,8 @@ func startCommandAndGetExitCode(args []string) int {
 func resetCommandEnv() []string {
 	return []string{
 		fmt.Sprintf("%s=%s", testvariables.OperationFailsKey, operationFails),
-		fmt.Sprintf("%s=%s", testvariables.GenerateManifestServiceDeploymentFileKey, serviceDeploymentFilePath),
-		fmt.Sprintf("%s=%s", testvariables.GenerateManifestPlanFileKey, planFilePath),
-		fmt.Sprintf("%s=%s", testvariables.GenerateManifestRequestParamsFileKey, requestParamsFilePath),
-		fmt.Sprintf("%s=%s", testvariables.GenerateManifestPreviousManifestFileKey, previousManifestFilePath),
-		fmt.Sprintf("%s=%s", testvariables.GenerateManifestPreviousPlanFileKey, previousPlanFilePath),
-
-		fmt.Sprintf("%s=%s", testvariables.BindingIdFileKey, bindingIdFilePath),
-		fmt.Sprintf("%s=%s", testvariables.BindingVmsFileKey, boshVMsFilePath),
-		fmt.Sprintf("%s=%s", testvariables.BindingManifestFileKey, boshManifestFilePath),
-		fmt.Sprintf("%s=%s", testvariables.BindingParamsFileKey, bindingParamsFilePath),
-
-		fmt.Sprintf("%s=%s", testvariables.DashboardURLInstanceIDKey, instanceIDFilePath),
-		fmt.Sprintf("%s=%s", testvariables.DashboardURLPlanKey, dashboardPlanFilePath),
-		fmt.Sprintf("%s=%s", testvariables.DashboardURLManifestKey, dashboardManifestFilePath),
-
 		fmt.Sprintf("%s=%t", testvariables.DoNotImplementInterfacesKey, doNotImplementInterfaces),
 	}
-}
-
-func resetTempFiles() {
-	for _, filePath := range []string{
-		serviceDeploymentFilePath, planFilePath, requestParamsFilePath, previousManifestFilePath, previousPlanFilePath,
-		bindingIdFilePath, boshVMsFilePath, boshManifestFilePath, bindingParamsFilePath,
-		instanceIDFilePath, dashboardPlanFilePath, dashboardManifestFilePath,
-	} {
-		deleteFileIfExists(filePath)
-	}
-
-	createTempFilesForGenerateManifest()
-
-	createTempFilesForBinding()
-
-	createTempFilesForDashboardURL()
-}
-
-func deleteFileIfExists(filePath string) {
-	if _, err := os.Stat(filePath); os.IsExist(err) {
-		Expect(os.Remove(filePath)).To(Succeed())
-	}
-}
-
-func createTempFile() string {
-	file, err := ioutil.TempFile("", "sdk-tests")
-	Expect(err).NotTo(HaveOccurred())
-	defer file.Close()
-	return file.Name()
-}
-
-func createTempFilesForGenerateManifest() {
-	serviceDeploymentFilePath = createTempFile()
-	planFilePath = createTempFile()
-	requestParamsFilePath = createTempFile()
-	previousManifestFilePath = createTempFile()
-	previousPlanFilePath = createTempFile()
-}
-
-func createTempFilesForBinding() {
-	bindingIdFilePath = createTempFile()
-	boshVMsFilePath = createTempFile()
-	boshManifestFilePath = createTempFile()
-	bindingParamsFilePath = createTempFile()
-}
-
-func createTempFilesForDashboardURL() {
-	instanceIDFilePath = createTempFile()
-	dashboardPlanFilePath = createTempFile()
-	dashboardManifestFilePath = createTempFile()
-}
-
-func jsonDeserialise(filePath string, pointer interface{}) {
-	file, err := os.Open(filePath)
-	Expect(err).NotTo(HaveOccurred())
-	defer file.Close()
-	Expect(json.NewDecoder(file).Decode(pointer)).To(Succeed())
-}
-
-func yamlDeserialise(filePath string, pointer interface{}) {
-	fileBytes, err := ioutil.ReadFile(filePath)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(yaml.Unmarshal(fileBytes, pointer)).To(Succeed())
 }
 
 func toYaml(obj interface{}) string {
