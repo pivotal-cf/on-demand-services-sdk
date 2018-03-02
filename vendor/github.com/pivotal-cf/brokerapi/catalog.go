@@ -1,5 +1,9 @@
 package brokerapi
 
+import (
+	"encoding/json"
+)
+
 type Service struct {
 	ID              string                  `json:"id"`
 	Name            string                  `json:"name"`
@@ -44,13 +48,14 @@ type ServiceBindingSchema struct {
 }
 
 type Schema struct {
-	Schema interface{} `json:"parameters,omitempty"`
+	Parameters map[string]interface{} `json:"parameters"`
 }
 
 type ServicePlanMetadata struct {
-	DisplayName string            `json:"displayName,omitempty"`
-	Bullets     []string          `json:"bullets,omitempty"`
-	Costs       []ServicePlanCost `json:"costs,omitempty"`
+	DisplayName        string            `json:"displayName,omitempty"`
+	Bullets            []string          `json:"bullets,omitempty"`
+	Costs              []ServicePlanCost `json:"costs,omitempty"`
+	AdditionalMetadata map[string]interface{}
 }
 
 type ServicePlanCost struct {
@@ -66,6 +71,7 @@ type ServiceMetadata struct {
 	DocumentationUrl    string `json:"documentationUrl,omitempty"`
 	SupportUrl          string `json:"supportUrl,omitempty"`
 	Shareable           *bool  `json:"shareable,omitempty"`
+	AdditionalMetadata  map[string]interface{}
 }
 
 func FreeValue(v bool) *bool {
@@ -83,3 +89,71 @@ const (
 	PermissionSyslogDrain     = RequiredPermission("syslog_drain")
 	PermissionVolumeMount     = RequiredPermission("volume_mount")
 )
+
+func (spm ServicePlanMetadata) MarshalJSON() ([]byte, error) {
+	type Alias ServicePlanMetadata
+
+	b, _ := json.Marshal(Alias(spm))
+	m := spm.AdditionalMetadata
+	json.Unmarshal(b, &m)
+	delete(m, "AdditionalMetadata")
+
+	return json.Marshal(m)
+}
+
+func (spm *ServicePlanMetadata) UnmarshalJSON(data []byte) error {
+	type Alias ServicePlanMetadata
+
+	if err := json.Unmarshal(data, (*Alias)(spm)); err != nil {
+		return err
+	}
+
+	additionalMetadata := map[string]interface{}{}
+	if err := json.Unmarshal(data, &additionalMetadata); err != nil {
+		return err
+	}
+
+	delete(additionalMetadata, "displayName")
+	delete(additionalMetadata, "bullets")
+	delete(additionalMetadata, "costs")
+
+	spm.AdditionalMetadata = additionalMetadata
+
+	return nil
+}
+
+func (sm ServiceMetadata) MarshalJSON() ([]byte, error) {
+	type Alias ServiceMetadata
+
+	b, _ := json.Marshal(Alias(sm))
+	m := sm.AdditionalMetadata
+	json.Unmarshal(b, &m)
+	delete(m, "AdditionalMetadata")
+
+	return json.Marshal(m)
+}
+
+func (sm *ServiceMetadata) UnmarshalJSON(data []byte) error {
+	type Alias ServiceMetadata
+
+	if err := json.Unmarshal(data, (*Alias)(sm)); err != nil {
+		return err
+	}
+
+	additionalMetadata := map[string]interface{}{}
+	if err := json.Unmarshal(data, &additionalMetadata); err != nil {
+		return err
+	}
+
+	delete(additionalMetadata, "displayName")
+	delete(additionalMetadata, "imageUrl")
+	delete(additionalMetadata, "longDescription")
+	delete(additionalMetadata, "providerDisplayName")
+	delete(additionalMetadata, "documentationUrl")
+	delete(additionalMetadata, "supportUrl")
+	delete(additionalMetadata, "shareable")
+
+	sm.AdditionalMetadata = additionalMetadata
+
+	return nil
+}
