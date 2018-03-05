@@ -73,7 +73,7 @@
     ".",
     "auth"
   ]
-  revision = "d06fa8d0412b54021960ee7b0347989c519b87d3"
+  revision = "81b6609d89d7567d8c81b0616f8f940156ed23f7"
 
 [[projects]]
   name = "github.com/pkg/errors"
