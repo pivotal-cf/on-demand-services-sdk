@@ -218,8 +218,7 @@ var _ = Describe("Domain", func() {
 					],
 					"properties": {},
 					"lifecycle_errands": {
-						"post_deploy": {},
-						"pre_delete": {}
+						"post_deploy": {}
 					}
 				}`)
 				Expect(toJson(expectedPlan)).To(MatchJSON(planJson))
@@ -506,10 +505,10 @@ func planWithMaxInFlight(maxInFlight bosh.MaxInFlightValue) serviceadapter.Plan 
 				Name:      "health-check",
 				Instances: []string{"redis-server/0"},
 			},
-			PreDelete: serviceadapter.Errand{
+			PreDelete: []serviceadapter.Errand{{
 				Name:      "cleanup-data",
 				Instances: []string{"redis-server/0"},
-			},
+			}},
 		},
 		InstanceGroups: []serviceadapter.InstanceGroup{{
 			Name:               "example-server",
@@ -551,10 +550,10 @@ func jsonPlanWithMaxInFlight(maxInFlight bosh.MaxInFlightValue) []byte {
 				"name": "health-check",
 				"instances": ["redis-server/0"]
 			},
-			"pre_delete": {
+			"pre_delete": [{
 				"name": "cleanup-data",
 				"instances": ["redis-server/0"]
-			}
+			}]
 		},
 		"instance_groups": [
 			{
@@ -597,9 +596,9 @@ lifecycle_errands:
     instances:
     - redis-server/0
   pre_delete:
-    name: cleanup-data
-    instances:
-    - redis-server/0
+    - name: cleanup-data
+      instances:
+      - redis-server/0
 instance_groups:
 - name: example-server
   vm_type: small
