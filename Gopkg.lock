@@ -72,8 +72,8 @@
     ".",
     "auth"
   ]
-  revision = "a31b912e79c8cb4875840cbfbe8dc4f96f0507ab"
-  version = "v1.0.0"
+  revision = "b763fb58cdae010fb90a94387db218c95967f0d5"
+  version = "v2.0.0"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -135,6 +135,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "48cea9ca352b54207ac79258613b1ad6e7001be5f9b8ca0a5e25027bae0f3ae0"
+  inputs-digest = "1ff28259e12b01dfeb0a9adf8c7cba7941076e446fc24901eb5e1c933e874ec3"
   solver-name = "gps-cdcl"
   solver-version = 1
