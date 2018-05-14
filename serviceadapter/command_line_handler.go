@@ -27,6 +27,8 @@ import (
 
 	"flag"
 
+	"io/ioutil"
+
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -38,6 +40,7 @@ type CommandLineHandler struct {
 	Binder                Binder
 	DashboardURLGenerator DashboardUrlGenerator
 	SchemaGenerator       SchemaGenerator
+	InputParamsFile       *os.File
 }
 
 type CLIHandlerError struct {
@@ -59,6 +62,7 @@ func HandleCommandLineInvocation(args []string, manifestGenerator ManifestGenera
 		ManifestGenerator:     manifestGenerator,
 		Binder:                binder,
 		DashboardURLGenerator: dashboardUrlGenerator,
+		InputParamsFile:       os.Stdin,
 	}
 	HandleCLI(args, handler)
 }
@@ -79,6 +83,10 @@ func HandleCLI(args []string, handler CommandLineHandler) {
 
 // Handle executes required action and returns an error. Writes responses to the writer provided
 func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.Writer) error {
+	if h.InputParamsFile == nil {
+		h.InputParamsFile = os.Stdin
+	}
+
 	supportedCommands := h.generateSupportedCommandsMessage()
 
 	if len(args) < 2 {
@@ -88,23 +96,55 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		}
 	}
 
-	fmt.Fprintf(errorWriter, "[odb-sdk] handling %s\n", args[1])
+	action := args[1]
+	fmt.Fprintf(errorWriter, "[odb-sdk] handling %s\n", action)
 
-	switch args[1] {
+	switch action {
 	case "generate-manifest":
 		if h.ManifestGenerator == nil {
 			return CLIHandlerError{NotImplementedExitCode, "manifest generator not implemented"}
 		}
+		var serviceDeploymentJSON string
+		var planJSON string
+		var argsJSON string
+		var previousManifestYAML string
+		var previousPlanJSON string
 
-		if len(args) < 7 {
-			return missingArgsError(args, "<service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>")
+		if usingStdin(args, errorWriter) {
+			fileInfo, err := h.InputParamsFile.Stat()
+			if err != nil {
+				return CLIHandlerError{ErrorExitCode, "could not extract file descriptor from file; error: " + err.Error()}
+			}
+
+			size := fileInfo.Size()
+			if size == 0 {
+				return CLIHandlerError{ErrorExitCode, "flag 'stdin' passed to 'generate-manifest' but could not detect content."}
+			}
+
+			inputParams, err := readArgs(h.InputParamsFile)
+			if err != nil {
+				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
+			}
+
+			generateManifestParams := inputParams.GenerateManifest
+			serviceDeploymentJSON = generateManifestParams.ServiceDeployment
+
+			planJSON = generateManifestParams.Plan
+			argsJSON = generateManifestParams.RequestParameters
+			previousManifestYAML = generateManifestParams.PreviousManifest
+			previousPlanJSON = generateManifestParams.PreviousPlan
+		} else {
+			if len(args) < 7 {
+				return missingArgsError(args, "<service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>")
+			}
+
+			serviceDeploymentJSON = args[2]
+			planJSON = args[3]
+			argsJSON = args[4]
+			previousManifestYAML = args[5]
+			previousPlanJSON = args[6]
 		}
 
-		serviceDeploymentJSON := args[2]
-		planJSON := args[3]
-		argsJSON := args[4]
-		previousManifestYAML := args[5]
-		previousPlanJSON := args[6]
 		return h.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON, outputWriter)
 
 	case "create-binding":
@@ -160,6 +200,32 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		failWithCode(ErrorExitCode, fmt.Sprintf("unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands))
 	}
 	return nil
+}
+
+func readArgs(f *os.File) (InputParams, error) {
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return InputParams{}, err // not tested
+	}
+	var inputParams InputParams
+	err = json.Unmarshal(b, &inputParams)
+	if err != nil {
+		return InputParams{}, err
+	}
+	return inputParams, nil
+}
+
+func usingStdin(args []string, errorWriter io.Writer) bool {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	flagStdinJSON := fs.Bool("stdin", false, "stdin")
+	fs.SetOutput(errorWriter)
+
+	err := fs.Parse(args[2:])
+	if err != nil {
+		return false
+	}
+
+	return *flagStdinJSON
 }
 
 func parseGeneratePlanSchemaArguments(args []string, errorWriter io.Writer) (string, error) {

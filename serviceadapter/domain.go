@@ -71,6 +71,18 @@ type DashboardUrl struct {
 	DashboardUrl string `json:"dashboard_url"`
 }
 
+type GenerateManifestParams struct {
+	ServiceDeployment string `json:"service_deployment"`
+	Plan              string `json:"plan"`
+	PreviousPlan      string `json:"previous_plan"`
+	PreviousManifest  string `json:"previous_manifest"`
+	RequestParameters string `json:"request_parameters"`
+}
+
+type InputParams struct {
+	GenerateManifest GenerateManifestParams `json:"generate_manifest,omitempty"`
+}
+
 const (
 	ErrorExitCode                     = 1
 	NotImplementedExitCode            = 10

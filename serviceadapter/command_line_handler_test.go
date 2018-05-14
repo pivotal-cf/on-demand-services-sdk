@@ -24,6 +24,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
+	"os"
+
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter/fakes"
@@ -156,500 +158,689 @@ var _ = Describe("CommandLineHandler", func() {
 		previousManifestYAML = toYaml(previousManifest)
 	})
 
-	It("when no arguments passed returns error", func() {
-		err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer)
-		assertCLIHandlerErr(
-			err,
-			serviceadapter.ErrorExitCode,
-			"the following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas",
-		)
-	})
-
-	It("does not output optional commands if not implemented", func() {
-		handler.DashboardURLGenerator = nil
-		handler.SchemaGenerator = nil
-		err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer)
-		assertCLIHandlerErr(
-			err,
-			serviceadapter.ErrorExitCode,
-			"the following commands are supported: generate-manifest, create-binding, delete-binding",
-		)
-		Expect(err.Error()).NotTo(ContainSubstring("dashboard-url"))
-		Expect(err.Error()).NotTo(ContainSubstring("generate-plan-schemas"))
-	})
-
-	Describe("Generate Manifest", func() {
-		It("calls the supplied handler passing args through", func() {
-			manifest := bosh.BoshManifest{Name: "bill"}
-			fakeManifestGenerator.GenerateManifestReturns(manifest, nil)
-
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeManifestGenerator.GenerateManifestCallCount()).To(Equal(1))
-			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan :=
-				fakeManifestGenerator.GenerateManifestArgsForCall(0)
-
-			Expect(actualServiceDeployment).To(Equal(serviceDeployment))
-			Expect(actualPlan).To(Equal(plan))
-			Expect(actualRequestParams).To(Equal(args))
-			Expect(actualPreviousManifest).To(Equal(&previousManifest))
-			Expect(actualPreviousPlan).To(Equal(&previousPlan))
-
-			Expect(outputBuffer).To(gbytes.Say("bill"))
+	Context("When adapter is called with positional arguments", func() {
+		It("when no arguments passed returns error", func() {
+			err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer)
+			assertCLIHandlerErr(
+				err,
+				serviceadapter.ErrorExitCode,
+				"the following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas",
+			)
 		})
 
-		It("returns a not-implemented error when there is no generate manifest handler", func() {
-			handler.ManifestGenerator = nil
-			err := handler.Handle([]string{
-				commandName,
-				"generate-manifest",
-				serviceDeploymentJSON,
-				planJSON,
-				argsJSON,
-				previousManifestYAML,
-				previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-			assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "manifest generator not implemented")
-		})
-
-		It("returns a missing args error when previous plan json is missing", func() {
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML,
-			}, outputBuffer, errorBuffer)
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for generate-manifest. Usage:`)
-		})
-
-		It("returns a error if service deployment JSON is corrupt", func() {
-			serviceDeploymentJSON += "asdf"
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling service deployment")))
-		})
-
-		It("returns a error if service deployment JSON is invalid", func() {
-			serviceDeployment.Releases = nil
-			serviceDeploymentJSON = toJson(serviceDeployment)
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("validating service deployment")))
-		})
-
-		It("returns a error if service plan JSON is corrupt", func() {
-			planJSON += "asdf"
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling service plan")))
-		})
-
-		It("returns a error if service plan JSON is invalid", func() {
-			plan.InstanceGroups = nil
-			planJSON = toJson(plan)
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("validating service plan")))
-		})
-
-		It("returns a error if request params JSON is corrupt", func() {
-			argsJSON += "asdf"
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling requestParams")))
-		})
-
-		It("returns a error if previous manifest YAML is corrupt", func() {
-			previousManifestYAML = planJSON
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling previous manifest")))
-		})
-
-		It("returns a error if previous service plan JSON is corrupt", func() {
-			previousPlanJSON += "asdf"
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling previous service plan")))
-		})
-
-		It("returns a error if previous service plan JSON is invalid", func() {
-			previousPlan.InstanceGroups = nil
-			previousPlanJSON = toJson(previousPlan)
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("validating previous service plan")))
-		})
-
-		It("returns an error when the manifest cannot be generated", func() {
-			fakeManifestGenerator.GenerateManifestReturns(bosh.BoshManifest{}, errors.New("oops"))
-			err := handler.Handle([]string{
-				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
-			}, outputBuffer, errorBuffer)
-
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-			Expect(outputBuffer).To(gbytes.Say("oops"))
-		})
-	})
-
-	Describe("Create Binding", func() {
-		It("calls the supplied handler passing args through", func() {
-			fakeBinder.CreateBindingReturns(expectedBinding, nil)
-
-			err := handler.Handle([]string{
-				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
-				fakeBinder.CreateBindingArgsForCall(0)
-
-			Expect(actualBindingId).To(Equal(bindingID))
-			Expect(actualBoshVMs).To(Equal(boshVMs))
-			Expect(actualManifest).To(Equal(previousManifest))
-			Expect(actualRequestParams).To(Equal(requestParams))
-
-			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
-		})
-
-		It("returns a not-implemented error where there is no binder handler", func() {
-			handler.Binder = nil
-			err := handler.Handle([]string{
-				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-			assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "binder not implemented")
-		})
-
-		It("returns a missing args error when request JSON is missing", func() {
-			err := handler.Handle([]string{
-				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML,
-			}, outputBuffer, errorBuffer)
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for create-binding. Usage:`)
-		})
-
-		It("fails with an error when BOSH VMs is corrupt", func() {
-			boshVMsJSON += `aaa`
-			err := handler.Handle([]string{
-				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
-		})
-
-		It("fails with an error when previous manifest is corrupt", func() {
-			previousManifestYAML = previousPlanJSON
-			err := handler.Handle([]string{
-				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
-		})
-
-		It("fails with an error when request binding params are corrupt", func() {
-			requestParamsJSON += "asdf"
-			err := handler.Handle([]string{
-				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
-		})
-
-		It("returns an error when the binding cannot be created because of generic error", func() {
-			fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, errors.New("oops"))
-			err := handler.Handle([]string{
-				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-			Expect(outputBuffer).To(gbytes.Say("oops"))
-		})
-
-		It("returns an error when the binding cannot be created because binding already exists", func() {
-			fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewBindingAlreadyExistsError(errors.New("binding already exists")))
-			err := handler.Handle([]string{
-				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-
-			assertCLIHandlerErr(err, serviceadapter.BindingAlreadyExistsErrorExitCode, "binding already exists")
-			Expect(outputBuffer).To(gbytes.Say("binding already exists"))
-		})
-
-		It("returns an error when the binding cannot be created because app guid not provided", func() {
-			fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewAppGuidNotProvidedError(errors.New("app guid not provided")))
-			err := handler.Handle([]string{
-				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-
-			assertCLIHandlerErr(err, serviceadapter.AppGuidNotProvidedErrorExitCode, "app guid not provided")
-			Expect(outputBuffer).To(gbytes.Say("app guid not provided"))
-		})
-	})
-
-	Describe("Delete Binding", func() {
-		It("calls the supplied handler passing args through", func() {
-			fakeBinder.DeleteBindingReturns(nil)
-
-			err := handler.Handle([]string{
-				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
-				fakeBinder.DeleteBindingArgsForCall(0)
-
-			Expect(actualBindingId).To(Equal(bindingID))
-			Expect(actualBoshVMs).To(Equal(boshVMs))
-			Expect(actualManifest).To(Equal(previousManifest))
-			Expect(actualRequestParams).To(Equal(requestParams))
-		})
-
-		It("returns a not-implemented error where there is no binder handler", func() {
-			handler.Binder = nil
-			err := handler.Handle([]string{
-				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-			assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "binder not implemented")
-		})
-
-		It("returns a missing args error when request JSON is missing", func() {
-			err := handler.Handle([]string{
-				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML,
-			}, outputBuffer, errorBuffer)
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for delete-binding. Usage:`)
-		})
-
-		It("fails with an error when BOSH VMs is corrupt", func() {
-			boshVMsJSON += `aaa`
-			err := handler.Handle([]string{
-				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
-		})
-
-		It("fails with an error when previous manifest is corrupt", func() {
-			previousManifestYAML = previousPlanJSON
-			err := handler.Handle([]string{
-				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
-		})
-
-		It("fails with an error when request binding params are corrupt", func() {
-			requestParamsJSON += "asdf"
-			err := handler.Handle([]string{
-				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
-		})
-
-		It("returns an error when the binding cannot be deleted because of generic error", func() {
-			fakeBinder.DeleteBindingReturns(errors.New("oops"))
-			err := handler.Handle([]string{
-				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-			Expect(outputBuffer).To(gbytes.Say("oops"))
-		})
-
-		It("returns an error when the binding cannot be deleted because binding is not found", func() {
-			fakeBinder.DeleteBindingReturns(serviceadapter.NewBindingNotFoundError(errors.New("binding not found")))
-			err := handler.Handle([]string{
-				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-			}, outputBuffer, errorBuffer)
-
-			assertCLIHandlerErr(err, serviceadapter.BindingNotFoundErrorExitCode, "binding not found")
-			Expect(outputBuffer).To(gbytes.Say("binding not found"))
-		})
-	})
-
-	Describe("Dashboard URL", func() {
-		It("calls the supplied handler passing args through", func() {
-			fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{DashboardUrl: "http://url.example.com"}, nil)
-
-			err := handler.Handle([]string{
-				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
-			}, outputBuffer, errorBuffer)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(fakeDashboardUrlGenerator.DashboardUrlCallCount()).To(Equal(1))
-			actualInstanceID, actualPlanJSON, actualManifestYAML := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
-
-			Expect(actualInstanceID).To(Equal(instanceID))
-			Expect(actualPlanJSON).To(Equal(plan))
-			Expect(actualManifestYAML).To(Equal(previousManifest))
-			Expect(outputBuffer).To(gbytes.Say("http://url.example.com"))
-		})
-
-		It("returns a not-implemented error where there is no dashboard-url handler", func() {
+		It("does not output optional commands if not implemented", func() {
 			handler.DashboardURLGenerator = nil
-			err := handler.Handle([]string{
-				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
-			}, outputBuffer, errorBuffer)
-			assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "dashboard-url not implemented")
-		})
-
-		It("returns a missing args error when the manifest is missing", func() {
-			err := handler.Handle([]string{
-				commandName, "dashboard-url", instanceID, planJSON,
-			}, outputBuffer, errorBuffer)
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for dashboard-url. Usage:`)
-		})
-
-		It("fails with an error when planJSON is corrupt", func() {
-			planJSON += `aaa`
-			err := handler.Handle([]string{
-				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling service plan")))
-		})
-
-		It("fails with an error when planJSON is invalid", func() {
-			planJSON = `{}`
-			err := handler.Handle([]string{
-				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("validating service plan")))
-		})
-
-		It("fails with an error when previous manifest is corrupt", func() {
-			previousManifestYAML = previousPlanJSON
-			err := handler.Handle([]string{
-				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest")))
-		})
-
-		It("returns an error when the dashboard URL generator fails", func() {
-			fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{}, errors.New("oops"))
-			err := handler.Handle([]string{
-				commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
-			}, outputBuffer, errorBuffer)
-
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-			Expect(outputBuffer).To(gbytes.Say("oops"))
-		})
-	})
-
-	Describe("Generate Plan Schemas", func() {
-		It("returns a not-implemented error where there is no generate-plan-schemas handler", func() {
 			handler.SchemaGenerator = nil
-			err := handler.Handle([]string{
-				commandName, "generate-plan-schemas", "--plan-json", planJSON,
-			}, outputBuffer, errorBuffer)
-			assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "plan schema generator not implemented")
+			err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer)
+			assertCLIHandlerErr(
+				err,
+				serviceadapter.ErrorExitCode,
+				"the following commands are supported: generate-manifest, create-binding, delete-binding",
+			)
+			Expect(err.Error()).NotTo(ContainSubstring("dashboard-url"))
+			Expect(err.Error()).NotTo(ContainSubstring("generate-plan-schemas"))
 		})
 
-		It("returns a plan schema when configured with an schema generator", func() {
-			schemas := serviceadapter.JSONSchemas{
-				Parameters: map[string]interface{}{
-					"$schema": "http://json-schema.org/draft-04/schema#",
-					"type":    "object",
-					"properties": map[string]interface{}{
-						"billing-account": map[string]interface{}{
-							"description": "Billing account number used to charge use of shared fake server.",
-							"type":        "string",
+		Describe("Generate Manifest", func() {
+			It("calls the supplied handler passing args through", func() {
+				manifest := bosh.BoshManifest{Name: "bill"}
+				fakeManifestGenerator.GenerateManifestReturns(manifest, nil)
+
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeManifestGenerator.GenerateManifestCallCount()).To(Equal(1))
+				actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan :=
+					fakeManifestGenerator.GenerateManifestArgsForCall(0)
+
+				Expect(actualServiceDeployment).To(Equal(serviceDeployment))
+				Expect(actualPlan).To(Equal(plan))
+				Expect(actualRequestParams).To(Equal(args))
+				Expect(actualPreviousManifest).To(Equal(&previousManifest))
+				Expect(actualPreviousPlan).To(Equal(&previousPlan))
+
+				Expect(outputBuffer).To(gbytes.Say("bill"))
+			})
+
+			It("returns a not-implemented error when there is no generate manifest handler", func() {
+				handler.ManifestGenerator = nil
+				err := handler.Handle([]string{
+					commandName,
+					"generate-manifest",
+					serviceDeploymentJSON,
+					planJSON,
+					argsJSON,
+					previousManifestYAML,
+					previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "manifest generator not implemented")
+			})
+
+			It("returns a missing args error when previous plan json is missing", func() {
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML,
+				}, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for generate-manifest. Usage:`)
+			})
+
+			It("returns a error if service deployment JSON is corrupt", func() {
+				serviceDeploymentJSON += "asdf"
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling service deployment")))
+			})
+
+			It("returns a error if service deployment JSON is invalid", func() {
+				serviceDeployment.Releases = nil
+				serviceDeploymentJSON = toJson(serviceDeployment)
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("validating service deployment")))
+			})
+
+			It("returns a error if service plan JSON is corrupt", func() {
+				planJSON += "asdf"
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling service plan")))
+			})
+
+			It("returns a error if service plan JSON is invalid", func() {
+				plan.InstanceGroups = nil
+				planJSON = toJson(plan)
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("validating service plan")))
+			})
+
+			It("returns a error if request params JSON is corrupt", func() {
+				argsJSON += "asdf"
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling requestParams")))
+			})
+
+			It("returns a error if previous manifest YAML is corrupt", func() {
+				previousManifestYAML = planJSON
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling previous manifest")))
+			})
+
+			It("returns a error if previous service plan JSON is corrupt", func() {
+				previousPlanJSON += "asdf"
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling previous service plan")))
+			})
+
+			It("returns a error if previous service plan JSON is invalid", func() {
+				previousPlan.InstanceGroups = nil
+				previousPlanJSON = toJson(previousPlan)
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("validating previous service plan")))
+			})
+
+			It("returns an error when the manifest cannot be generated", func() {
+				fakeManifestGenerator.GenerateManifestReturns(bosh.BoshManifest{}, errors.New("oops"))
+				err := handler.Handle([]string{
+					commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+				Expect(outputBuffer).To(gbytes.Say("oops"))
+			})
+		})
+
+		Describe("Create Binding", func() {
+			It("calls the supplied handler passing args through", func() {
+				fakeBinder.CreateBindingReturns(expectedBinding, nil)
+
+				err := handler.Handle([]string{
+					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
+				actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+					fakeBinder.CreateBindingArgsForCall(0)
+
+				Expect(actualBindingId).To(Equal(bindingID))
+				Expect(actualBoshVMs).To(Equal(boshVMs))
+				Expect(actualManifest).To(Equal(previousManifest))
+				Expect(actualRequestParams).To(Equal(requestParams))
+
+				Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
+			})
+
+			It("returns a not-implemented error where there is no binder handler", func() {
+				handler.Binder = nil
+				err := handler.Handle([]string{
+					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "binder not implemented")
+			})
+
+			It("returns a missing args error when request JSON is missing", func() {
+				err := handler.Handle([]string{
+					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML,
+				}, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for create-binding. Usage:`)
+			})
+
+			It("fails with an error when BOSH VMs is corrupt", func() {
+				boshVMsJSON += `aaa`
+				err := handler.Handle([]string{
+					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
+			})
+
+			It("fails with an error when previous manifest is corrupt", func() {
+				previousManifestYAML = previousPlanJSON
+				err := handler.Handle([]string{
+					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
+			})
+
+			It("fails with an error when request binding params are corrupt", func() {
+				requestParamsJSON += "asdf"
+				err := handler.Handle([]string{
+					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
+			})
+
+			It("returns an error when the binding cannot be created because of generic error", func() {
+				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, errors.New("oops"))
+				err := handler.Handle([]string{
+					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+				Expect(outputBuffer).To(gbytes.Say("oops"))
+			})
+
+			It("returns an error when the binding cannot be created because binding already exists", func() {
+				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewBindingAlreadyExistsError(errors.New("binding already exists")))
+				err := handler.Handle([]string{
+					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(err, serviceadapter.BindingAlreadyExistsErrorExitCode, "binding already exists")
+				Expect(outputBuffer).To(gbytes.Say("binding already exists"))
+			})
+
+			It("returns an error when the binding cannot be created because app guid not provided", func() {
+				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewAppGuidNotProvidedError(errors.New("app guid not provided")))
+				err := handler.Handle([]string{
+					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(err, serviceadapter.AppGuidNotProvidedErrorExitCode, "app guid not provided")
+				Expect(outputBuffer).To(gbytes.Say("app guid not provided"))
+			})
+		})
+
+		Describe("Delete Binding", func() {
+			It("calls the supplied handler passing args through", func() {
+				fakeBinder.DeleteBindingReturns(nil)
+
+				err := handler.Handle([]string{
+					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
+				actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+					fakeBinder.DeleteBindingArgsForCall(0)
+
+				Expect(actualBindingId).To(Equal(bindingID))
+				Expect(actualBoshVMs).To(Equal(boshVMs))
+				Expect(actualManifest).To(Equal(previousManifest))
+				Expect(actualRequestParams).To(Equal(requestParams))
+			})
+
+			It("returns a not-implemented error where there is no binder handler", func() {
+				handler.Binder = nil
+				err := handler.Handle([]string{
+					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "binder not implemented")
+			})
+
+			It("returns a missing args error when request JSON is missing", func() {
+				err := handler.Handle([]string{
+					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML,
+				}, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for delete-binding. Usage:`)
+			})
+
+			It("fails with an error when BOSH VMs is corrupt", func() {
+				boshVMsJSON += `aaa`
+				err := handler.Handle([]string{
+					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
+			})
+
+			It("fails with an error when previous manifest is corrupt", func() {
+				previousManifestYAML = previousPlanJSON
+				err := handler.Handle([]string{
+					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
+			})
+
+			It("fails with an error when request binding params are corrupt", func() {
+				requestParamsJSON += "asdf"
+				err := handler.Handle([]string{
+					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
+			})
+
+			It("returns an error when the binding cannot be deleted because of generic error", func() {
+				fakeBinder.DeleteBindingReturns(errors.New("oops"))
+				err := handler.Handle([]string{
+					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+				Expect(outputBuffer).To(gbytes.Say("oops"))
+			})
+
+			It("returns an error when the binding cannot be deleted because binding is not found", func() {
+				fakeBinder.DeleteBindingReturns(serviceadapter.NewBindingNotFoundError(errors.New("binding not found")))
+				err := handler.Handle([]string{
+					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(err, serviceadapter.BindingNotFoundErrorExitCode, "binding not found")
+				Expect(outputBuffer).To(gbytes.Say("binding not found"))
+			})
+		})
+
+		Describe("Dashboard URL", func() {
+			It("calls the supplied handler passing args through", func() {
+				fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{DashboardUrl: "http://url.example.com"}, nil)
+
+				err := handler.Handle([]string{
+					commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+				}, outputBuffer, errorBuffer)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeDashboardUrlGenerator.DashboardUrlCallCount()).To(Equal(1))
+				actualInstanceID, actualPlanJSON, actualManifestYAML := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
+
+				Expect(actualInstanceID).To(Equal(instanceID))
+				Expect(actualPlanJSON).To(Equal(plan))
+				Expect(actualManifestYAML).To(Equal(previousManifest))
+				Expect(outputBuffer).To(gbytes.Say("http://url.example.com"))
+			})
+
+			It("returns a not-implemented error where there is no dashboard-url handler", func() {
+				handler.DashboardURLGenerator = nil
+				err := handler.Handle([]string{
+					commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+				}, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "dashboard-url not implemented")
+			})
+
+			It("returns a missing args error when the manifest is missing", func() {
+				err := handler.Handle([]string{
+					commandName, "dashboard-url", instanceID, planJSON,
+				}, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for dashboard-url. Usage:`)
+			})
+
+			It("fails with an error when planJSON is corrupt", func() {
+				planJSON += `aaa`
+				err := handler.Handle([]string{
+					commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling service plan")))
+			})
+
+			It("fails with an error when planJSON is invalid", func() {
+				planJSON = `{}`
+				err := handler.Handle([]string{
+					commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("validating service plan")))
+			})
+
+			It("fails with an error when previous manifest is corrupt", func() {
+				previousManifestYAML = previousPlanJSON
+				err := handler.Handle([]string{
+					commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest")))
+			})
+
+			It("returns an error when the dashboard URL generator fails", func() {
+				fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{}, errors.New("oops"))
+				err := handler.Handle([]string{
+					commandName, "dashboard-url", instanceID, planJSON, previousManifestYAML,
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+				Expect(outputBuffer).To(gbytes.Say("oops"))
+			})
+		})
+
+		Describe("Generate Plan Schemas", func() {
+			It("returns a not-implemented error where there is no generate-plan-schemas handler", func() {
+				handler.SchemaGenerator = nil
+				err := handler.Handle([]string{
+					commandName, "generate-plan-schemas", "--plan-json", planJSON,
+				}, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "plan schema generator not implemented")
+			})
+
+			It("returns a plan schema when configured with an schema generator", func() {
+				schemas := serviceadapter.JSONSchemas{
+					Parameters: map[string]interface{}{
+						"$schema": "http://json-schema.org/draft-04/schema#",
+						"type":    "object",
+						"properties": map[string]interface{}{
+							"billing-account": map[string]interface{}{
+								"description": "Billing account number used to charge use of shared fake server.",
+								"type":        "string",
+							},
 						},
 					},
-				},
-			}
-			expectedPlanSchema := serviceadapter.PlanSchema{
-				ServiceInstance: serviceadapter.ServiceInstanceSchema{
-					Create: schemas,
-					Update: schemas,
-				},
-				ServiceBinding: serviceadapter.ServiceBindingSchema{
-					Create: schemas,
-				},
-			}
-			fakeSchemaGenerator.GeneratePlanSchemaReturns(expectedPlanSchema, nil)
+				}
+				expectedPlanSchema := serviceadapter.PlanSchema{
+					ServiceInstance: serviceadapter.ServiceInstanceSchema{
+						Create: schemas,
+						Update: schemas,
+					},
+					ServiceBinding: serviceadapter.ServiceBindingSchema{
+						Create: schemas,
+					},
+				}
+				fakeSchemaGenerator.GeneratePlanSchemaReturns(expectedPlanSchema, nil)
 
-			err := handler.Handle([]string{
-				commandName, "generate-plan-schemas", "--plan-json", planJSON,
-			}, outputBuffer, errorBuffer)
+				err := handler.Handle([]string{
+					commandName, "generate-plan-schemas", "--plan-json", planJSON,
+				}, outputBuffer, errorBuffer)
 
-			Expect(err).NotTo(HaveOccurred())
-			Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
 
-			Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)).To(Equal(plan))
+				Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)).To(Equal(plan))
 
-			contents, err := ioutil.ReadAll(outputBuffer)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(contents).To(MatchJSON(toJson(expectedPlanSchema)))
+				contents, err := ioutil.ReadAll(outputBuffer)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(contents).To(MatchJSON(toJson(expectedPlanSchema)))
+			})
+
+			It("returns an error if cannot generate the schema for the plan", func() {
+				fakeSchemaGenerator.GeneratePlanSchemaReturns(serviceadapter.PlanSchema{}, errors.New("oops"))
+
+				err := handler.Handle([]string{
+					commandName, "generate-plan-schemas", "--plan-json", planJSON,
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+				Expect(outputBuffer).To(gbytes.Say("oops"))
+			})
+
+			It("returns an error if the plan JSON is corrupt", func() {
+				planJSON += "asd"
+				err := handler.Handle([]string{
+					commandName, "generate-plan-schemas", "--plan-json", planJSON,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling plan JSON")))
+			})
+
+			It("returns an error if the plan JSON is invalid", func() {
+				err := handler.Handle([]string{
+					commandName, "generate-plan-schemas", "--plan-json", `{}`,
+				}, outputBuffer, errorBuffer)
+				Expect(err).To(MatchError(ContainSubstring("error validating plan JSON")))
+			})
+
+			It("returns an error if the args are not correct", func() {
+				err := handler.Handle([]string{
+					commandName, "generate-plan-schemas", "a", planJSON,
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(
+					err,
+					serviceadapter.ErrorExitCode,
+					"Incorrect arguments for generate-plan-schemas",
+				)
+			})
+
+			It("prints a help message, without failing", func() {
+				err := handler.Handle([]string{
+					commandName, "generate-plan-schemas", "-help",
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(
+					err,
+					serviceadapter.ErrorExitCode,
+					"Incorrect arguments for generate-plan-schemas",
+				)
+				Expect(errorBuffer).To(gbytes.Say("Usage:"))
+			})
+
+			It("prints a help message, without failing, even when plan JSON is set", func() {
+				err := handler.Handle([]string{
+					commandName, "generate-plan-schemas", "--plan-json", "{}", "-help",
+				}, outputBuffer, errorBuffer)
+
+				assertCLIHandlerErr(
+					err,
+					serviceadapter.ErrorExitCode,
+					"Incorrect arguments for generate-plan-schemas",
+				)
+				Expect(errorBuffer).To(gbytes.Say("Usage:"))
+			})
 		})
+	})
 
-		It("returns an error if cannot generate the schema for the plan", func() {
-			fakeSchemaGenerator.GeneratePlanSchemaReturns(serviceadapter.PlanSchema{}, errors.New("oops"))
+	Context("When adapter passes arguments through STDIN", func() {
+		Context("generate-manifest", func() {
+			const subCommand = "generate-manifest"
 
-			err := handler.Handle([]string{
-				commandName, "generate-plan-schemas", "--plan-json", planJSON,
-			}, outputBuffer, errorBuffer)
-
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-			Expect(outputBuffer).To(gbytes.Say("oops"))
-		})
-
-		It("returns an error if the plan JSON is corrupt", func() {
-			planJSON += "asd"
-			err := handler.Handle([]string{
-				commandName, "generate-plan-schemas", "--plan-json", planJSON,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("unmarshalling plan JSON")))
-		})
-
-		It("returns an error if the plan JSON is invalid", func() {
-			err := handler.Handle([]string{
-				commandName, "generate-plan-schemas", "--plan-json", `{}`,
-			}, outputBuffer, errorBuffer)
-			Expect(err).To(MatchError(ContainSubstring("error validating plan JSON")))
-		})
-
-		It("returns an error if the args are not correct", func() {
-			err := handler.Handle([]string{
-				commandName, "generate-plan-schemas", "a", planJSON,
-			}, outputBuffer, errorBuffer)
-
-			assertCLIHandlerErr(
-				err,
-				serviceadapter.ErrorExitCode,
-				"Incorrect arguments for generate-plan-schemas",
+			var (
+				command        []string
+				fakeStdin      *os.File
+				rawInputParams serviceadapter.InputParams
 			)
-		})
 
-		It("prints a help message, without failing", func() {
-			err := handler.Handle([]string{
-				commandName, "generate-plan-schemas", "-help",
-			}, outputBuffer, errorBuffer)
+			BeforeEach(func() {
+				var err error
+				command = []string{commandName, subCommand, "-stdin"}
+				fakeStdin, err = ioutil.TempFile(os.TempDir(), "stdin")
+				Expect(err).NotTo(HaveOccurred())
 
-			assertCLIHandlerErr(
-				err,
-				serviceadapter.ErrorExitCode,
-				"Incorrect arguments for generate-plan-schemas",
-			)
-			Expect(errorBuffer).To(gbytes.Say("Usage:"))
-		})
+				rawInputParams = serviceadapter.InputParams{
+					GenerateManifest: serviceadapter.GenerateManifestParams{
+						ServiceDeployment: toJson(serviceDeployment),
+						Plan:              toJson(plan),
+						PreviousPlan:      toJson(previousPlan),
+						RequestParameters: toJson(requestParams),
+						PreviousManifest:  previousManifestYAML,
+					},
+				}
 
-		It("prints a help message, without failing, even when plan JSON is set", func() {
-			err := handler.Handle([]string{
-				commandName, "generate-plan-schemas", "--plan-json", "{}", "-help",
-			}, outputBuffer, errorBuffer)
+				inputJSON := toJson(rawInputParams)
 
-			assertCLIHandlerErr(
-				err,
-				serviceadapter.ErrorExitCode,
-				"Incorrect arguments for generate-plan-schemas",
-			)
-			Expect(errorBuffer).To(gbytes.Say("Usage:"))
+				_, err = fakeStdin.Write([]byte(inputJSON))
+				Expect(err).NotTo(HaveOccurred())
+				fakeStdin.Seek(0, 0)
+
+				outputBuffer = gbytes.NewBuffer()
+				errorBuffer = gbytes.NewBuffer()
+
+				handler = serviceadapter.CommandLineHandler{
+					ManifestGenerator:     fakeManifestGenerator,
+					Binder:                fakeBinder,
+					DashboardURLGenerator: fakeDashboardUrlGenerator,
+					SchemaGenerator:       fakeSchemaGenerator,
+					InputParamsFile:       fakeStdin,
+				}
+			})
+
+			AfterEach(func() {
+				os.Remove(fakeStdin.Name())
+			})
+
+			It("reads a JSON document as STDIN and passes the data through as args to the handler", func() {
+				err := handler.Handle(command, outputBuffer, errorBuffer)
+				Expect(err).ToNot(HaveOccurred())
+
+				actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan := fakeManifestGenerator.GenerateManifestArgsForCall(0)
+				Expect(actualServiceDeployment).To(Equal(serviceDeployment))
+				Expect(actualPlan).To(Equal(plan))
+				Expect(actualRequestParams).To(Equal(requestParams))
+				Expect(actualPreviousManifest).To(Equal(&previousManifest))
+				Expect(actualPreviousPlan).To(Equal(&previousPlan))
+			})
+
+			Describe("error handling", func() {
+				It("errors when InputParams cannot be inspected", func() {
+					fakeStdin.Close()
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					assertCLIHandlerErr(
+						err,
+						serviceadapter.ErrorExitCode,
+						"could not extract file descriptor from file")
+				})
+
+				It("errors when JSON document has not been provided via STDIN", func() {
+					handler.InputParamsFile = nil
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					assertCLIHandlerErr(
+						err,
+						serviceadapter.ErrorExitCode,
+						"flag 'stdin' passed to 'generate-manifest' but could not detect content.",
+					)
+				})
+
+				It("errors when args cannot be marshalled", func() {
+					fakeStdin.Write([]byte("foo"))
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					assertCLIHandlerErr(
+						err,
+						serviceadapter.ErrorExitCode,
+						"error reading input params JSON",
+					)
+				})
+
+				It("returns a not-implemented error when there is no generate manifest handler", func() {
+					handler.ManifestGenerator = nil
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "manifest generator not implemented")
+				})
+
+				It("returns a error if service deployment JSON is corrupt", func() {
+					rawInputParams.GenerateManifest.ServiceDeployment = "foo"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					defer os.Remove(handler.InputParamsFile.Name())
+
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling service deployment")))
+				})
+
+				It("returns a error if service deployment JSON is invalid", func() {
+					serviceDeployment.Releases = nil
+					rawInputParams.GenerateManifest.ServiceDeployment = toJson(serviceDeployment)
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					defer os.Remove(handler.InputParamsFile.Name())
+
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("validating service deployment")))
+				})
+
+				It("returns a error if service plan JSON is corrupt", func() {
+					rawInputParams.GenerateManifest.Plan = "foo"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					defer os.Remove(handler.InputParamsFile.Name())
+
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling service plan")))
+				})
+
+				It("returns a error if service plan JSON is invalid", func() {
+					plan.InstanceGroups = nil
+					rawInputParams.GenerateManifest.Plan = toJson(plan)
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					defer os.Remove(handler.InputParamsFile.Name())
+
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("validating service plan")))
+				})
+
+				It("returns a error if request params JSON is corrupt", func() {
+					rawInputParams.GenerateManifest.RequestParameters = "foo"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling requestParams")))
+				})
+
+				It("returns a error if previous manifest YAML is corrupt", func() {
+					rawInputParams.GenerateManifest.PreviousManifest = "foo"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling previous manifest")))
+				})
+
+				It("returns a error if previous service plan JSON is corrupt", func() {
+					rawInputParams.GenerateManifest.PreviousPlan = "foo"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling previous service plan")))
+				})
+
+				It("returns a error if previous service plan JSON is invalid", func() {
+					previousPlan.InstanceGroups = nil
+					rawInputParams.GenerateManifest.PreviousPlan = toJson(previousPlan)
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("validating previous service plan")))
+				})
+
+				It("returns an error when the manifest cannot be generated", func() {
+					fakeManifestGenerator.GenerateManifestReturns(bosh.BoshManifest{}, errors.New("oops"))
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+
+					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+					Expect(outputBuffer).To(gbytes.Say("oops"))
+				})
+			})
 		})
 	})
 })
+
+func createInputFile(inputParams serviceadapter.InputParams) *os.File {
+	f, err := ioutil.TempFile(os.TempDir(), "stdin")
+	Expect(err).NotTo(HaveOccurred())
+
+	inputJSON := toJson(inputParams)
+
+	_, err = f.Write([]byte(inputJSON))
+	Expect(err).NotTo(HaveOccurred())
+	f.Seek(0, 0)
+
+	return f
+}
 
 func assertCLIHandlerErr(err error, exitCode int, message string) {
 	Expect(err).To(HaveOccurred())
