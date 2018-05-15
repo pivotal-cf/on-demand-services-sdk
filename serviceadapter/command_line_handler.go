@@ -201,7 +201,9 @@ func readArgs(f *os.File) (InputParams, error) {
 
 	go func() {
 		b, err = ioutil.ReadAll(f)
-		readComplete <- struct{}{}
+		if len(b) != 0 {
+			readComplete <- struct{}{}
+		}
 	}()
 
 	select {

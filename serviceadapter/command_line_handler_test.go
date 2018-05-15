@@ -715,17 +715,6 @@ var _ = Describe("CommandLineHandler", func() {
 			})
 
 			Describe("error handling", func() {
-				It("errors when JSON document has not been provided via STDIN", func() {
-					handler.InputParamsFile = nil
-
-					err := handler.Handle(command, outputBuffer, errorBuffer)
-					assertCLIHandlerErr(
-						err,
-						serviceadapter.ErrorExitCode,
-						"timeout waiting for input parameters",
-					)
-				})
-
 				It("errors when args cannot be marshalled", func() {
 					fakeStdin.Write([]byte("foo"))
 					err := handler.Handle(command, outputBuffer, errorBuffer)

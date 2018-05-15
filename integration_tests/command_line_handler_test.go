@@ -24,6 +24,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -304,6 +306,13 @@ var _ = Describe("Command line handler", func() {
 				Expect(exitCode).To(Equal(1))
 				Expect(stdout.String()).To(Equal("some message to the user"))
 			})
+
+			It("errors when JSON document has not been provided via STDIN", func() {
+				exitCode = startCommandAndGetExitCode([]string{"generate-manifest", "-stdin"})
+				Expect(exitCode).To(Equal(1))
+
+				Expect(stderr.String()).To(ContainSubstring("timeout waiting for input parameters"))
+			})
 		})
 	})
 
@@ -490,7 +499,7 @@ func startCommandAndGetExitCode(args []string) int {
 	cmd.Env = resetCommandEnv()
 	runningAdapter, err := gexec.Start(cmd, io.MultiWriter(GinkgoWriter, stdout), io.MultiWriter(GinkgoWriter, stderr))
 	Expect(err).NotTo(HaveOccurred())
-	Eventually(runningAdapter).Should(gexec.Exit())
+	Eventually(runningAdapter, time.Second*2).Should(gexec.Exit())
 	return runningAdapter.ExitCode()
 }
 
