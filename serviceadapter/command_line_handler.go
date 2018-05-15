@@ -29,6 +29,8 @@ import (
 
 	"io/ioutil"
 
+	"time"
+
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -111,16 +113,6 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		var previousPlanJSON string
 
 		if usingStdin(args, errorWriter) {
-			fileInfo, err := h.InputParamsFile.Stat()
-			if err != nil {
-				return CLIHandlerError{ErrorExitCode, "could not extract file descriptor from file; error: " + err.Error()}
-			}
-
-			size := fileInfo.Size()
-			if size == 0 {
-				return CLIHandlerError{ErrorExitCode, "flag 'stdin' passed to 'generate-manifest' but could not detect content."}
-			}
-
 			inputParams, err := readArgs(h.InputParamsFile)
 			if err != nil {
 				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
@@ -203,16 +195,30 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 }
 
 func readArgs(f *os.File) (InputParams, error) {
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return InputParams{}, err // not tested
+	var b []byte
+	var err error
+	readComplete := make(chan struct{})
+
+	go func() {
+		b, err = ioutil.ReadAll(f)
+		readComplete <- struct{}{}
+	}()
+
+	select {
+	case <-readComplete:
+		if err != nil {
+			return InputParams{}, err // not tested
+		}
+		var inputParams InputParams
+		err = json.Unmarshal(b, &inputParams)
+		if err != nil {
+			return InputParams{}, err
+		}
+		return inputParams, nil
+	case <-time.After(time.Second):
+		return InputParams{}, fmt.Errorf("timeout waiting for input parameters")
 	}
-	var inputParams InputParams
-	err = json.Unmarshal(b, &inputParams)
-	if err != nil {
-		return InputParams{}, err
-	}
-	return inputParams, nil
+
 }
 
 func usingStdin(args []string, errorWriter io.Writer) bool {

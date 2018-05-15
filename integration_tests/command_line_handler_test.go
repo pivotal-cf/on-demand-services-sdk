@@ -156,6 +156,7 @@ var _ = Describe("Command line handler", func() {
 		doNotImplementInterfaces = false
 		stdout = new(bytes.Buffer)
 		stderr = new(bytes.Buffer)
+		operationFails = ""
 	})
 
 	It("logs and exits with 1 if called without args", func() {
@@ -173,55 +174,136 @@ var _ = Describe("Command line handler", func() {
 	})
 
 	Describe("generate-manifest command", func() {
-		It("succeeds without optional parameters", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest",
-				toJson(expectedServiceDeployment),
-				toJson(expectedCurrentPlan),
-				toJson(expectedRequestParams),
-				"",
-				"null",
+		Describe("with positional arguments", func() {
+			It("succeeds without optional parameters", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest",
+					toJson(expectedServiceDeployment),
+					toJson(expectedCurrentPlan),
+					toJson(expectedRequestParams),
+					"",
+					"null",
+				})
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
 			})
-			Expect(exitCode).To(Equal(0))
-			Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
-		})
 
-		It("generate-manifest exits with 10", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
-			Expect(exitCode).To(Equal(10))
-		})
-
-		It("succeeds with optional parameters", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{
-				"generate-manifest",
-				toJson(expectedServiceDeployment),
-				toJson(expectedCurrentPlan),
-				toJson(expectedRequestParams),
-				toYaml(expectedPreviousManifest),
-				toJson(expectedPreviousPlan),
+			It("generate-manifest exits with 10", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-manifest", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
+				Expect(exitCode).To(Equal(10))
 			})
-			Expect(exitCode).To(Equal(0))
-			Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
+
+			It("succeeds with optional parameters", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{
+					"generate-manifest",
+					toJson(expectedServiceDeployment),
+					toJson(expectedCurrentPlan),
+					toJson(expectedRequestParams),
+					toYaml(expectedPreviousManifest),
+					toJson(expectedPreviousPlan),
+				})
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
+			})
+
+			It("logs and exits with 1 when an argument is missing", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest"})
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(ContainSubstring(
+					"Missing arguments for generate-manifest. Usage: testharness generate-manifest <service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>"))
+			})
+
+			It("exits 1 and logs when a generic error occurs", func() {
+				exitCode = startFailingCommandAndGetExitCode([]string{"generate-manifest",
+					toJson(expectedServiceDeployment),
+					toJson(expectedCurrentPlan),
+					toJson(expectedRequestParams),
+					"",
+					"null",
+				}, "true")
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stdout.String()).To(Equal("some message to the user"))
+			})
 		})
 
-		It("logs and exits with 1 when an argument is missing", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest"})
+		Describe("with arguments passed in on standard input", func() {
+			It("succeeds without optional parameters", func() {
+				rawInputParams := serviceadapter.InputParams{
+					GenerateManifest: serviceadapter.GenerateManifestParams{
+						ServiceDeployment: toJson(expectedServiceDeployment),
+						Plan:              toJson(expectedCurrentPlan),
+						PreviousPlan:      toJson(expectedPreviousPlan),
+						RequestParameters: toJson(expectedRequestParams),
+						PreviousManifest:  "",
+					},
+				}
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-manifest", "-stdin"},
+					toJson(rawInputParams),
+				)
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
+			})
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(ContainSubstring(
-				"Missing arguments for generate-manifest. Usage: testharness generate-manifest <service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>"))
-		})
+			It("generate-manifest exits with 10", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-manifest", "-stdin"})
+				Expect(exitCode).To(Equal(10))
+			})
 
-		It("exits 1 and logs when a generic error occurs", func() {
-			exitCode = startFailingCommandAndGetExitCode([]string{"generate-manifest",
-				toJson(expectedServiceDeployment),
-				toJson(expectedCurrentPlan),
-				toJson(expectedRequestParams),
-				"",
-				"null",
-			}, "true")
+			It("succeeds with optional parameters", func() {
+				rawInputParams := serviceadapter.InputParams{
+					GenerateManifest: serviceadapter.GenerateManifestParams{
+						ServiceDeployment: toJson(expectedServiceDeployment),
+						Plan:              toJson(expectedCurrentPlan),
+						PreviousPlan:      toJson(expectedPreviousPlan),
+						RequestParameters: toJson(expectedRequestParams),
+						PreviousManifest:  toYaml(expectedPreviousManifest),
+					},
+				}
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-manifest", "-stdin"},
+					toJson(rawInputParams),
+				)
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
+			})
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stdout.String()).To(Equal("some message to the user"))
+			It("logs and exits with 1 when an argument is missing", func() {
+				rawInputParams := serviceadapter.InputParams{
+					GenerateManifest: serviceadapter.GenerateManifestParams{
+						ServiceDeployment: toJson(expectedServiceDeployment),
+						Plan:              "{}",
+						PreviousPlan:      toJson(expectedPreviousPlan),
+						RequestParameters: toJson(expectedRequestParams),
+						PreviousManifest:  toYaml(expectedPreviousManifest),
+					},
+				}
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-manifest", "-stdin"},
+					toJson(rawInputParams),
+				)
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(ContainSubstring(
+					"validating service plan: Key: 'Plan.InstanceGroups' Error:Field validation for 'InstanceGroups' failed on the 'required' tag"))
+			})
+
+			It("exits 1 and logs when a generic error occurs", func() {
+				rawInputParams := serviceadapter.InputParams{
+					GenerateManifest: serviceadapter.GenerateManifestParams{
+						ServiceDeployment: toJson(expectedServiceDeployment),
+						Plan:              toJson(expectedCurrentPlan),
+						PreviousPlan:      toJson(expectedPreviousPlan),
+						RequestParameters: toJson(expectedRequestParams),
+						PreviousManifest:  toYaml(expectedPreviousManifest),
+					},
+				}
+				exitCode = startFailingCommandWithStdinAndGetExitCode(
+					[]string{"generate-manifest", "-stdin"},
+					toJson(rawInputParams),
+					"true",
+				)
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stdout.String()).To(Equal("some message to the user"))
+			})
 		})
 	})
 
@@ -406,6 +488,29 @@ func startPassingCommandAndGetExitCode(args []string) int {
 func startCommandAndGetExitCode(args []string) int {
 	cmd := exec.Command(adapterBin, args...)
 	cmd.Env = resetCommandEnv()
+	runningAdapter, err := gexec.Start(cmd, io.MultiWriter(GinkgoWriter, stdout), io.MultiWriter(GinkgoWriter, stderr))
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(runningAdapter).Should(gexec.Exit())
+	return runningAdapter.ExitCode()
+}
+
+func startFailingCommandWithStdinAndGetExitCode(args []string, stdin, errMsg string) int {
+	operationFails = errMsg
+
+	return startCommandWithStdinAndGetExitCode(args, stdin)
+}
+
+func startCommandWithStdinAndGetExitCode(args []string, stdin string) int {
+	cmd := exec.Command(adapterBin, args...)
+	cmd.Env = resetCommandEnv()
+
+	pipe, err := cmd.StdinPipe()
+	Expect(err).NotTo(HaveOccurred())
+
+	_, err = io.WriteString(pipe, stdin)
+	Expect(err).NotTo(HaveOccurred())
+	pipe.Close()
+
 	runningAdapter, err := gexec.Start(cmd, io.MultiWriter(GinkgoWriter, stdout), io.MultiWriter(GinkgoWriter, stderr))
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(runningAdapter).Should(gexec.Exit())

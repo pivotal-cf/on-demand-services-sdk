@@ -715,22 +715,14 @@ var _ = Describe("CommandLineHandler", func() {
 			})
 
 			Describe("error handling", func() {
-				It("errors when InputParams cannot be inspected", func() {
-					fakeStdin.Close()
-					err := handler.Handle(command, outputBuffer, errorBuffer)
-					assertCLIHandlerErr(
-						err,
-						serviceadapter.ErrorExitCode,
-						"could not extract file descriptor from file")
-				})
-
 				It("errors when JSON document has not been provided via STDIN", func() {
 					handler.InputParamsFile = nil
+
 					err := handler.Handle(command, outputBuffer, errorBuffer)
 					assertCLIHandlerErr(
 						err,
 						serviceadapter.ErrorExitCode,
-						"flag 'stdin' passed to 'generate-manifest' but could not detect content.",
+						"timeout waiting for input parameters",
 					)
 				})
 
