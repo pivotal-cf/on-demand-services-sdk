@@ -79,8 +79,15 @@ type GenerateManifestParams struct {
 	RequestParameters string `json:"request_parameters"`
 }
 
+type DashboardUrlParams struct {
+	InstanceId string `json:"instance_id"`
+	Plan       string `json:"plan"`
+	Manifest   string `json:"manifest"`
+}
+
 type InputParams struct {
 	GenerateManifest GenerateManifestParams `json:"generate_manifest,omitempty"`
+	DashboardUrl     DashboardUrlParams     `json:"dashboard_url,omitempty"`
 }
 
 const (

@@ -394,31 +394,80 @@ var _ = Describe("Command line handler", func() {
 	})
 
 	Describe("dashboard-url command", func() {
-		It("succeeds", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)})
-			Expect(exitCode).To(Equal(0))
-			Expect(stdout.Bytes()).To(MatchJSON(`{ "dashboard_url": "http://dashboard.com"}`))
+		Describe("with positional arguments", func() {
+			It("succeeds", func() {
+				rawInputParams := serviceadapter.InputParams{
+					DashboardUrl: serviceadapter.DashboardUrlParams{
+						InstanceId: "some-id",
+						Plan:       toJson(expectedCurrentPlan),
+						Manifest:   toYaml(expectedManifest),
+					},
+				}
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"dashboard-url", "-stdin"},
+					toJson(rawInputParams),
+				)
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.Bytes()).To(MatchJSON(`{ "dashboard_url": "http://dashboard.com"}`))
+			})
+
+			It("dashboard-url exits with 10", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"dashboard-url", "-stdin"})
+				Expect(exitCode).To(Equal(10))
+			})
+
+			It("exits with 1 if a generic error occurs", func() {
+				rawInputParams := serviceadapter.InputParams{
+					DashboardUrl: serviceadapter.DashboardUrlParams{
+						InstanceId: "some-id",
+						Plan:       toJson(expectedCurrentPlan),
+						Manifest:   toYaml(expectedManifest),
+					},
+				}
+				exitCode = startFailingCommandWithStdinAndGetExitCode(
+					[]string{"dashboard-url", "-stdin"},
+					toJson(rawInputParams),
+					"true",
+				)
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stdout.String()).To(Equal("An error occurred"))
+			})
+
+			It("errors when JSON document has not been provided via STDIN", func() {
+				exitCode = startCommandAndGetExitCode([]string{"dashboard-url", "-stdin"})
+				Expect(exitCode).To(Equal(1))
+
+				Expect(stderr.String()).To(ContainSubstring("timeout waiting for input parameters"))
+			})
 		})
 
-		It("dashboard-url exits with 10", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"dashboard-url", "id", toJson(expectedCurrentPlan), "null"})
-			Expect(exitCode).To(Equal(10))
-		})
+		Describe("with arguments passed via stdin", func() {
+			It("succeeds", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)})
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.Bytes()).To(MatchJSON(`{ "dashboard_url": "http://dashboard.com"}`))
+			})
 
-		It("logs and exits with 1 when an argument is missing", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url"})
+			It("dashboard-url exits with 10", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"dashboard-url", "id", toJson(expectedCurrentPlan), "null"})
+				Expect(exitCode).To(Equal(10))
+			})
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(ContainSubstring(
-				"Missing arguments for dashboard-url. Usage: testharness dashboard-url <instance-ID> <plan-JSON> <manifest-YAML>",
-			))
-		})
+			It("logs and exits with 1 when an argument is missing", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url"})
 
-		It("exits with 1 if a generic error occurs", func() {
-			exitCode = startFailingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)}, "true")
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(ContainSubstring(
+					"Missing arguments for dashboard-url. Usage: testharness dashboard-url <instance-ID> <plan-JSON> <manifest-YAML>",
+				))
+			})
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stdout.String()).To(Equal("An error occurred"))
+			It("exits with 1 if a generic error occurs", func() {
+				exitCode = startFailingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)}, "true")
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stdout.String()).To(Equal("An error occurred"))
+			})
 		})
 	})
 

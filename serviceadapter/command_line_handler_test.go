@@ -655,20 +655,45 @@ var _ = Describe("CommandLineHandler", func() {
 	})
 
 	Context("When adapter passes arguments through STDIN", func() {
-		Context("generate-manifest", func() {
-			const subCommand = "generate-manifest"
+		var (
+			subCommand     string
+			command        []string
+			fakeStdin      *os.File
+			rawInputParams serviceadapter.InputParams
+		)
 
-			var (
-				command        []string
-				fakeStdin      *os.File
-				rawInputParams serviceadapter.InputParams
-			)
+		AfterEach(func() {
+			os.Remove(fakeStdin.Name())
+		})
 
+		BeforeEach(func() {
+			var err error
+			fakeStdin, err = ioutil.TempFile(os.TempDir(), "stdin")
+			Expect(err).NotTo(HaveOccurred())
+
+			outputBuffer = gbytes.NewBuffer()
+			errorBuffer = gbytes.NewBuffer()
+
+			handler = serviceadapter.CommandLineHandler{
+				ManifestGenerator:     fakeManifestGenerator,
+				Binder:                fakeBinder,
+				DashboardURLGenerator: fakeDashboardUrlGenerator,
+				SchemaGenerator:       fakeSchemaGenerator,
+				InputParamsFile:       fakeStdin,
+			}
+		})
+
+		JustBeforeEach(func() {
+			command = []string{commandName, subCommand, "-stdin"}
+
+			_, err := fakeStdin.Write([]byte(toJson(rawInputParams)))
+			Expect(err).NotTo(HaveOccurred())
+			fakeStdin.Seek(0, 0)
+		})
+
+		Describe("generate-manifest", func() {
 			BeforeEach(func() {
-				var err error
-				command = []string{commandName, subCommand, "-stdin"}
-				fakeStdin, err = ioutil.TempFile(os.TempDir(), "stdin")
-				Expect(err).NotTo(HaveOccurred())
+				subCommand = "generate-manifest"
 
 				rawInputParams = serviceadapter.InputParams{
 					GenerateManifest: serviceadapter.GenerateManifestParams{
@@ -679,27 +704,6 @@ var _ = Describe("CommandLineHandler", func() {
 						PreviousManifest:  previousManifestYAML,
 					},
 				}
-
-				inputJSON := toJson(rawInputParams)
-
-				_, err = fakeStdin.Write([]byte(inputJSON))
-				Expect(err).NotTo(HaveOccurred())
-				fakeStdin.Seek(0, 0)
-
-				outputBuffer = gbytes.NewBuffer()
-				errorBuffer = gbytes.NewBuffer()
-
-				handler = serviceadapter.CommandLineHandler{
-					ManifestGenerator:     fakeManifestGenerator,
-					Binder:                fakeBinder,
-					DashboardURLGenerator: fakeDashboardUrlGenerator,
-					SchemaGenerator:       fakeSchemaGenerator,
-					InputParamsFile:       fakeStdin,
-				}
-			})
-
-			AfterEach(func() {
-				os.Remove(fakeStdin.Name())
 			})
 
 			It("reads a JSON document as STDIN and passes the data through as args to the handler", func() {
@@ -714,6 +718,12 @@ var _ = Describe("CommandLineHandler", func() {
 				Expect(actualPreviousPlan).To(Equal(&previousPlan))
 			})
 
+			It("returns a not-implemented error when there is no generate manifest handler", func() {
+				handler.ManifestGenerator = nil
+				err := handler.Handle(command, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "manifest generator not implemented")
+			})
+
 			Describe("error handling", func() {
 				It("errors when args cannot be marshalled", func() {
 					fakeStdin.Write([]byte("foo"))
@@ -723,12 +733,6 @@ var _ = Describe("CommandLineHandler", func() {
 						serviceadapter.ErrorExitCode,
 						"error reading input params JSON",
 					)
-				})
-
-				It("returns a not-implemented error when there is no generate manifest handler", func() {
-					handler.ManifestGenerator = nil
-					err := handler.Handle(command, outputBuffer, errorBuffer)
-					assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "manifest generator not implemented")
 				})
 
 				It("returns a error if service deployment JSON is corrupt", func() {
@@ -800,6 +804,72 @@ var _ = Describe("CommandLineHandler", func() {
 
 				It("returns an error when the manifest cannot be generated", func() {
 					fakeManifestGenerator.GenerateManifestReturns(bosh.BoshManifest{}, errors.New("oops"))
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+
+					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+					Expect(outputBuffer).To(gbytes.Say("oops"))
+				})
+			})
+		})
+
+		Describe("dashboard-url", func() {
+			BeforeEach(func() {
+				subCommand = "dashboard-url"
+
+				rawInputParams = serviceadapter.InputParams{
+					DashboardUrl: serviceadapter.DashboardUrlParams{
+						InstanceId: instanceID,
+						Plan:       toJson(plan),
+						Manifest:   previousManifestYAML,
+					},
+				}
+			})
+
+			It("calls the supplied handler passing args through", func() {
+				fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{DashboardUrl: "http://url.example.com"}, nil)
+
+				err := handler.Handle(command, outputBuffer, errorBuffer)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeDashboardUrlGenerator.DashboardUrlCallCount()).To(Equal(1))
+				actualInstanceID, actualPlanJSON, actualManifestYAML := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
+
+				Expect(actualInstanceID).To(Equal(instanceID))
+				Expect(actualPlanJSON).To(Equal(plan))
+				Expect(actualManifestYAML).To(Equal(previousManifest))
+				Expect(outputBuffer).To(gbytes.Say("http://url.example.com"))
+			})
+
+			It("returns a not-implemented error where there is no dashboard-url handler", func() {
+				handler.DashboardURLGenerator = nil
+				err := handler.Handle(command, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "dashboard-url not implemented")
+			})
+
+			Describe("error handling", func() {
+				It("fails with an error when planJSON is corrupt", func() {
+					rawInputParams.DashboardUrl.Plan = ""
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling service plan")))
+				})
+
+				It("fails with an error when planJSON is invalid", func() {
+					rawInputParams.DashboardUrl.Plan = "{}"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("validating service plan")))
+				})
+
+				It("fails with an error when previous manifest is corrupt", func() {
+					rawInputParams.DashboardUrl.Manifest = "not a manifest"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest")))
+				})
+
+				It("returns an error when the dashboard URL generator fails", func() {
+					fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{}, errors.New("oops"))
 					err := handler.Handle(command, outputBuffer, errorBuffer)
 
 					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")

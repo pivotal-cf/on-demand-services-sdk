@@ -106,11 +106,7 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		if h.ManifestGenerator == nil {
 			return CLIHandlerError{NotImplementedExitCode, "manifest generator not implemented"}
 		}
-		var serviceDeploymentJSON string
-		var planJSON string
-		var argsJSON string
-		var previousManifestYAML string
-		var previousPlanJSON string
+		var serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON string
 
 		if usingStdin(args, errorWriter) {
 			inputParams, err := readArgs(h.InputParamsFile)
@@ -169,13 +165,28 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		if h.DashboardURLGenerator == nil {
 			return CLIHandlerError{NotImplementedExitCode, "dashboard-url not implemented"}
 		}
-		if len(args) < 5 {
-			return missingArgsError(args, "<instance-ID> <plan-JSON> <manifest-YAML>")
-		}
 
-		instanceID := args[2]
-		planJSON := args[3]
-		manifestYAML := args[4]
+		var instanceID, planJSON, manifestYAML string
+
+		if usingStdin(args, errorWriter) {
+			inputParams, err := readArgs(h.InputParamsFile)
+			if err != nil {
+				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
+			}
+
+			dashboardUrlParams := inputParams.DashboardUrl
+			instanceID = dashboardUrlParams.InstanceId
+			planJSON = dashboardUrlParams.Plan
+			manifestYAML = dashboardUrlParams.Manifest
+		} else {
+			if len(args) < 5 {
+				return missingArgsError(args, "<instance-ID> <plan-JSON> <manifest-YAML>")
+			}
+
+			instanceID = args[2]
+			planJSON = args[3]
+			manifestYAML = args[4]
+		}
 		return h.dashboardUrl(instanceID, planJSON, manifestYAML, outputWriter)
 	case "generate-plan-schemas":
 		if h.SchemaGenerator == nil {
