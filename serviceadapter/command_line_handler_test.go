@@ -663,6 +663,9 @@ var _ = Describe("CommandLineHandler", func() {
 		)
 
 		AfterEach(func() {
+			if handler.InputParamsFile != fakeStdin {
+				os.Remove(handler.InputParamsFile.Name())
+			}
 			os.Remove(fakeStdin.Name())
 		})
 
@@ -877,6 +880,97 @@ var _ = Describe("CommandLineHandler", func() {
 				})
 			})
 		})
+
+		Describe("create-binding", func() {
+			BeforeEach(func() {
+				subCommand = "create-binding"
+
+				rawInputParams = serviceadapter.InputParams{
+					CreateBinding: serviceadapter.CreateBindingParams{
+						RequestParameters: toJson(requestParams),
+						BindingId:         bindingID,
+						BoshVms:           toJson(boshVMs),
+						Manifest:          toYaml(previousManifest),
+					},
+				}
+			})
+
+			It("calls the supplied handler passing args through", func() {
+				fakeBinder.CreateBindingReturns(expectedBinding, nil)
+
+				err := handler.Handle(command, outputBuffer, errorBuffer)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
+
+				actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+					fakeBinder.CreateBindingArgsForCall(0)
+
+				Expect(actualBindingId).To(Equal(bindingID))
+				Expect(actualBoshVMs).To(Equal(boshVMs))
+				Expect(actualManifest).To(Equal(previousManifest))
+				Expect(actualRequestParams).To(Equal(requestParams))
+
+				Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
+			})
+
+			It("returns a not-implemented error where there is no binder handler", func() {
+				handler.Binder = nil
+				err := handler.Handle(command, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "binder not implemented")
+			})
+
+			Describe("error handling", func() {
+				It("fails with an error when BOSH VMs is corrupt", func() {
+					rawInputParams.CreateBinding.BoshVms = "foo"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
+				})
+
+				It("fails with an error when previous manifest is corrupt", func() {
+					rawInputParams.CreateBinding.Manifest = "foo"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
+				})
+
+				It("fails with an error when request binding params are corrupt", func() {
+					rawInputParams.CreateBinding.RequestParameters = "asdf"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
+				})
+
+				It("returns an error when the binding cannot be created because of generic error", func() {
+					fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, errors.New("oops"))
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+
+					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+					Expect(outputBuffer).To(gbytes.Say("oops"))
+				})
+
+				It("returns an error when the binding cannot be created because binding already exists", func() {
+					fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewBindingAlreadyExistsError(errors.New("binding already exists")))
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+
+					assertCLIHandlerErr(err, serviceadapter.BindingAlreadyExistsErrorExitCode, "binding already exists")
+					Expect(outputBuffer).To(gbytes.Say("binding already exists"))
+				})
+
+				It("returns an error when the binding cannot be created because app guid not provided", func() {
+					fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewAppGuidNotProvidedError(errors.New("app guid not provided")))
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+
+					assertCLIHandlerErr(err, serviceadapter.AppGuidNotProvidedErrorExitCode, "app guid not provided")
+					Expect(outputBuffer).To(gbytes.Say("app guid not provided"))
+				})
+			})
+		})
+
 	})
 })
 
@@ -889,7 +983,6 @@ func createInputFile(inputParams serviceadapter.InputParams) *os.File {
 	_, err = f.Write([]byte(inputJSON))
 	Expect(err).NotTo(HaveOccurred())
 	f.Seek(0, 0)
-
 	return f
 }
 

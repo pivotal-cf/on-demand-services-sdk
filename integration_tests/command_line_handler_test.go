@@ -317,43 +317,99 @@ var _ = Describe("Command line handler", func() {
 	})
 
 	Describe("create-binding command", func() {
-		It("succeeds", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)})
-			Expect(exitCode).To(Equal(0))
-			Expect(stdout.String()).To(MatchJSON(toJson(testvariables.SuccessfulBinding)))
+		Describe("with positional arguments", func() {
+			It("succeeds", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)})
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.String()).To(MatchJSON(toJson(testvariables.SuccessfulBinding)))
+			})
+
+			It("create-binding exits with 10", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"create-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
+				Expect(exitCode).To(Equal(10))
+			})
+
+			It("logs and exits with 1 when an argument is missing", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"create-binding"})
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(ContainSubstring(
+					"Missing arguments for create-binding. Usage: testharness create-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>",
+				))
+			})
+
+			It("exits with 49 when a binding already exists", func() {
+				exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, testvariables.ErrBindingAlreadyExists)
+
+				Expect(exitCode).To(Equal(49))
+			})
+
+			It("exits with 42 when app_guid is not provided", func() {
+				exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, testvariables.ErrAppGuidNotProvided)
+
+				Expect(exitCode).To(Equal(42))
+			})
+
+			It("exits with 1 when an error occurs", func() {
+				exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, "true")
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stdout.String()).To(Equal("An internal error occured."))
+			})
 		})
 
-		It("create-binding exits with 10", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"create-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
-			Expect(exitCode).To(Equal(10))
-		})
+		Describe("with arguments passed through standard input", func() {
+			var rawInputParams serviceadapter.InputParams
 
-		It("logs and exits with 1 when an argument is missing", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"create-binding"})
+			BeforeEach(func() {
+				rawInputParams = serviceadapter.InputParams{
+					CreateBinding: serviceadapter.CreateBindingParams{
+						BoshVms:           toJson(expectedBoshVMs),
+						BindingId:         expectedBindingID,
+						RequestParameters: toJson(expectedRequestParams),
+						Manifest:          toYaml(expectedManifest),
+					},
+				}
+			})
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(ContainSubstring(
-				"Missing arguments for create-binding. Usage: testharness create-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>",
-			))
-		})
+			It("succeeds", func() {
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"create-binding", "-stdin"},
+					toJson(rawInputParams),
+				)
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.String()).To(MatchJSON(toJson(testvariables.SuccessfulBinding)))
+			})
 
-		It("exits with 49 when a binding already exists", func() {
-			exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, testvariables.ErrBindingAlreadyExists)
+			It("exits with 10 if not implemented", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"create-binding", "-stdin"})
+				Expect(exitCode).To(Equal(10))
+			})
 
-			Expect(exitCode).To(Equal(49))
-		})
+			It("exits with 49 when a binding already exists", func() {
+				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"create-binding", "-stdin"}, toJson(rawInputParams), testvariables.ErrBindingAlreadyExists)
 
-		It("exits with 42 when app_guid is not provided", func() {
-			exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, testvariables.ErrAppGuidNotProvided)
+				Expect(exitCode).To(Equal(49))
+			})
 
-			Expect(exitCode).To(Equal(42))
-		})
+			It("exits with 42 when app_guid is not provided", func() {
+				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"create-binding", "-stdin"}, toJson(rawInputParams), testvariables.ErrAppGuidNotProvided)
 
-		It("exits with 1 when an error occurs", func() {
-			exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, "true")
+				Expect(exitCode).To(Equal(42))
+			})
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stdout.String()).To(Equal("An internal error occured."))
+			It("exits with 1 when an error occurs", func() {
+				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"create-binding", "-stdin"}, toJson(rawInputParams), "true")
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stdout.String()).To(Equal("An internal error occured."))
+			})
+
+			It("errors when JSON document has not been provided via STDIN", func() {
+				exitCode = startCommandAndGetExitCode([]string{"create-binding", "-stdin"})
+				Expect(exitCode).To(Equal(1))
+
+				Expect(stderr.String()).To(ContainSubstring("timeout waiting for input parameters"))
+			})
 		})
 	})
 

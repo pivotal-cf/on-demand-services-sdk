@@ -85,9 +85,17 @@ type DashboardUrlParams struct {
 	Manifest   string `json:"manifest"`
 }
 
+type CreateBindingParams struct {
+	BindingId         string `json:"binding_id"`
+	BoshVms           string `json:"bosh_vms"`
+	Manifest          string `json:"manifest"`
+	RequestParameters string `json:"request_parameters"`
+}
+
 type InputParams struct {
 	GenerateManifest GenerateManifestParams `json:"generate_manifest,omitempty"`
 	DashboardUrl     DashboardUrlParams     `json:"dashboard_url,omitempty"`
+	CreateBinding    CreateBindingParams    `json:"create_binding,omitempty"`
 }
 
 const (
