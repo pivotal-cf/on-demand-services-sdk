@@ -230,7 +230,7 @@ var _ = Describe("Command line handler", func() {
 		})
 
 		Describe("with arguments passed in on standard input", func() {
-			It("succeeds without optional parameters", func() {
+			It("succeeds", func() {
 				rawInputParams := serviceadapter.InputParams{
 					GenerateManifest: serviceadapter.GenerateManifestParams{
 						ServiceDeployment: toJson(expectedServiceDeployment),
@@ -247,7 +247,7 @@ var _ = Describe("Command line handler", func() {
 				Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
 			})
 
-			It("generate-manifest exits with 10", func() {
+			It("generate-manifest exits with 10 when command not implemented", func() {
 				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-manifest", "-stdin"})
 				Expect(exitCode).To(Equal(10))
 			})
@@ -269,7 +269,7 @@ var _ = Describe("Command line handler", func() {
 				Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
 			})
 
-			It("logs and exits with 1 when an argument is missing", func() {
+			It("logs and exits with 1 when a required field param is missing", func() {
 				rawInputParams := serviceadapter.InputParams{
 					GenerateManifest: serviceadapter.GenerateManifestParams{
 						ServiceDeployment: toJson(expectedServiceDeployment),
@@ -305,13 +305,6 @@ var _ = Describe("Command line handler", func() {
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stdout.String()).To(Equal("some message to the user"))
-			})
-
-			It("errors when JSON document has not been provided via STDIN", func() {
-				exitCode = startCommandAndGetExitCode([]string{"generate-manifest", "-stdin"})
-				Expect(exitCode).To(Equal(1))
-
-				Expect(stderr.String()).To(ContainSubstring("timeout waiting for input parameters"))
 			})
 		})
 	})
@@ -380,7 +373,7 @@ var _ = Describe("Command line handler", func() {
 				Expect(stdout.String()).To(MatchJSON(toJson(testvariables.SuccessfulBinding)))
 			})
 
-			It("exits with 10 if not implemented", func() {
+			It("exits with 10 if command is not implemented", func() {
 				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"create-binding", "-stdin"})
 				Expect(exitCode).To(Equal(10))
 			})
@@ -403,54 +396,121 @@ var _ = Describe("Command line handler", func() {
 				Expect(exitCode).To(Equal(1))
 				Expect(stdout.String()).To(Equal("An internal error occured."))
 			})
-
-			It("errors when JSON document has not been provided via STDIN", func() {
-				exitCode = startCommandAndGetExitCode([]string{"create-binding", "-stdin"})
-				Expect(exitCode).To(Equal(1))
-
-				Expect(stderr.String()).To(ContainSubstring("timeout waiting for input parameters"))
-			})
 		})
 	})
 
 	Describe("delete-binding", func() {
-		It("succeeds", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)})
-			Expect(exitCode).To(Equal(0))
-			Expect(stdout.String()).To(BeEmpty())
+		Describe("with positional arguments", func() {
+			It("succeeds", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)})
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.String()).To(BeEmpty())
+			})
+
+			It("delete-binding exits with 10", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"delete-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
+				Expect(exitCode).To(Equal(10))
+			})
+
+			It("logs and exits with 1 when an argument is missing", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding"})
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(ContainSubstring(
+					"Missing arguments for delete-binding. Usage: testharness delete-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>",
+				))
+			})
+
+			It("exits with 41 when the binding is not found", func() {
+				exitCode = startFailingCommandAndGetExitCode([]string{"delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)}, testvariables.ErrBindingNotFound)
+
+				Expect(exitCode).To(Equal(41))
+				Expect(stdout.String()).To(ContainSubstring("binding not found"))
+			})
+
+			It("exits with a failure when a generic error occurs", func() {
+				exitCode = startFailingCommandAndGetExitCode([]string{"delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)}, "true")
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stdout.String()).To(Equal("An error occurred"))
+			})
 		})
 
-		It("delete-binding exits with 10", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"delete-binding", toJson(expectedServiceDeployment), toJson(expectedCurrentPlan), toJson(expectedRequestParams), "", "null"})
-			Expect(exitCode).To(Equal(10))
-		})
+		Describe("with arguments passed via stdin", func() {
+			var rawInputParams serviceadapter.InputParams
+			BeforeEach(func() {
+				rawInputParams = serviceadapter.InputParams{
+					DeleteBinding: serviceadapter.DeleteBindingParams{
+						BoshVms:           toJson(expectedBoshVMs),
+						BindingId:         expectedBindingID,
+						RequestParameters: toJson(expectedRequestParams),
+						Manifest:          toYaml(expectedManifest),
+					},
+				}
+			})
 
-		It("logs and exits with 1 when an argument is missing", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding"})
+			It("succeeds", func() {
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"delete-binding", "-stdin"},
+					toJson(rawInputParams),
+				)
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(ContainSubstring(
-				"Missing arguments for delete-binding. Usage: testharness delete-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>",
-			))
-		})
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.String()).To(BeEmpty())
+			})
 
-		It("exits with 41 when the binding is not found", func() {
-			exitCode = startFailingCommandAndGetExitCode([]string{"delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)}, testvariables.ErrBindingNotFound)
+			It("delete-binding exits with 10 when command is not implemented", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"delete-binding", "-stdin"})
 
-			Expect(exitCode).To(Equal(41))
-			Expect(stdout.String()).To(ContainSubstring("binding not found"))
-		})
+				Expect(exitCode).To(Equal(10))
+			})
 
-		It("exits with a failure when a generic error occurs", func() {
-			exitCode = startFailingCommandAndGetExitCode([]string{"delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)}, "true")
+			It("exits with 41 when the binding is not found", func() {
+				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"delete-binding", "-stdin"}, toJson(rawInputParams), testvariables.ErrBindingNotFound)
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stdout.String()).To(Equal("An error occurred"))
+				Expect(exitCode).To(Equal(41))
+				Expect(stdout.String()).To(ContainSubstring("binding not found"))
+			})
+
+			It("exits with a failure when a generic error occurs", func() {
+				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"delete-binding", "-stdin"}, toJson(rawInputParams), "true")
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stdout.String()).To(Equal("An error occurred"))
+			})
 		})
 	})
 
 	Describe("dashboard-url command", func() {
 		Describe("with positional arguments", func() {
+			It("succeeds", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)})
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.Bytes()).To(MatchJSON(`{ "dashboard_url": "http://dashboard.com"}`))
+			})
+
+			It("dashboard-url exits with 10", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"dashboard-url", "id", toJson(expectedCurrentPlan), "null"})
+				Expect(exitCode).To(Equal(10))
+			})
+
+			It("logs and exits with 1 when an argument is missing", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url"})
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(ContainSubstring(
+					"Missing arguments for dashboard-url. Usage: testharness dashboard-url <instance-ID> <plan-JSON> <manifest-YAML>",
+				))
+			})
+
+			It("exits with 1 if a generic error occurs", func() {
+				exitCode = startFailingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)}, "true")
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stdout.String()).To(Equal("An error occurred"))
+			})
+		})
+
+		Describe("with arguments passed via stdin", func() {
 			It("succeeds", func() {
 				rawInputParams := serviceadapter.InputParams{
 					DashboardUrl: serviceadapter.DashboardUrlParams{
@@ -484,42 +544,6 @@ var _ = Describe("Command line handler", func() {
 					toJson(rawInputParams),
 					"true",
 				)
-
-				Expect(exitCode).To(Equal(1))
-				Expect(stdout.String()).To(Equal("An error occurred"))
-			})
-
-			It("errors when JSON document has not been provided via STDIN", func() {
-				exitCode = startCommandAndGetExitCode([]string{"dashboard-url", "-stdin"})
-				Expect(exitCode).To(Equal(1))
-
-				Expect(stderr.String()).To(ContainSubstring("timeout waiting for input parameters"))
-			})
-		})
-
-		Describe("with arguments passed via stdin", func() {
-			It("succeeds", func() {
-				exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)})
-				Expect(exitCode).To(Equal(0))
-				Expect(stdout.Bytes()).To(MatchJSON(`{ "dashboard_url": "http://dashboard.com"}`))
-			})
-
-			It("dashboard-url exits with 10", func() {
-				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"dashboard-url", "id", toJson(expectedCurrentPlan), "null"})
-				Expect(exitCode).To(Equal(10))
-			})
-
-			It("logs and exits with 1 when an argument is missing", func() {
-				exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url"})
-
-				Expect(exitCode).To(Equal(1))
-				Expect(stderr.String()).To(ContainSubstring(
-					"Missing arguments for dashboard-url. Usage: testharness dashboard-url <instance-ID> <plan-JSON> <manifest-YAML>",
-				))
-			})
-
-			It("exits with 1 if a generic error occurs", func() {
-				exitCode = startFailingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)}, "true")
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stdout.String()).To(Equal("An error occurred"))

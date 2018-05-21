@@ -971,6 +971,81 @@ var _ = Describe("CommandLineHandler", func() {
 			})
 		})
 
+		Describe("delete Binding", func() {
+			BeforeEach(func() {
+				subCommand = "delete-binding"
+
+				rawInputParams = serviceadapter.InputParams{
+					DeleteBinding: serviceadapter.DeleteBindingParams{
+						RequestParameters: toJson(requestParams),
+						BindingId:         bindingID,
+						BoshVms:           toJson(boshVMs),
+						Manifest:          toYaml(previousManifest),
+					},
+				}
+			})
+
+			It("calls the supplied handler passing args through", func() {
+				fakeBinder.DeleteBindingReturns(nil)
+
+				err := handler.Handle(command, outputBuffer, errorBuffer)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
+				actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+					fakeBinder.DeleteBindingArgsForCall(0)
+
+				Expect(actualBindingId).To(Equal(bindingID))
+				Expect(actualBoshVMs).To(Equal(boshVMs))
+				Expect(actualManifest).To(Equal(previousManifest))
+				Expect(actualRequestParams).To(Equal(requestParams))
+			})
+
+			It("returns a not-implemented error where there is no binder handler", func() {
+				handler.Binder = nil
+				err := handler.Handle(command, outputBuffer, errorBuffer)
+				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "binder not implemented")
+			})
+
+			Describe("error handling", func() {
+				It("fails with an error when BOSH VMs is corrupt", func() {
+					rawInputParams.DeleteBinding.BoshVms = "notjson"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
+				})
+
+				It("fails with an error when previous manifest is corrupt", func() {
+					rawInputParams.DeleteBinding.Manifest = "notyaml"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
+				})
+
+				It("fails with an error when request binding params are corrupt", func() {
+					rawInputParams.DeleteBinding.RequestParameters = "notjson"
+					handler.InputParamsFile = createInputFile(rawInputParams)
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+					Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
+				})
+
+				It("returns an error when the binding cannot be deleted because of generic error", func() {
+					fakeBinder.DeleteBindingReturns(errors.New("oops"))
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+
+					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+					Expect(outputBuffer).To(gbytes.Say("oops"))
+				})
+
+				It("returns an error when the binding cannot be deleted because binding is not found", func() {
+					fakeBinder.DeleteBindingReturns(serviceadapter.NewBindingNotFoundError(errors.New("binding not found")))
+					err := handler.Handle(command, outputBuffer, errorBuffer)
+
+					assertCLIHandlerErr(err, serviceadapter.BindingNotFoundErrorExitCode, "binding not found")
+					Expect(outputBuffer).To(gbytes.Say("binding not found"))
+				})
+			})
+		})
 	})
 })
 

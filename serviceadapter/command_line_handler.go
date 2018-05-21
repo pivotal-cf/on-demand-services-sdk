@@ -166,14 +166,30 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		if h.Binder == nil {
 			return CLIHandlerError{NotImplementedExitCode, "binder not implemented"}
 		}
-		if len(args) < 6 {
-			return missingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
+
+		var bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams string
+
+		if usingStdin(args, errorWriter) {
+			inputParams, err := readArgs(h.InputParamsFile)
+			if err != nil {
+				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
+			}
+
+			bindingID = inputParams.DeleteBinding.BindingId
+			boshVMsJSON = inputParams.DeleteBinding.BoshVms
+			manifestYAML = inputParams.DeleteBinding.Manifest
+			unbindingRequestParams = inputParams.DeleteBinding.RequestParameters
+		} else {
+			if len(args) < 6 {
+				return missingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
+			}
+
+			bindingID = args[2]
+			boshVMsJSON = args[3]
+			manifestYAML = args[4]
+			unbindingRequestParams = args[5]
 		}
 
-		bindingID := args[2]
-		boshVMsJSON := args[3]
-		manifestYAML := args[4]
-		unbindingRequestParams := args[5]
 		return h.deleteBinding(bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams, outputWriter)
 	case "dashboard-url":
 		if h.DashboardURLGenerator == nil {
