@@ -17,6 +17,7 @@ package serviceadapter_test
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -802,6 +803,13 @@ var _ = Describe("CommandLineHandler", func() {
 					Expect(err).To(MatchError(ContainSubstring("unmarshalling requestParams")))
 				})
 
+				It("returns an error if cannot read from stdin", func() {
+					fakeStdin = NewFakeReader()
+					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+
+					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "error reading input params JSON")
+				})
+
 				It("returns a error if previous manifest YAML is corrupt", func() {
 					rawInputParams.GenerateManifest.PreviousManifest = "foo"
 					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
@@ -884,6 +892,13 @@ var _ = Describe("CommandLineHandler", func() {
 					Expect(err).To(MatchError(ContainSubstring("validating service plan")))
 				})
 
+				It("returns an error if cannot read from stdin", func() {
+					fakeStdin = NewFakeReader()
+					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+
+					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "error reading input params JSON")
+				})
+
 				It("fails with an error when previous manifest is corrupt", func() {
 					rawInputParams.DashboardUrl.Manifest = "not a manifest"
 					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
@@ -963,6 +978,13 @@ var _ = Describe("CommandLineHandler", func() {
 					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
 
 					Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
+				})
+
+				It("returns an error if cannot read from stdin", func() {
+					fakeStdin = NewFakeReader()
+					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+
+					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "error reading input params JSON")
 				})
 
 				It("returns an error when the binding cannot be created because of generic error", func() {
@@ -1052,6 +1074,13 @@ var _ = Describe("CommandLineHandler", func() {
 					Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
 				})
 
+				It("returns an error if cannot read from stdin", func() {
+					fakeStdin = NewFakeReader()
+					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+
+					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "error reading input params JSON")
+				})
+
 				It("returns an error when the binding cannot be deleted because of generic error", func() {
 					fakeBinder.DeleteBindingReturns(errors.New("oops"))
 					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
@@ -1069,6 +1098,103 @@ var _ = Describe("CommandLineHandler", func() {
 				})
 			})
 		})
+
+		Describe("generate-plan-schema", func() {
+			BeforeEach(func() {
+				subCommand = "generate-plan-schemas"
+
+				rawInputParams = serviceadapter.InputParams{
+					GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+						Plan: planJSON,
+					},
+				}
+			})
+
+			It("returns a not-implemented error where there is no generate-plan-schemas handler", func() {
+				handler.SchemaGenerator = nil
+				err := handler.Handle(command, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "plan schema generator not implemented")
+			})
+
+			It("returns a plan schema when configured with an schema generator", func() {
+				schemas := serviceadapter.JSONSchemas{
+					Parameters: map[string]interface{}{
+						"$schema": "http://json-schema.org/draft-04/schema#",
+						"type":    "object",
+						"properties": map[string]interface{}{
+							"billing-account": map[string]interface{}{
+								"description": "Billing account number used to charge use of shared fake server.",
+								"type":        "string",
+							},
+						},
+					},
+				}
+				expectedPlanSchema := serviceadapter.PlanSchema{
+					ServiceInstance: serviceadapter.ServiceInstanceSchema{
+						Create: schemas,
+						Update: schemas,
+					},
+					ServiceBinding: serviceadapter.ServiceBindingSchema{
+						Create: schemas,
+					},
+				}
+				fakeSchemaGenerator.GeneratePlanSchemaReturns(expectedPlanSchema, nil)
+
+				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
+
+				Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)).To(Equal(plan))
+
+				contents, err := ioutil.ReadAll(outputBuffer)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(contents).To(MatchJSON(toJson(expectedPlanSchema)))
+			})
+
+			It("returns an error if cannot generate the schema for the plan", func() {
+				fakeSchemaGenerator.GeneratePlanSchemaReturns(serviceadapter.PlanSchema{}, errors.New("oops"))
+
+				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+				Expect(outputBuffer).To(gbytes.Say("oops"))
+			})
+
+			It("returns an error if cannot read from stdin", func() {
+				fakeStdin = NewFakeReader()
+				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+
+				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "error reading input params JSON")
+			})
+
+			It("returns an error if the plan JSON is corrupt", func() {
+				rawInputParams.GeneratePlanSchemas.Plan = "notjson"
+				fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
+				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling plan JSON")))
+			})
+
+			It("returns an error if the plan JSON is invalid", func() {
+				rawInputParams.GeneratePlanSchemas.Plan = "{}"
+				fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
+				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+
+				Expect(err).To(MatchError(ContainSubstring("error validating plan JSON")))
+			})
+
+			It("prints a help message, without failing", func() {
+				err := handler.Handle(append(command, "-help"), outputBuffer, errorBuffer, fakeStdin)
+				assertCLIHandlerErr(
+					err,
+					serviceadapter.ErrorExitCode,
+					"Incorrect arguments for generate-plan-schemas",
+				)
+				Expect(errorBuffer).To(gbytes.Say("Usage:"))
+			})
+		})
 	})
 })
 
@@ -1078,4 +1204,15 @@ func assertCLIHandlerErr(err error, exitCode int, message string) {
 	Expect(err).To(MatchError(ContainSubstring(message)))
 	actualErr := err.(serviceadapter.CLIHandlerError)
 	Expect(actualErr.ExitCode).To(Equal(exitCode))
+}
+
+func NewFakeReader() io.Reader {
+	return &FakeReader{}
+}
+
+type FakeReader struct {
+}
+
+func (f *FakeReader) Read(b []byte) (int, error) {
+	return 1, fmt.Errorf("fool!")
 }

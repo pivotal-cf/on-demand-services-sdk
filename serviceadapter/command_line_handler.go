@@ -217,9 +217,20 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 			return CLIHandlerError{NotImplementedExitCode, "plan schema generator not implemented"}
 		}
 
-		planJson, err := parseGeneratePlanSchemaArguments(args, errorWriter)
-		if err != nil {
-			return err
+		var planJson string
+		var err error
+		if usingStdin(args, errorWriter) {
+			inputParams, err := readArgs(inputParamsReader)
+			if err != nil {
+				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
+			}
+
+			planJson = inputParams.GeneratePlanSchemas.Plan
+		} else {
+			planJson, err = parseGeneratePlanSchemaArguments(args, errorWriter)
+			if err != nil {
+				return err
+			}
 		}
 		return h.generatePlanSchema(planJson, outputWriter)
 

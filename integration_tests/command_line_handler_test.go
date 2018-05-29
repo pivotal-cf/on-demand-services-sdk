@@ -602,6 +602,70 @@ var _ = Describe("Command line handler", func() {
 			Expect(exitCode).To(Equal(10))
 		})
 	})
+
+	Describe("with arguments passed via stdin", func() {
+		It("returns 0 and output the schema for a plan", func() {
+			rawInputParams := serviceadapter.InputParams{
+				GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+					Plan: toJson(expectedCurrentPlan),
+				},
+			}
+			exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-plan-schemas", "-stdin"},
+				toJson(rawInputParams),
+			)
+			schemas := serviceadapter.JSONSchemas{
+				Parameters: map[string]interface{}{
+					"$schema": "http://json-schema.org/draft-04/schema#",
+					"type":    "object",
+					"properties": map[string]interface{}{
+						"billing-account": map[string]interface{}{
+							"description": "Billing account number used to charge use of shared fake server.",
+							"type":        "string",
+						},
+					},
+				},
+			}
+			expectedPlanSchema := serviceadapter.PlanSchema{
+				ServiceInstance: serviceadapter.ServiceInstanceSchema{
+					Create: schemas,
+					Update: schemas,
+				},
+				ServiceBinding: serviceadapter.ServiceBindingSchema{
+					Create: schemas,
+				},
+			}
+			Expect(exitCode).To(Equal(0))
+			Expect(stdout.Bytes()).To(MatchJSON(toJson(expectedPlanSchema)))
+		})
+
+		It("returns 1 if an error occurred while generating the schema", func() {
+			rawInputParams := serviceadapter.InputParams{
+				GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+					Plan: toJson(expectedCurrentPlan),
+				},
+			}
+			exitCode = startFailingCommandWithStdinAndGetExitCode(
+				[]string{"generate-plan-schemas", "-stdin"},
+				toJson(rawInputParams),
+				"true",
+			)
+
+			Expect(exitCode).To(Equal(1))
+			Expect(stderr.String()).To(MatchRegexp(`\[odb-sdk\] An error occurred`))
+		})
+
+		It("returns 10 (not implemented) when the command is not implement", func() {
+			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-plan-schemas", "-stdin"})
+			Expect(exitCode).To(Equal(10))
+		})
+
+		It("fails when nothing is sent to stdin", func() {
+			exitCode = startCommandWithNoStdinAndGetExitCode([]string{"generate-plan-schemas", "-stdin"})
+
+			Expect(exitCode).To(Equal(1))
+			Expect(stderr.String()).To(MatchRegexp(`timeout waiting for input parameters`))
+		})
+	})
 })
 
 func startEmptyImplementationCommandAndGetExitCode(args []string) int {
@@ -636,6 +700,16 @@ func startFailingCommandWithStdinAndGetExitCode(args []string, stdin, errMsg str
 	operationFails = errMsg
 
 	return startCommandWithStdinAndGetExitCode(args, stdin)
+}
+
+func startCommandWithNoStdinAndGetExitCode(args []string) int {
+	cmd := exec.Command(adapterBin, args...)
+	cmd.Env = resetCommandEnv()
+
+	runningAdapter, err := gexec.Start(cmd, io.MultiWriter(GinkgoWriter, stdout), io.MultiWriter(GinkgoWriter, stderr))
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(runningAdapter, time.Second*3).Should(gexec.Exit())
+	return runningAdapter.ExitCode()
 }
 
 func startCommandWithStdinAndGetExitCode(args []string, stdin string) int {

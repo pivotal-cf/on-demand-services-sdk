@@ -99,11 +99,16 @@ type DeleteBindingParams struct {
 	RequestParameters string `json:"request_parameters"`
 }
 
+type GeneratePlanSchemasParams struct {
+	Plan string `json:"plan"`
+}
+
 type InputParams struct {
-	GenerateManifest GenerateManifestParams `json:"generate_manifest,omitempty"`
-	DashboardUrl     DashboardUrlParams     `json:"dashboard_url,omitempty"`
-	CreateBinding    CreateBindingParams    `json:"create_binding,omitempty"`
-	DeleteBinding    DeleteBindingParams    `json:"delete_binding,omitempty"`
+	GenerateManifest    GenerateManifestParams    `json:"generate_manifest,omitempty"`
+	DashboardUrl        DashboardUrlParams        `json:"dashboard_url,omitempty"`
+	CreateBinding       CreateBindingParams       `json:"create_binding,omitempty"`
+	DeleteBinding       DeleteBindingParams       `json:"delete_binding,omitempty"`
+	GeneratePlanSchemas GeneratePlanSchemasParams `json:"generate_plan_schemas,omitempty"`
 }
 
 const (
@@ -290,7 +295,7 @@ type Update struct {
 	Canaries        int                   `json:"canaries" yaml:"canaries"`
 	CanaryWatchTime string                `json:"canary_watch_time" yaml:"canary_watch_time"`
 	UpdateWatchTime string                `json:"update_watch_time" yaml:"update_watch_time"`
-	MaxInFlight     bosh.MaxInFlightValue `json:"max_in_flight, " yaml:"max_in_flight"`
+	MaxInFlight     bosh.MaxInFlightValue `json:"max_in_flight," yaml:"max_in_flight"`
 	Serial          *bool                 `json:"serial,omitempty" yaml:"serial,omitempty"`
 }
 
