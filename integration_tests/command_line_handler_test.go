@@ -175,7 +175,7 @@ var _ = Describe("Command line handler", func() {
 		Expect(stderr.String()).To(ContainSubstring(`[odb-sdk] unknown subcommand: non-existing-subcommand. The following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas`))
 	})
 
-	Describe("generate-manifest command", func() {
+	Describe("generate-manifest subcommand", func() {
 		Describe("with positional arguments", func() {
 			It("succeeds without optional parameters", func() {
 				exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest",
@@ -230,6 +230,13 @@ var _ = Describe("Command line handler", func() {
 		})
 
 		Describe("with arguments passed in on standard input", func() {
+			It("falls back to positional argument flow when nothing is passed through stdin", func() {
+				exitCode = startCommandWithNoStdinAndGetExitCode([]string{"generate-manifest"})
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(MatchRegexp(`Missing arguments for generate-manifest`))
+			})
+
 			It("succeeds", func() {
 				rawInputParams := serviceadapter.InputParams{
 					GenerateManifest: serviceadapter.GenerateManifestParams{
@@ -240,7 +247,7 @@ var _ = Describe("Command line handler", func() {
 						PreviousManifest:  "",
 					},
 				}
-				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-manifest", "-stdin"},
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-manifest"},
 					toJson(rawInputParams),
 				)
 				Expect(exitCode).To(Equal(0))
@@ -248,7 +255,7 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("generate-manifest exits with 10 when command not implemented", func() {
-				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-manifest", "-stdin"})
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-manifest"})
 				Expect(exitCode).To(Equal(10))
 			})
 
@@ -262,7 +269,7 @@ var _ = Describe("Command line handler", func() {
 						PreviousManifest:  toYaml(expectedPreviousManifest),
 					},
 				}
-				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-manifest", "-stdin"},
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-manifest"},
 					toJson(rawInputParams),
 				)
 				Expect(exitCode).To(Equal(0))
@@ -279,7 +286,7 @@ var _ = Describe("Command line handler", func() {
 						PreviousManifest:  toYaml(expectedPreviousManifest),
 					},
 				}
-				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-manifest", "-stdin"},
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-manifest"},
 					toJson(rawInputParams),
 				)
 				Expect(exitCode).To(Equal(1))
@@ -298,7 +305,7 @@ var _ = Describe("Command line handler", func() {
 					},
 				}
 				exitCode = startFailingCommandWithStdinAndGetExitCode(
-					[]string{"generate-manifest", "-stdin"},
+					[]string{"generate-manifest"},
 					toJson(rawInputParams),
 					"true",
 				)
@@ -309,7 +316,7 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
-	Describe("create-binding command", func() {
+	Describe("create-binding subcommand", func() {
 		Describe("with positional arguments", func() {
 			It("succeeds", func() {
 				exitCode = startPassingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)})
@@ -365,8 +372,15 @@ var _ = Describe("Command line handler", func() {
 				}
 			})
 
+			It("falls back to positional argument flow when nothing is passed through stdin", func() {
+				exitCode = startCommandWithNoStdinAndGetExitCode([]string{"create-binding"})
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(MatchRegexp(`Missing arguments for create-binding`))
+			})
+
 			It("succeeds", func() {
-				exitCode = startCommandWithStdinAndGetExitCode([]string{"create-binding", "-stdin"},
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"create-binding"},
 					toJson(rawInputParams),
 				)
 				Expect(exitCode).To(Equal(0))
@@ -374,24 +388,24 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("exits with 10 if command is not implemented", func() {
-				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"create-binding", "-stdin"})
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"create-binding"})
 				Expect(exitCode).To(Equal(10))
 			})
 
 			It("exits with 49 when a binding already exists", func() {
-				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"create-binding", "-stdin"}, toJson(rawInputParams), testvariables.ErrBindingAlreadyExists)
+				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"create-binding"}, toJson(rawInputParams), testvariables.ErrBindingAlreadyExists)
 
 				Expect(exitCode).To(Equal(49))
 			})
 
 			It("exits with 42 when app_guid is not provided", func() {
-				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"create-binding", "-stdin"}, toJson(rawInputParams), testvariables.ErrAppGuidNotProvided)
+				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"create-binding"}, toJson(rawInputParams), testvariables.ErrAppGuidNotProvided)
 
 				Expect(exitCode).To(Equal(42))
 			})
 
 			It("exits with 1 when an error occurs", func() {
-				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"create-binding", "-stdin"}, toJson(rawInputParams), "true")
+				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"create-binding"}, toJson(rawInputParams), "true")
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stdout.String()).To(Equal("An internal error occured."))
@@ -399,7 +413,7 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
-	Describe("delete-binding", func() {
+	Describe("delete-binding subcommand", func() {
 		Describe("with positional arguments", func() {
 			It("succeeds", func() {
 				exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedUnbindingRequestParams)})
@@ -449,8 +463,15 @@ var _ = Describe("Command line handler", func() {
 				}
 			})
 
+			It("falls back to positional argument flow when nothing is passed through stdin", func() {
+				exitCode = startCommandWithNoStdinAndGetExitCode([]string{"delete-binding"})
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(MatchRegexp(`Missing arguments for delete-binding`))
+			})
+
 			It("succeeds", func() {
-				exitCode = startCommandWithStdinAndGetExitCode([]string{"delete-binding", "-stdin"},
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"delete-binding"},
 					toJson(rawInputParams),
 				)
 
@@ -459,20 +480,20 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("delete-binding exits with 10 when command is not implemented", func() {
-				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"delete-binding", "-stdin"})
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"delete-binding"})
 
 				Expect(exitCode).To(Equal(10))
 			})
 
 			It("exits with 41 when the binding is not found", func() {
-				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"delete-binding", "-stdin"}, toJson(rawInputParams), testvariables.ErrBindingNotFound)
+				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"delete-binding"}, toJson(rawInputParams), testvariables.ErrBindingNotFound)
 
 				Expect(exitCode).To(Equal(41))
 				Expect(stdout.String()).To(ContainSubstring("binding not found"))
 			})
 
 			It("exits with a failure when a generic error occurs", func() {
-				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"delete-binding", "-stdin"}, toJson(rawInputParams), "true")
+				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"delete-binding"}, toJson(rawInputParams), "true")
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stdout.String()).To(Equal("An error occurred"))
@@ -480,7 +501,7 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
-	Describe("dashboard-url command", func() {
+	Describe("dashboard-url subcommand", func() {
 		Describe("with positional arguments", func() {
 			It("succeeds", func() {
 				exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url", "instance-identifier", toJson(expectedPlan), toYaml(expectedManifest)})
@@ -511,6 +532,13 @@ var _ = Describe("Command line handler", func() {
 		})
 
 		Describe("with arguments passed via stdin", func() {
+			It("falls back to positional argument flow when nothing is passed through stdin", func() {
+				exitCode = startCommandWithNoStdinAndGetExitCode([]string{"dashboard-url"})
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(MatchRegexp(`Missing arguments for dashboard-url`))
+			})
+
 			It("succeeds", func() {
 				rawInputParams := serviceadapter.InputParams{
 					DashboardUrl: serviceadapter.DashboardUrlParams{
@@ -519,7 +547,7 @@ var _ = Describe("Command line handler", func() {
 						Manifest:   toYaml(expectedManifest),
 					},
 				}
-				exitCode = startCommandWithStdinAndGetExitCode([]string{"dashboard-url", "-stdin"},
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"dashboard-url"},
 					toJson(rawInputParams),
 				)
 				Expect(exitCode).To(Equal(0))
@@ -527,7 +555,7 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("dashboard-url exits with 10", func() {
-				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"dashboard-url", "-stdin"})
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"dashboard-url"})
 				Expect(exitCode).To(Equal(10))
 			})
 
@@ -540,7 +568,7 @@ var _ = Describe("Command line handler", func() {
 					},
 				}
 				exitCode = startFailingCommandWithStdinAndGetExitCode(
-					[]string{"dashboard-url", "-stdin"},
+					[]string{"dashboard-url"},
 					toJson(rawInputParams),
 					"true",
 				)
@@ -551,119 +579,121 @@ var _ = Describe("Command line handler", func() {
 		})
 	})
 
-	Describe("generate-plan-schemas command", func() {
-		It("returns 0 and output the schema for a plan", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"generate-plan-schemas", "--plan-json", toJson(expectedPlan)})
-			schemas := serviceadapter.JSONSchemas{
-				Parameters: map[string]interface{}{
-					"$schema": "http://json-schema.org/draft-04/schema#",
-					"type":    "object",
-					"properties": map[string]interface{}{
-						"billing-account": map[string]interface{}{
-							"description": "Billing account number used to charge use of shared fake server.",
-							"type":        "string",
+	Describe("generate-plan-schemas subcommand", func() {
+		Describe("with positional arguments", func() {
+			It("returns 0 and output the schema for a plan", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"generate-plan-schemas", "--plan-json", toJson(expectedPlan)})
+				schemas := serviceadapter.JSONSchemas{
+					Parameters: map[string]interface{}{
+						"$schema": "http://json-schema.org/draft-04/schema#",
+						"type":    "object",
+						"properties": map[string]interface{}{
+							"billing-account": map[string]interface{}{
+								"description": "Billing account number used to charge use of shared fake server.",
+								"type":        "string",
+							},
 						},
 					},
-				},
-			}
-			expectedPlanSchema := serviceadapter.PlanSchema{
-				ServiceInstance: serviceadapter.ServiceInstanceSchema{
-					Create: schemas,
-					Update: schemas,
-				},
-				ServiceBinding: serviceadapter.ServiceBindingSchema{
-					Create: schemas,
-				},
-			}
-			Expect(exitCode).To(Equal(0))
-			Expect(stdout.Bytes()).To(MatchJSON(toJson(expectedPlanSchema)))
+				}
+				expectedPlanSchema := serviceadapter.PlanSchema{
+					ServiceInstance: serviceadapter.ServiceInstanceSchema{
+						Create: schemas,
+						Update: schemas,
+					},
+					ServiceBinding: serviceadapter.ServiceBindingSchema{
+						Create: schemas,
+					},
+				}
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.Bytes()).To(MatchJSON(toJson(expectedPlanSchema)))
+			})
+
+			It("returns 1 if an error occurred while parsing the CLI args", func() {
+				exitCode = startPassingCommandAndGetExitCode([]string{"generate-plan-schemas"})
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(ContainSubstring(
+					"Incorrect arguments for generate-plan-schemas",
+				))
+			})
+
+			It("returns 1 if an error occurred while generating the schema", func() {
+				exitCode = startFailingCommandAndGetExitCode([]string{
+					"generate-plan-schemas", "--plan-json", toJson(expectedPlan),
+				}, "true")
+
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(MatchRegexp(`\[odb-sdk\] An error occurred`))
+			})
+
+			It("returns 10 (not implemented) when the command is not implement", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-plan-schemas", "--plan-json", toJson(expectedCurrentPlan)})
+				Expect(exitCode).To(Equal(10))
+			})
 		})
 
-		It("returns 1 if an error occurred while parsing the CLI args", func() {
-			exitCode = startPassingCommandAndGetExitCode([]string{"generate-plan-schemas"})
+		Describe("with arguments passed via stdin", func() {
+			It("falls back to positional argument flow when nothing is passed through stdin", func() {
+				exitCode = startCommandWithNoStdinAndGetExitCode([]string{"generate-plan-schemas"})
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(ContainSubstring(
-				"Incorrect arguments for generate-plan-schemas",
-			))
-		})
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(MatchRegexp(`Incorrect arguments for generate-plan-schemas`))
+			})
 
-		It("returns 1 if an error occurred while generating the schema", func() {
-			exitCode = startFailingCommandAndGetExitCode([]string{
-				"generate-plan-schemas", "--plan-json", toJson(expectedPlan),
-			}, "true")
-
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(MatchRegexp(`\[odb-sdk\] An error occurred`))
-		})
-
-		It("returns 10 (not implemented) when the command is not implement", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-plan-schemas", "--plan-json", toJson(expectedCurrentPlan)})
-			Expect(exitCode).To(Equal(10))
-		})
-	})
-
-	Describe("with arguments passed via stdin", func() {
-		It("returns 0 and output the schema for a plan", func() {
-			rawInputParams := serviceadapter.InputParams{
-				GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
-					Plan: toJson(expectedCurrentPlan),
-				},
-			}
-			exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-plan-schemas", "-stdin"},
-				toJson(rawInputParams),
-			)
-			schemas := serviceadapter.JSONSchemas{
-				Parameters: map[string]interface{}{
-					"$schema": "http://json-schema.org/draft-04/schema#",
-					"type":    "object",
-					"properties": map[string]interface{}{
-						"billing-account": map[string]interface{}{
-							"description": "Billing account number used to charge use of shared fake server.",
-							"type":        "string",
+			It("returns 0 and output the schema for a plan", func() {
+				rawInputParams := serviceadapter.InputParams{
+					GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+						Plan: toJson(expectedCurrentPlan),
+					},
+				}
+				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-plan-schemas"},
+					toJson(rawInputParams),
+				)
+				schemas := serviceadapter.JSONSchemas{
+					Parameters: map[string]interface{}{
+						"$schema": "http://json-schema.org/draft-04/schema#",
+						"type":    "object",
+						"properties": map[string]interface{}{
+							"billing-account": map[string]interface{}{
+								"description": "Billing account number used to charge use of shared fake server.",
+								"type":        "string",
+							},
 						},
 					},
-				},
-			}
-			expectedPlanSchema := serviceadapter.PlanSchema{
-				ServiceInstance: serviceadapter.ServiceInstanceSchema{
-					Create: schemas,
-					Update: schemas,
-				},
-				ServiceBinding: serviceadapter.ServiceBindingSchema{
-					Create: schemas,
-				},
-			}
-			Expect(exitCode).To(Equal(0))
-			Expect(stdout.Bytes()).To(MatchJSON(toJson(expectedPlanSchema)))
-		})
+				}
+				expectedPlanSchema := serviceadapter.PlanSchema{
+					ServiceInstance: serviceadapter.ServiceInstanceSchema{
+						Create: schemas,
+						Update: schemas,
+					},
+					ServiceBinding: serviceadapter.ServiceBindingSchema{
+						Create: schemas,
+					},
+				}
+				Expect(exitCode).To(Equal(0))
+				Expect(stdout.Bytes()).To(MatchJSON(toJson(expectedPlanSchema)))
+			})
 
-		It("returns 1 if an error occurred while generating the schema", func() {
-			rawInputParams := serviceadapter.InputParams{
-				GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
-					Plan: toJson(expectedCurrentPlan),
-				},
-			}
-			exitCode = startFailingCommandWithStdinAndGetExitCode(
-				[]string{"generate-plan-schemas", "-stdin"},
-				toJson(rawInputParams),
-				"true",
-			)
+			It("returns 1 if an error occurred while generating the schema", func() {
+				rawInputParams := serviceadapter.InputParams{
+					GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+						Plan: toJson(expectedCurrentPlan),
+					},
+				}
+				exitCode = startFailingCommandWithStdinAndGetExitCode(
+					[]string{"generate-plan-schemas"},
+					toJson(rawInputParams),
+					"true",
+				)
 
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(MatchRegexp(`\[odb-sdk\] An error occurred`))
-		})
+				Expect(exitCode).To(Equal(1))
+				Expect(stderr.String()).To(MatchRegexp(`\[odb-sdk\] An error occurred`))
+			})
 
-		It("returns 10 (not implemented) when the command is not implement", func() {
-			exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-plan-schemas", "-stdin"})
-			Expect(exitCode).To(Equal(10))
-		})
-
-		It("fails when nothing is sent to stdin", func() {
-			exitCode = startCommandWithNoStdinAndGetExitCode([]string{"generate-plan-schemas", "-stdin"})
-
-			Expect(exitCode).To(Equal(1))
-			Expect(stderr.String()).To(MatchRegexp(`timeout waiting for input parameters`))
+			It("returns 10 (not implemented) when the command is not implement", func() {
+				exitCode = startEmptyImplementationCommandAndGetExitCode([]string{"generate-plan-schemas"})
+				Expect(exitCode).To(Equal(10))
+			})
 		})
 	})
 })

@@ -29,8 +29,6 @@ import (
 
 	"io/ioutil"
 
-	"time"
-
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -102,8 +100,8 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		}
 		var serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON string
 
-		if usingStdin(args, errorWriter) {
-			inputParams, err := readArgs(inputParamsReader)
+		if data, err := usingStdin(inputParamsReader); len(data) > 0 {
+			inputParams, err := buildInputParams(data)
 			if err != nil {
 				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
 			}
@@ -115,7 +113,7 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 			argsJSON = generateManifestParams.RequestParameters
 			previousManifestYAML = generateManifestParams.PreviousManifest
 			previousPlanJSON = generateManifestParams.PreviousPlan
-		} else {
+		} else if err == nil {
 			if len(args) < 7 {
 				return missingArgsError(args, "<service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>")
 			}
@@ -125,6 +123,8 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 			argsJSON = args[4]
 			previousManifestYAML = args[5]
 			previousPlanJSON = args[6]
+		} else {
+			return err
 		}
 
 		return h.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON, outputWriter)
@@ -135,8 +135,8 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		}
 		var bindingID, boshVMsJSON, manifestYAML, reqParams string
 
-		if usingStdin(args, errorWriter) {
-			inputParams, err := readArgs(inputParamsReader)
+		if data, err := usingStdin(inputParamsReader); len(data) > 0 {
+			inputParams, err := buildInputParams(data)
 			if err != nil {
 				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
 			}
@@ -145,7 +145,7 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 			boshVMsJSON = inputParams.CreateBinding.BoshVms
 			manifestYAML = inputParams.CreateBinding.Manifest
 			reqParams = inputParams.CreateBinding.RequestParameters
-		} else {
+		} else if err == nil {
 			if len(args) < 6 {
 				return missingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
 			}
@@ -163,8 +163,8 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 
 		var bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams string
 
-		if usingStdin(args, errorWriter) {
-			inputParams, err := readArgs(inputParamsReader)
+		if data, err := usingStdin(inputParamsReader); len(data) > 0 {
+			inputParams, err := buildInputParams(data)
 			if err != nil {
 				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
 			}
@@ -173,7 +173,7 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 			boshVMsJSON = inputParams.DeleteBinding.BoshVms
 			manifestYAML = inputParams.DeleteBinding.Manifest
 			unbindingRequestParams = inputParams.DeleteBinding.RequestParameters
-		} else {
+		} else if err == nil {
 			if len(args) < 6 {
 				return missingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
 			}
@@ -182,6 +182,8 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 			boshVMsJSON = args[3]
 			manifestYAML = args[4]
 			unbindingRequestParams = args[5]
+		} else {
+			return err
 		}
 
 		return h.deleteBinding(bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams, outputWriter)
@@ -192,8 +194,8 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 
 		var instanceID, planJSON, manifestYAML string
 
-		if usingStdin(args, errorWriter) {
-			inputParams, err := readArgs(inputParamsReader)
+		if data, err := usingStdin(inputParamsReader); len(data) > 0 {
+			inputParams, err := buildInputParams(data)
 			if err != nil {
 				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
 			}
@@ -202,7 +204,7 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 			instanceID = dashboardUrlParams.InstanceId
 			planJSON = dashboardUrlParams.Plan
 			manifestYAML = dashboardUrlParams.Manifest
-		} else {
+		} else if err == nil {
 			if len(args) < 5 {
 				return missingArgsError(args, "<instance-ID> <plan-JSON> <manifest-YAML>")
 			}
@@ -210,6 +212,8 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 			instanceID = args[2]
 			planJSON = args[3]
 			manifestYAML = args[4]
+		} else {
+			return err
 		}
 		return h.dashboardUrl(instanceID, planJSON, manifestYAML, outputWriter)
 	case "generate-plan-schemas":
@@ -218,19 +222,20 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		}
 
 		var planJson string
-		var err error
-		if usingStdin(args, errorWriter) {
-			inputParams, err := readArgs(inputParamsReader)
+		if data, err := usingStdin(inputParamsReader); len(data) > 0 {
+			inputParams, err := buildInputParams(data)
 			if err != nil {
 				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
 			}
 
 			planJson = inputParams.GeneratePlanSchemas.Plan
-		} else {
+		} else if err == nil {
 			planJson, err = parseGeneratePlanSchemaArguments(args, errorWriter)
 			if err != nil {
 				return err
 			}
+		} else {
+			return err
 		}
 		return h.generatePlanSchema(planJson, outputWriter)
 
@@ -240,46 +245,13 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 	return nil
 }
 
-func readArgs(f io.Reader) (InputParams, error) {
-	var b []byte
-	var err error
-	readComplete := make(chan struct{})
-
-	go func() {
-		b, err = ioutil.ReadAll(f)
-		if len(b) != 0 {
-			readComplete <- struct{}{}
-		}
-	}()
-
-	select {
-	case <-readComplete:
-		if err != nil {
-			return InputParams{}, err // not tested
-		}
-		var inputParams InputParams
-		err = json.Unmarshal(b, &inputParams)
-		if err != nil {
-			return InputParams{}, err
-		}
-		return inputParams, nil
-	case <-time.After(time.Second):
-		return InputParams{}, fmt.Errorf("timeout waiting for input parameters")
-	}
-
+func buildInputParams(d []byte) (InputParams, error) {
+	s := InputParams{}
+	return s, json.Unmarshal(d, &s)
 }
 
-func usingStdin(args []string, errorWriter io.Writer) bool {
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
-	flagStdinJSON := fs.Bool("stdin", false, "stdin")
-	fs.SetOutput(errorWriter)
-
-	err := fs.Parse(args[2:])
-	if err != nil {
-		return false
-	}
-
-	return *flagStdinJSON
+func usingStdin(reader io.Reader) ([]byte, error) {
+	return ioutil.ReadAll(reader)
 }
 
 func parseGeneratePlanSchemaArguments(args []string, errorWriter io.Writer) (string, error) {

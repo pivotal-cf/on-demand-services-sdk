@@ -1184,16 +1184,6 @@ var _ = Describe("CommandLineHandler", func() {
 
 				Expect(err).To(MatchError(ContainSubstring("error validating plan JSON")))
 			})
-
-			It("prints a help message, without failing", func() {
-				err := handler.Handle(append(command, "-help"), outputBuffer, errorBuffer, fakeStdin)
-				assertCLIHandlerErr(
-					err,
-					serviceadapter.ErrorExitCode,
-					"Incorrect arguments for generate-plan-schemas",
-				)
-				Expect(errorBuffer).To(gbytes.Say("Usage:"))
-			})
 		})
 	})
 })
