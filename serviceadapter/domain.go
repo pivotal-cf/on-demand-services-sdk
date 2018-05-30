@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/pivotal-cf/brokerapi"
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
@@ -129,6 +130,12 @@ type AppGuidNotProvidedError struct {
 
 type BindingNotFoundError struct {
 	error
+}
+
+type Action interface {
+	IsImplemented() bool
+	ParseArgs(io.Reader, []string) (InputParams, error)
+	Execute(InputParams, io.Writer) error
 }
 
 func NewBindingAlreadyExistsError(err error) BindingAlreadyExistsError {
@@ -354,4 +361,12 @@ type Binding struct {
 	Credentials     map[string]interface{} `json:"credentials"`
 	SyslogDrainURL  string                 `json:"syslog_drain_url,omitempty"`
 	RouteServiceURL string                 `json:"route_service_url,omitempty"`
+}
+
+type MissingArgsError struct {
+	error
+}
+
+func NewMissingArgsError(e string) MissingArgsError {
+	return MissingArgsError{errors.New(e)}
 }

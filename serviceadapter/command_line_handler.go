@@ -93,42 +93,29 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 	action := args[1]
 	fmt.Fprintf(errorWriter, "[odb-sdk] handling %s\n", action)
 
+	var inputParams InputParams
+	actions := map[string]Action{
+		"generate-manifest": NewGenerateManifestAction(h.ManifestGenerator),
+	}
+
+	var err error
+	ac, ok := actions[action]
+	if ok {
+		if !ac.IsImplemented() {
+			return CLIHandlerError{NotImplementedExitCode, fmt.Sprintf("%s not implemented", action)}
+		}
+		if inputParams, err = ac.ParseArgs(inputParamsReader, args[2:]); err != nil {
+			switch e := err.(type) {
+			case MissingArgsError:
+				return missingArgsError(args, e.Error())
+			default:
+				return e
+			}
+		}
+		return ac.Execute(inputParams, outputWriter)
+	}
+
 	switch action {
-	case "generate-manifest":
-		if h.ManifestGenerator == nil {
-			return CLIHandlerError{NotImplementedExitCode, "manifest generator not implemented"}
-		}
-		var serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON string
-
-		if data, err := usingStdin(inputParamsReader); len(data) > 0 {
-			inputParams, err := buildInputParams(data)
-			if err != nil {
-				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
-			}
-
-			generateManifestParams := inputParams.GenerateManifest
-			serviceDeploymentJSON = generateManifestParams.ServiceDeployment
-
-			planJSON = generateManifestParams.Plan
-			argsJSON = generateManifestParams.RequestParameters
-			previousManifestYAML = generateManifestParams.PreviousManifest
-			previousPlanJSON = generateManifestParams.PreviousPlan
-		} else if err == nil {
-			if len(args) < 7 {
-				return missingArgsError(args, "<service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>")
-			}
-
-			serviceDeploymentJSON = args[2]
-			planJSON = args[3]
-			argsJSON = args[4]
-			previousManifestYAML = args[5]
-			previousPlanJSON = args[6]
-		} else {
-			return err
-		}
-
-		return h.generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON, outputWriter)
-
 	case "create-binding":
 		if h.Binder == nil {
 			return CLIHandlerError{NotImplementedExitCode, "binder not implemented"}
@@ -323,59 +310,6 @@ func (h CommandLineHandler) generateSupportedCommandsMessage() string {
 	}
 
 	return strings.Join(commands, ", ")
-}
-
-func (h CommandLineHandler) generateManifest(serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON string, outputWriter io.Writer) error {
-	var serviceDeployment ServiceDeployment
-
-	if err := json.Unmarshal([]byte(serviceDeploymentJSON), &serviceDeployment); err != nil {
-		return errors.Wrap(err, "unmarshalling service deployment")
-	}
-	if err := serviceDeployment.Validate(); err != nil {
-		return errors.Wrap(err, "validating service deployment")
-	}
-
-	var plan Plan
-	if err := json.Unmarshal([]byte(planJSON), &plan); err != nil {
-		return errors.Wrap(err, "unmarshalling service plan")
-	}
-	if err := plan.Validate(); err != nil {
-		return errors.Wrap(err, "validating service plan")
-	}
-
-	var requestParams map[string]interface{}
-	if err := json.Unmarshal([]byte(argsJSON), &requestParams); err != nil {
-		return errors.Wrap(err, "unmarshalling requestParams")
-	}
-
-	var previousManifest *bosh.BoshManifest
-	if err := yaml.Unmarshal([]byte(previousManifestYAML), &previousManifest); err != nil {
-		return errors.Wrap(err, "unmarshalling previous manifest")
-	}
-
-	var previousPlan *Plan
-	if err := json.Unmarshal([]byte(previousPlanJSON), &previousPlan); err != nil {
-		return errors.Wrap(err, "unmarshalling previous service plan")
-	}
-	if previousPlan != nil {
-		if err := previousPlan.Validate(); err != nil {
-			return errors.Wrap(err, "validating previous service plan")
-		}
-	}
-
-	manifest, err := h.ManifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan)
-	if err != nil {
-		fmt.Fprintf(outputWriter, err.Error())
-		return CLIHandlerError{ErrorExitCode, err.Error()}
-	}
-
-	manifestBytes, err := yaml.Marshal(manifest)
-	if err != nil {
-		return errors.Wrap(err, "error marshalling bosh manifest")
-	}
-
-	fmt.Fprint(outputWriter, string(manifestBytes))
-	return nil
 }
 
 func (h CommandLineHandler) createBinding(bindingID, boshVMsJSON, manifestYAML, requestParams string, outputWriter io.Writer) error {
