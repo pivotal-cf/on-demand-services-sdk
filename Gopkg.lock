@@ -42,8 +42,8 @@
     "reporters/stenographer/support/go-isatty",
     "types"
   ]
-  revision = "9eda700730cba42af70d53180f9dcce9266bc2bc"
-  version = "v1.4.0"
+  revision = "fa5fabab2a1bfbd924faf4c067d07ae414e2aedf"
+  version = "v1.5.0"
 
 [[projects]]
   name = "github.com/onsi/gomega"
@@ -63,8 +63,8 @@
     "matchers/support/goraph/util",
     "types"
   ]
-  revision = "003f63b7f4cff3fc95357005358af2de0f5fe152"
-  version = "v1.3.0"
+  revision = "62bff4df71bdbc266561a0caee19f0594b17c240"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/pivotal-cf/brokerapi"
@@ -135,6 +135,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1ff28259e12b01dfeb0a9adf8c7cba7941076e446fc24901eb5e1c933e874ec3"
+  inputs-digest = "62247d97cd45ddfd4de5a26f561e47134d392edb0a08be85fa7ddc32bea1316f"
   solver-name = "gps-cdcl"
   solver-version = 1
