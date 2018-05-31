@@ -28,6 +28,23 @@ func (g *GenerateManifestAction) IsImplemented() bool {
 func (g *GenerateManifestAction) ParseArgs(reader io.Reader, args []string) (InputParams, error) {
 	var inputParams InputParams
 
+	if len(args) > 0 {
+		if len(args) < 5 {
+			return inputParams, NewMissingArgsError("<service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>")
+		}
+
+		inputParams = InputParams{
+			GenerateManifest: GenerateManifestParams{
+				ServiceDeployment: args[0],
+				Plan:              args[1],
+				RequestParameters: args[2],
+				PreviousManifest:  args[3],
+				PreviousPlan:      args[4],
+			},
+		}
+		return inputParams, nil
+	}
+
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return inputParams, CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
@@ -42,20 +59,7 @@ func (g *GenerateManifestAction) ParseArgs(reader io.Reader, args []string) (Inp
 		return inputParams, err
 	}
 
-	if len(args) < 5 {
-		return inputParams, NewMissingArgsError("<service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>")
-	}
-
-	inputParams = InputParams{
-		GenerateManifest: GenerateManifestParams{
-			ServiceDeployment: args[0],
-			Plan:              args[1],
-			RequestParameters: args[2],
-			PreviousManifest:  args[3],
-			PreviousPlan:      args[4],
-		},
-	}
-	return inputParams, nil
+	return inputParams, CLIHandlerError{ErrorExitCode, "expecting parameters to be passed via stdin"}
 }
 
 func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter io.Writer) (err error) {

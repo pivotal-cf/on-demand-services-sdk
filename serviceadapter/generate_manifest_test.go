@@ -104,6 +104,16 @@ var _ = Describe("GenerateManifest", func() {
 
 				Expect(err).To(BeACLIError(expected))
 			})
+
+			It("returns an error when input buffer is empty", func() {
+				input := bytes.NewBuffer([]byte{})
+				_, err := action.ParseArgs(input, []string{})
+				expected := serviceadapter.CLIHandlerError{
+					ExitCode: 1, Message: "expecting parameters to be passed via stdin",
+				}
+
+				Expect(err).To(BeACLIError(expected))
+			})
 		})
 
 		When("given positional arguments", func() {
@@ -127,8 +137,8 @@ var _ = Describe("GenerateManifest", func() {
 				Expect(actualInputParams).To(Equal(expectedInputParams))
 			})
 
-			It("returns an error when a required arguments are not passed in", func() {
-				_, err := action.ParseArgs(emptyBuffer, []string{})
+			It("returns an error when required arguments are not passed in", func() {
+				_, err := action.ParseArgs(emptyBuffer, []string{"foo"})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(BeAssignableToTypeOf(serviceadapter.MissingArgsError{}))
 				Expect(err).To(MatchError(ContainSubstring("<service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>")))

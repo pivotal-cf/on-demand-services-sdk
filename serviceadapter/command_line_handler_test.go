@@ -174,7 +174,94 @@ var _ = Describe("CommandLineHandler", func() {
 
 			Expect(err).To(MatchError(ContainSubstring("unmarshalling service plan")))
 		})
+	})
 
+	Describe("create-binding action", func() {
+		It("succeeds with positional arguments", func() {
+			fakeBinder.CreateBindingReturns(expectedBinding, nil)
+
+			err := handler.Handle([]string{
+				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
+			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+				fakeBinder.CreateBindingArgsForCall(0)
+
+			Expect(actualBindingId).To(Equal(bindingID))
+			Expect(actualBoshVMs).To(Equal(boshVMs))
+			Expect(actualManifest).To(Equal(previousManifest))
+			Expect(actualRequestParams).To(Equal(requestParams))
+
+			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
+		})
+
+		It("succeeds with arguments from stdin", func() {
+			rawInputParams := serviceadapter.InputParams{
+				CreateBinding: serviceadapter.CreateBindingParams{
+					RequestParameters: toJson(requestParams),
+					BindingId:         bindingID,
+					BoshVms:           toJson(boshVMs),
+					Manifest:          toYaml(previousManifest),
+				},
+			}
+
+			fakeBinder.CreateBindingReturns(expectedBinding, nil)
+			fakeStdin := bytes.NewBuffer([]byte(toJson(rawInputParams)))
+
+			err := handler.Handle([]string{commandName, "create-binding"}, outputBuffer, errorBuffer, fakeStdin)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
+
+			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+				fakeBinder.CreateBindingArgsForCall(0)
+
+			Expect(actualBindingId).To(Equal(bindingID))
+			Expect(actualBoshVMs).To(Equal(boshVMs))
+			Expect(actualManifest).To(Equal(previousManifest))
+			Expect(actualRequestParams).To(Equal(requestParams))
+
+			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
+		})
+
+		It("returns a not-implemented error where there is no binder handler", func() {
+			handler.Binder = nil
+			err := handler.Handle([]string{
+				commandName, "create-binding",
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "create-binding not implemented")
+		})
+
+		It("returns a missing args error when request JSON is missing", func() {
+			err := handler.Handle([]string{
+				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML,
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for create-binding. Usage:`)
+		})
+
+		It("returns an error when parsing the arguments fails", func() {
+			boshVMsJSON += `aaa`
+			err := handler.Handle([]string{
+				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
+		})
+
+		It("returns an error when the binding cannot be created because of generic error", func() {
+			fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, errors.New("oops"))
+			err := handler.Handle([]string{
+				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+			Expect(outputBuffer).To(gbytes.Say("oops"))
+		})
 	})
 
 	Context("When adapter is called with positional arguments", func() {
@@ -200,103 +287,6 @@ var _ = Describe("CommandLineHandler", func() {
 			)
 			Expect(err.Error()).NotTo(ContainSubstring("dashboard-url"))
 			Expect(err.Error()).NotTo(ContainSubstring("generate-plan-schemas"))
-		})
-
-		Describe("Create Binding", func() {
-			It("calls the supplied handler passing args through", func() {
-				fakeBinder.CreateBindingReturns(expectedBinding, nil)
-
-				err := handler.Handle([]string{
-					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
-				actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
-					fakeBinder.CreateBindingArgsForCall(0)
-
-				Expect(actualBindingId).To(Equal(bindingID))
-				Expect(actualBoshVMs).To(Equal(boshVMs))
-				Expect(actualManifest).To(Equal(previousManifest))
-				Expect(actualRequestParams).To(Equal(requestParams))
-
-				Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
-			})
-
-			It("returns a not-implemented error where there is no binder handler", func() {
-				handler.Binder = nil
-				err := handler.Handle([]string{
-					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "binder not implemented")
-			})
-
-			It("returns a missing args error when request JSON is missing", func() {
-				err := handler.Handle([]string{
-					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for create-binding. Usage:`)
-			})
-
-			It("fails with an error when BOSH VMs is corrupt", func() {
-				boshVMsJSON += `aaa`
-				err := handler.Handle([]string{
-					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
-			})
-
-			It("fails with an error when previous manifest is corrupt", func() {
-				previousManifestYAML = previousPlanJSON
-				err := handler.Handle([]string{
-					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
-			})
-
-			It("fails with an error when request binding params are corrupt", func() {
-				requestParamsJSON += "asdf"
-				err := handler.Handle([]string{
-					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
-			})
-
-			It("returns an error when the binding cannot be created because of generic error", func() {
-				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, errors.New("oops"))
-				err := handler.Handle([]string{
-					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-				Expect(outputBuffer).To(gbytes.Say("oops"))
-			})
-
-			It("returns an error when the binding cannot be created because binding already exists", func() {
-				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewBindingAlreadyExistsError(errors.New("binding already exists")))
-				err := handler.Handle([]string{
-					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.BindingAlreadyExistsErrorExitCode, "binding already exists")
-				Expect(outputBuffer).To(gbytes.Say("binding already exists"))
-			})
-
-			It("returns an error when the binding cannot be created because app guid not provided", func() {
-				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewAppGuidNotProvidedError(errors.New("app guid not provided")))
-				err := handler.Handle([]string{
-					commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.AppGuidNotProvidedErrorExitCode, "app guid not provided")
-				Expect(outputBuffer).To(gbytes.Say("app guid not provided"))
-			})
 		})
 
 		Describe("Delete Binding", func() {
@@ -598,7 +588,7 @@ var _ = Describe("CommandLineHandler", func() {
 		})
 
 		JustBeforeEach(func() {
-			command = []string{commandName, subCommand, "-stdin"}
+			command = []string{commandName, subCommand}
 
 			fakeStdin = bytes.NewBuffer([]byte(toJson(rawInputParams)))
 		})
@@ -672,106 +662,6 @@ var _ = Describe("CommandLineHandler", func() {
 
 					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
 					Expect(outputBuffer).To(gbytes.Say("oops"))
-				})
-			})
-		})
-
-		Describe("create-binding", func() {
-			BeforeEach(func() {
-				subCommand = "create-binding"
-
-				rawInputParams = serviceadapter.InputParams{
-					CreateBinding: serviceadapter.CreateBindingParams{
-						RequestParameters: toJson(requestParams),
-						BindingId:         bindingID,
-						BoshVms:           toJson(boshVMs),
-						Manifest:          toYaml(previousManifest),
-					},
-				}
-			})
-
-			It("calls the supplied handler passing args through", func() {
-				fakeBinder.CreateBindingReturns(expectedBinding, nil)
-
-				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
-
-				actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
-					fakeBinder.CreateBindingArgsForCall(0)
-
-				Expect(actualBindingId).To(Equal(bindingID))
-				Expect(actualBoshVMs).To(Equal(boshVMs))
-				Expect(actualManifest).To(Equal(previousManifest))
-				Expect(actualRequestParams).To(Equal(requestParams))
-
-				Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
-			})
-
-			It("returns a not-implemented error where there is no binder handler", func() {
-				handler.Binder = nil
-				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "binder not implemented")
-			})
-
-			Describe("error handling", func() {
-				It("fails with an error when BOSH VMs is corrupt", func() {
-					rawInputParams.CreateBinding.BoshVms = "foo"
-					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-					Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
-				})
-
-				It("fails with an error when previous manifest is corrupt", func() {
-					rawInputParams.CreateBinding.Manifest = "foo"
-					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-					Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
-				})
-
-				It("fails with an error when request binding params are corrupt", func() {
-					rawInputParams.CreateBinding.RequestParameters = "asdf"
-					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-					Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
-				})
-
-				It("returns an error if cannot read from stdin", func() {
-					fakeStdin = NewFakeReader()
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "error reading input params JSON")
-				})
-
-				It("returns an error when the binding cannot be created because of generic error", func() {
-					fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, errors.New("oops"))
-					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-					Expect(outputBuffer).To(gbytes.Say("oops"))
-				})
-
-				It("returns an error when the binding cannot be created because binding already exists", func() {
-					fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewBindingAlreadyExistsError(errors.New("binding already exists")))
-					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-					assertCLIHandlerErr(err, serviceadapter.BindingAlreadyExistsErrorExitCode, "binding already exists")
-					Expect(outputBuffer).To(gbytes.Say("binding already exists"))
-				})
-
-				It("returns an error when the binding cannot be created because app guid not provided", func() {
-					fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewAppGuidNotProvidedError(errors.New("app guid not provided")))
-					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-					assertCLIHandlerErr(err, serviceadapter.AppGuidNotProvidedErrorExitCode, "app guid not provided")
-					Expect(outputBuffer).To(gbytes.Say("app guid not provided"))
 				})
 			})
 		})
