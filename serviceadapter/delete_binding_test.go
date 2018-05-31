@@ -69,31 +69,19 @@ var _ = Describe("DeleteBinding", func() {
 			It("returns an error when cannot read from input buffer", func() {
 				fakeReader := new(FakeReader)
 				_, err := action.ParseArgs(fakeReader, []string{})
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: 1, Message: "error reading input params JSON",
-				}
-
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(1, "error reading input params JSON"))
 			})
 
 			It("returns an error when cannot unmarshal from input buffer", func() {
 				input := bytes.NewBuffer([]byte("not-valid-json"))
 				_, err := action.ParseArgs(input, []string{})
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: 1, Message: "error unmarshalling input params JSON",
-				}
-
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(1, "error unmarshalling input params JSON"))
 			})
 
 			It("returns an error when input buffer is empty", func() {
 				input := bytes.NewBuffer([]byte{})
 				_, err := action.ParseArgs(input, []string{})
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: 1, Message: "expecting parameters to be passed via stdin",
-				}
-
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(1, "expecting parameters to be passed via stdin"))
 			})
 		})
 
@@ -158,24 +146,15 @@ var _ = Describe("DeleteBinding", func() {
 
 			It("returns an error when binder returns an error", func() {
 				fakeBinder.DeleteBindingReturns(errors.New("something went wrong"))
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: 1, Message: "something went wrong",
-				}
-
 				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(1, "something went wrong"))
 			})
 
 			It("returns a BindingNotFoundError when binding not found", func() {
 				fakeBinder.DeleteBindingReturns(serviceadapter.NewBindingNotFoundError(errors.New("something went wrong")))
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: serviceadapter.BindingNotFoundErrorExitCode, Message: "something went wrong",
-				}
-
 				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(serviceadapter.BindingNotFoundErrorExitCode, "something went wrong"))
 			})
-
 		})
 	})
 })

@@ -17,7 +17,6 @@ package serviceadapter_test
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -106,6 +105,22 @@ var _ = Describe("CommandLineHandler", func() {
 		previousManifestYAML = toYaml(previousManifest)
 	})
 
+	It("when no arguments passed returns error", func() {
+		err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+		Expect(err).To(BeACLIError(1, "the following commands are supported: create-binding, dashboard-url, delete-binding, generate-manifest, generate-plan-schemas"))
+	})
+
+	It("does not output optional commands if not implemented", func() {
+		handler.DashboardURLGenerator = nil
+		handler.SchemaGenerator = nil
+		err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+		Expect(err).To(BeACLIError(1, "the following commands are supported: create-binding, delete-binding, generate-manifest"))
+		Expect(err.Error()).NotTo(ContainSubstring("dashboard-url"))
+		Expect(err.Error()).NotTo(ContainSubstring("generate-plan-schemas"))
+	})
+
 	Describe("generate-manifest action", func() {
 		It("succeeds with positional arguments", func() {
 			manifest := bosh.BoshManifest{Name: "bill"}
@@ -156,7 +171,8 @@ var _ = Describe("CommandLineHandler", func() {
 			handler.ManifestGenerator = nil
 			err := handler.Handle([]string{commandName, "generate-manifest"}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-			assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "generate-manifest not implemented")
+			Expect(err).To(BeACLIError(serviceadapter.NotImplementedExitCode, "generate-manifest not implemented"))
+
 		})
 
 		It("returns a missing args error when arguments are missing", func() {
@@ -164,7 +180,7 @@ var _ = Describe("CommandLineHandler", func() {
 				commandName, "generate-manifest", serviceDeploymentJSON,
 			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for generate-manifest. Usage:`)
+			Expect(err).To(BeACLIError(serviceadapter.ErrorExitCode, `Missing arguments for generate-manifest. Usage:`))
 		})
 
 		It("returns an error when parsing the arguments fails", func() {
@@ -233,7 +249,7 @@ var _ = Describe("CommandLineHandler", func() {
 				commandName, "create-binding",
 			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-			assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "create-binding not implemented")
+			Expect(err).To(BeACLIError(serviceadapter.NotImplementedExitCode, "create-binding not implemented"))
 		})
 
 		It("returns a missing args error when request JSON is missing", func() {
@@ -241,7 +257,7 @@ var _ = Describe("CommandLineHandler", func() {
 				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML,
 			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for create-binding. Usage:`)
+			Expect(err).To(BeACLIError(serviceadapter.ErrorExitCode, `Missing arguments for create-binding. Usage:`))
 		})
 
 		It("returns an error when parsing the arguments fails", func() {
@@ -259,7 +275,7 @@ var _ = Describe("CommandLineHandler", func() {
 				commandName, "create-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
 			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
+			Expect(err).To(BeACLIError(serviceadapter.ErrorExitCode, "oops"))
 			Expect(outputBuffer).To(gbytes.Say("oops"))
 		})
 	})
@@ -311,7 +327,7 @@ var _ = Describe("CommandLineHandler", func() {
 			handler.DashboardURLGenerator = nil
 			err := handler.Handle([]string{commandName, "dashboard-url"}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-			assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "dashboard-url not implemented")
+			Expect(err).To(BeACLIError(serviceadapter.NotImplementedExitCode, "dashboard-url not implemented"))
 		})
 
 		It("returns a missing args error when arguments are missing", func() {
@@ -319,7 +335,7 @@ var _ = Describe("CommandLineHandler", func() {
 				commandName, "dashboard-url", serviceDeploymentJSON,
 			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-			assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for dashboard-url. Usage:`)
+			Expect(err).To(BeACLIError(serviceadapter.ErrorExitCode, `Missing arguments for dashboard-url. Usage:`))
 		})
 
 		It("returns an error when parsing the arguments fails", func() {
@@ -384,14 +400,14 @@ var _ = Describe("CommandLineHandler", func() {
 				commandName, "delete-binding",
 			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-			Expect(err).To(BeACLIError(serviceadapter.CLIHandlerError{ExitCode: 10, Message: "delete-binding not implemented"}))
+			Expect(err).To(BeACLIError(10, "delete-binding not implemented"))
 		})
 
 		It("returns a missing args error when request JSON is missing", func() {
 			err := handler.Handle([]string{
 				commandName, "delete-binding", previousManifestYAML}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-			Expect(err).To(BeACLIError(serviceadapter.CLIHandlerError{ExitCode: 1, Message: "Missing arguments for delete-binding. Usage:"}))
+			Expect(err).To(BeACLIError(1, "Missing arguments for delete-binding. Usage:"))
 		})
 
 		It("returns an error when parsing the arguments fails", func() {
@@ -409,285 +425,114 @@ var _ = Describe("CommandLineHandler", func() {
 				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
 			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-			Expect(err).To(BeACLIError(serviceadapter.CLIHandlerError{ExitCode: 1, Message: "oops"}))
+			Expect(err).To(BeACLIError(1, "oops"))
 			Expect(outputBuffer).To(gbytes.Say("oops"))
 		})
 	})
 
-	Context("When adapter is called with positional arguments", func() {
-		It("when no arguments passed returns error", func() {
-			err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-			assertCLIHandlerErr(
-				err,
-				serviceadapter.ErrorExitCode,
-				"the following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas",
-			)
-		})
-
-		It("does not output optional commands if not implemented", func() {
-			handler.DashboardURLGenerator = nil
-			handler.SchemaGenerator = nil
-			err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-			assertCLIHandlerErr(
-				err,
-				serviceadapter.ErrorExitCode,
-				"the following commands are supported: generate-manifest, create-binding, delete-binding",
-			)
-			Expect(err.Error()).NotTo(ContainSubstring("dashboard-url"))
-			Expect(err.Error()).NotTo(ContainSubstring("generate-plan-schemas"))
-		})
-
-		Describe("Generate Plan Schemas", func() {
-			It("returns a not-implemented error where there is no generate-plan-schemas handler", func() {
-				handler.SchemaGenerator = nil
-				err := handler.Handle([]string{
-					commandName, "generate-plan-schemas", "--plan-json", planJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "plan schema generator not implemented")
-			})
-
-			It("returns a plan schema when configured with an schema generator", func() {
-				schemas := serviceadapter.JSONSchemas{
-					Parameters: map[string]interface{}{
-						"$schema": "http://json-schema.org/draft-04/schema#",
-						"type":    "object",
-						"properties": map[string]interface{}{
-							"billing-account": map[string]interface{}{
-								"description": "Billing account number used to charge use of shared fake server.",
-								"type":        "string",
-							},
+	Describe("generate-plan-schemas action", func() {
+		It("succeeds with positional arguments", func() {
+			schemas := serviceadapter.JSONSchemas{
+				Parameters: map[string]interface{}{
+					"$schema": "http://json-schema.org/draft-04/schema#",
+					"type":    "object",
+					"properties": map[string]interface{}{
+						"billing-account": map[string]interface{}{
+							"description": "Billing account number used to charge use of shared fake server.",
+							"type":        "string",
 						},
 					},
-				}
-				expectedPlanSchema := serviceadapter.PlanSchema{
-					ServiceInstance: serviceadapter.ServiceInstanceSchema{
-						Create: schemas,
-						Update: schemas,
-					},
-					ServiceBinding: serviceadapter.ServiceBindingSchema{
-						Create: schemas,
-					},
-				}
-				fakeSchemaGenerator.GeneratePlanSchemaReturns(expectedPlanSchema, nil)
-
-				err := handler.Handle([]string{
-					commandName, "generate-plan-schemas", "--plan-json", planJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
-
-				Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)).To(Equal(plan))
-
-				contents, err := ioutil.ReadAll(outputBuffer)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(contents).To(MatchJSON(toJson(expectedPlanSchema)))
-			})
-
-			It("returns an error if cannot generate the schema for the plan", func() {
-				fakeSchemaGenerator.GeneratePlanSchemaReturns(serviceadapter.PlanSchema{}, errors.New("oops"))
-
-				err := handler.Handle([]string{
-					commandName, "generate-plan-schemas", "--plan-json", planJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-				Expect(outputBuffer).To(gbytes.Say("oops"))
-			})
-
-			It("returns an error if the plan JSON is corrupt", func() {
-				planJSON += "asd"
-				err := handler.Handle([]string{
-					commandName, "generate-plan-schemas", "--plan-json", planJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).To(MatchError(ContainSubstring("unmarshalling plan JSON")))
-			})
-
-			It("returns an error if the plan JSON is invalid", func() {
-				err := handler.Handle([]string{
-					commandName, "generate-plan-schemas", "--plan-json", `{}`,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).To(MatchError(ContainSubstring("error validating plan JSON")))
-			})
-
-			It("returns an error if the args are not correct", func() {
-				err := handler.Handle([]string{
-					commandName, "generate-plan-schemas", "a", planJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(
-					err,
-					serviceadapter.ErrorExitCode,
-					"Incorrect arguments for generate-plan-schemas",
-				)
-			})
-
-			It("prints a help message, without failing", func() {
-				err := handler.Handle([]string{
-					commandName, "generate-plan-schemas", "-help",
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(
-					err,
-					serviceadapter.ErrorExitCode,
-					"Incorrect arguments for generate-plan-schemas",
-				)
-				Expect(errorBuffer).To(gbytes.Say("Usage:"))
-			})
-
-			It("prints a help message, without failing, even when plan JSON is set", func() {
-				err := handler.Handle([]string{
-					commandName, "generate-plan-schemas", "--plan-json", "{}", "-help",
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(
-					err,
-					serviceadapter.ErrorExitCode,
-					"Incorrect arguments for generate-plan-schemas",
-				)
-				Expect(errorBuffer).To(gbytes.Say("Usage:"))
-			})
-		})
-	})
-
-	Context("When adapter passes arguments through STDIN", func() {
-		var (
-			subCommand     string
-			command        []string
-			fakeStdin      io.Reader
-			rawInputParams serviceadapter.InputParams
-		)
-
-		BeforeEach(func() {
-			var err error
-			Expect(err).NotTo(HaveOccurred())
-
-			outputBuffer = gbytes.NewBuffer()
-			errorBuffer = gbytes.NewBuffer()
-
-			handler = serviceadapter.CommandLineHandler{
-				ManifestGenerator:     fakeManifestGenerator,
-				Binder:                fakeBinder,
-				DashboardURLGenerator: fakeDashboardUrlGenerator,
-				SchemaGenerator:       fakeSchemaGenerator,
+				},
 			}
+			expectedPlanSchema := serviceadapter.PlanSchema{
+				ServiceInstance: serviceadapter.ServiceInstanceSchema{
+					Create: schemas,
+					Update: schemas,
+				},
+				ServiceBinding: serviceadapter.ServiceBindingSchema{
+					Create: schemas,
+				},
+			}
+			fakeSchemaGenerator.GeneratePlanSchemaReturns(expectedPlanSchema, nil)
+
+			err := handler.Handle([]string{
+				commandName, "generate-plan-schemas", "--plan-json", planJSON,
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
+
+			Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)).To(Equal(plan))
+
+			contents, err := ioutil.ReadAll(outputBuffer)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(contents).To(MatchJSON(toJson(expectedPlanSchema)))
 		})
 
-		JustBeforeEach(func() {
-			command = []string{commandName, subCommand}
-
-			fakeStdin = bytes.NewBuffer([]byte(toJson(rawInputParams)))
-		})
-
-		Describe("generate-plan-schema", func() {
-			BeforeEach(func() {
-				subCommand = "generate-plan-schemas"
-
-				rawInputParams = serviceadapter.InputParams{
-					GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
-						Plan: planJSON,
-					},
-				}
-			})
-
-			It("returns a not-implemented error where there is no generate-plan-schemas handler", func() {
-				handler.SchemaGenerator = nil
-				err := handler.Handle(command, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "plan schema generator not implemented")
-			})
-
-			It("returns a plan schema when configured with an schema generator", func() {
-				schemas := serviceadapter.JSONSchemas{
-					Parameters: map[string]interface{}{
-						"$schema": "http://json-schema.org/draft-04/schema#",
-						"type":    "object",
-						"properties": map[string]interface{}{
-							"billing-account": map[string]interface{}{
-								"description": "Billing account number used to charge use of shared fake server.",
-								"type":        "string",
-							},
+		It("succeeds with arguments from stdin", func() {
+			rawInputParams := serviceadapter.InputParams{
+				GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+					Plan: planJSON,
+				},
+			}
+			schemas := serviceadapter.JSONSchemas{
+				Parameters: map[string]interface{}{
+					"$schema": "http://json-schema.org/draft-04/schema#",
+					"type":    "object",
+					"properties": map[string]interface{}{
+						"billing-account": map[string]interface{}{
+							"description": "Billing account number used to charge use of shared fake server.",
+							"type":        "string",
 						},
 					},
-				}
-				expectedPlanSchema := serviceadapter.PlanSchema{
-					ServiceInstance: serviceadapter.ServiceInstanceSchema{
-						Create: schemas,
-						Update: schemas,
-					},
-					ServiceBinding: serviceadapter.ServiceBindingSchema{
-						Create: schemas,
-					},
-				}
-				fakeSchemaGenerator.GeneratePlanSchemaReturns(expectedPlanSchema, nil)
+				},
+			}
+			expectedPlanSchema := serviceadapter.PlanSchema{
+				ServiceInstance: serviceadapter.ServiceInstanceSchema{
+					Create: schemas,
+					Update: schemas,
+				},
+				ServiceBinding: serviceadapter.ServiceBindingSchema{
+					Create: schemas,
+				},
+			}
+			fakeSchemaGenerator.GeneratePlanSchemaReturns(expectedPlanSchema, nil)
 
-				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+			fakeStdin := bytes.NewBufferString(toJson(rawInputParams))
+			err := handler.Handle([]string{commandName, "generate-plan-schemas"}, outputBuffer, errorBuffer, fakeStdin)
 
-				Expect(err).NotTo(HaveOccurred())
-				Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
 
-				Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)).To(Equal(plan))
+			Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)).To(Equal(plan))
 
-				contents, err := ioutil.ReadAll(outputBuffer)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(contents).To(MatchJSON(toJson(expectedPlanSchema)))
-			})
+			contents, err := ioutil.ReadAll(outputBuffer)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(contents).To(MatchJSON(toJson(expectedPlanSchema)))
 
-			It("returns an error if cannot generate the schema for the plan", func() {
-				fakeSchemaGenerator.GeneratePlanSchemaReturns(serviceadapter.PlanSchema{}, errors.New("oops"))
+		})
 
-				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+		It("returns a not-implemented error when there is no generate-plan-schemas handler", func() {
+			handler.SchemaGenerator = nil
+			err := handler.Handle([]string{commandName, "generate-plan-schemas"}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-				Expect(outputBuffer).To(gbytes.Say("oops"))
-			})
+			Expect(err).To(BeACLIError(serviceadapter.NotImplementedExitCode, "generate-plan-schemas not implemented"))
+		})
 
-			It("returns an error if cannot read from stdin", func() {
-				fakeStdin = NewFakeReader()
-				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+		It("returns a missing args error when arguments are missing", func() {
+			err := handler.Handle([]string{
+				commandName, "generate-plan-schemas", "-plan-json", "",
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "error reading input params JSON")
-			})
+			Expect(err).To(BeACLIError(serviceadapter.ErrorExitCode, `Missing arguments for generate-plan-schemas. Usage:`))
+		})
 
-			It("returns an error if the plan JSON is corrupt", func() {
-				rawInputParams.GeneratePlanSchemas.Plan = "notjson"
-				fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
+		It("returns an error when parsing the arguments fails", func() {
+			err := handler.Handle([]string{
+				commandName, "generate-plan-schemas", "-plan-json", "not-json",
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
-				Expect(err).To(MatchError(ContainSubstring("unmarshalling plan JSON")))
-			})
-
-			It("returns an error if the plan JSON is invalid", func() {
-				rawInputParams.GeneratePlanSchemas.Plan = "{}"
-				fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-				Expect(err).To(MatchError(ContainSubstring("error validating plan JSON")))
-			})
+			Expect(err).To(MatchError(ContainSubstring("unmarshalling plan JSON")))
 		})
 	})
 })
-
-func assertCLIHandlerErr(err error, exitCode int, message string) {
-	Expect(err).To(HaveOccurred())
-	Expect(err).To(BeAssignableToTypeOf(serviceadapter.CLIHandlerError{}))
-	Expect(err).To(MatchError(ContainSubstring(message)))
-	actualErr := err.(serviceadapter.CLIHandlerError)
-	Expect(actualErr.ExitCode).To(Equal(exitCode))
-}
-
-func NewFakeReader() io.Reader {
-	return &FakeReader{}
-}
-
-type FakeReader struct {
-}
-
-func (f *FakeReader) Read(b []byte) (int, error) {
-	return 1, fmt.Errorf("fool!")
-}

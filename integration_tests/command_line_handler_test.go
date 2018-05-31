@@ -165,14 +165,14 @@ var _ = Describe("Command line handler", func() {
 		exitCode = startPassingCommandAndGetExitCode([]string{})
 
 		Expect(exitCode).To(Equal(1))
-		Expect(stderr.String()).To(Equal("[odb-sdk] the following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas\n"))
+		Expect(stderr.String()).To(Equal("[odb-sdk] the following commands are supported: create-binding, dashboard-url, delete-binding, generate-manifest, generate-plan-schemas\n"))
 	})
 
 	It("logs and exits with 1 if called with a non-existing subcommand", func() {
 		exitCode = startPassingCommandAndGetExitCode([]string{"non-existing-subcommand"})
 
 		Expect(exitCode).To(Equal(1))
-		Expect(stderr.String()).To(ContainSubstring(`[odb-sdk] unknown subcommand: non-existing-subcommand. The following commands are supported: generate-manifest, create-binding, delete-binding, dashboard-url, generate-plan-schemas`))
+		Expect(stderr.String()).To(ContainSubstring(`[odb-sdk] unknown subcommand: non-existing-subcommand. The following commands are supported: create-binding, dashboard-url, delete-binding, generate-manifest, generate-plan-schemas`))
 	})
 
 	Describe("generate-manifest subcommand", func() {
@@ -609,11 +609,11 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("returns 1 if an error occurred while parsing the CLI args", func() {
-				exitCode = startPassingCommandAndGetExitCode([]string{"generate-plan-schemas"})
+				exitCode = startPassingCommandAndGetExitCode([]string{"generate-plan-schemas", "-foo"})
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stderr.String()).To(ContainSubstring(
-					"Incorrect arguments for generate-plan-schemas",
+					"flag provided but not defined: -foo",
 				))
 			})
 
@@ -633,11 +633,11 @@ var _ = Describe("Command line handler", func() {
 		})
 
 		Describe("with arguments passed via stdin", func() {
-			It("falls back to positional argument flow when nothing is passed through stdin", func() {
+			It("fails when nothing is provided in the stdin", func() {
 				exitCode = startCommandWithNoStdinAndGetExitCode([]string{"generate-plan-schemas"})
 
 				Expect(exitCode).To(Equal(1))
-				Expect(stderr.String()).To(MatchRegexp(`Incorrect arguments for generate-plan-schemas`))
+				Expect(stderr.String()).To(ContainSubstring("expecting parameters to be passed via stdin"))
 			})
 
 			It("returns 0 and output the schema for a plan", func() {

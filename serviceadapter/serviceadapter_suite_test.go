@@ -18,6 +18,7 @@ package serviceadapter_test
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
@@ -139,12 +140,14 @@ func defaultPreviousManifest() bosh.BoshManifest {
 }
 
 type CLIErrorMatcher struct {
-	Expected serviceadapter.CLIHandlerError
+	exitCode       int
+	errorSubstring string
 }
 
-func BeACLIError(expected serviceadapter.CLIHandlerError) types.GomegaMatcher {
+func BeACLIError(exitCode int, errorSubstring string) types.GomegaMatcher {
 	return &CLIErrorMatcher{
-		Expected: expected,
+		exitCode:       exitCode,
+		errorSubstring: errorSubstring,
 	}
 }
 
@@ -158,12 +161,10 @@ func (c CLIErrorMatcher) Match(actual interface{}) (bool, error) {
 		return false, errors.New("Expected error to be of type serviceadapter.CLIHandlerError")
 	}
 
-	expected := c.Expected
-
-	if theError.ExitCode != expected.ExitCode {
+	if theError.ExitCode != c.exitCode {
 		return false, nil
 	}
-	if !strings.Contains(theError.Error(), expected.Error()) {
+	if !strings.Contains(theError.Error(), c.errorSubstring) {
 		return false, nil
 	}
 	return true, nil
@@ -171,16 +172,33 @@ func (c CLIErrorMatcher) Match(actual interface{}) (bool, error) {
 
 func (c CLIErrorMatcher) FailureMessage(actual interface{}) string {
 	theError, _ := actual.(serviceadapter.CLIHandlerError)
-	if theError.ExitCode != c.Expected.ExitCode {
-		return fmt.Sprintf("Expected Exit Code\n\t%d\nto equal\n\t%d", theError.ExitCode, c.Expected.ExitCode)
+	if theError.ExitCode != c.exitCode {
+		return fmt.Sprintf("Expected Exit Code\n\t%d\nto equal\n\t%d", theError.ExitCode, c.exitCode)
 	}
-	return fmt.Sprintf("Expected error message\n\t\"%s\"\nto contain\n\t\"%s\"", theError.Error(), c.Expected.Error())
+	return fmt.Sprintf("Expected error message\n\t\"%s\"\nto contain\n\t\"%s\"", theError.Error(), c.errorSubstring)
 }
 
 func (c CLIErrorMatcher) NegatedFailureMessage(actual interface{}) string {
 	theError, _ := actual.(serviceadapter.CLIHandlerError)
-	if theError.ExitCode == c.Expected.ExitCode {
-		return fmt.Sprintf("Expected Exit Code\n\t%d\nto not equal\n\t%d", theError.ExitCode, c.Expected.ExitCode)
+	if theError.ExitCode == c.exitCode {
+		return fmt.Sprintf("Expected Exit Code\n\t%d\nto not equal\n\t%d", theError.ExitCode, c.exitCode)
 	}
-	return fmt.Sprintf("Expected error message\n\t\"%s\"\nto not contain\n\t\"%s\"", theError.Error(), c.Expected.Error())
+	return fmt.Sprintf("Expected error message\n\t\"%s\"\nto not contain\n\t\"%s\"", theError.Error(), c.errorSubstring)
+}
+
+type FakeWriter struct{}
+
+func (f *FakeWriter) Write(b []byte) (int, error) {
+	return 0, errors.New("boom!")
+}
+
+func NewFakeReader() io.Reader {
+	return &FakeReader{}
+}
+
+type FakeReader struct {
+}
+
+func (f *FakeReader) Read(b []byte) (int, error) {
+	return 1, fmt.Errorf("fool!")
 }

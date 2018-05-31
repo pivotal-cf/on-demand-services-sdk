@@ -69,31 +69,19 @@ var _ = Describe("CreateBinding", func() {
 			It("returns an error when cannot read from input buffer", func() {
 				fakeReader := new(FakeReader)
 				_, err := action.ParseArgs(fakeReader, []string{})
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: 1, Message: "error reading input params JSON",
-				}
-
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(1, "error reading input params JSON"))
 			})
 
 			It("returns an error when cannot unmarshal from input buffer", func() {
 				input := bytes.NewBuffer([]byte("not-valid-json"))
 				_, err := action.ParseArgs(input, []string{})
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: 1, Message: "error unmarshalling input params JSON",
-				}
-
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(1, "error unmarshalling input params JSON"))
 			})
 
 			It("returns an error when input buffer is empty", func() {
 				input := bytes.NewBuffer([]byte{})
 				_, err := action.ParseArgs(input, []string{})
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: 1, Message: "expecting parameters to be passed via stdin",
-				}
-
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(1, "expecting parameters to be passed via stdin"))
 			})
 		})
 
@@ -163,34 +151,22 @@ var _ = Describe("CreateBinding", func() {
 				Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
 			})
 
-			It("returns a generic error when binder returns an error", func() {
+			It("returns an generic error when binder returns an error", func() {
 				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, errors.New("something went wrong"))
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: 1, Message: "something went wrong",
-				}
-
 				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(1, "something went wrong"))
 			})
 
 			It("returns a BindingAlreadyExistsError when binding already exists", func() {
 				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewBindingAlreadyExistsError(errors.New("something went wrong")))
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: serviceadapter.BindingAlreadyExistsErrorExitCode, Message: "something went wrong",
-				}
-
 				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(serviceadapter.BindingAlreadyExistsErrorExitCode, "something went wrong"))
 			})
 
 			It("returns an AppGuidNotProvidedError when app guid is not provided", func() {
 				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewAppGuidNotProvidedError(errors.New("something went wrong")))
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: serviceadapter.AppGuidNotProvidedErrorExitCode, Message: "something went wrong",
-				}
-
 				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(BeACLIError(expected))
+				Expect(err).To(BeACLIError(serviceadapter.AppGuidNotProvidedErrorExitCode, "something went wrong"))
 			})
 
 			It("returns an error when the binding cannot be marshalled", func() {

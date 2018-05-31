@@ -16,20 +16,14 @@
 package serviceadapter
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"sort"
 
 	"strings"
 
 	"path/filepath"
-
-	"flag"
-
-	"io/ioutil"
-
-	"github.com/pkg/errors"
 )
 
 // CommandLineHandler contains all of the implementers required for the service adapter interface
@@ -79,7 +73,14 @@ func HandleCLI(args []string, handler CommandLineHandler) {
 
 // Handle executes required action and returns an error. Writes responses to the writer provided
 func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.Writer, inputParamsReader io.Reader) error {
-	supportedCommands := h.generateSupportedCommandsMessage()
+	actions := map[string]Action{
+		"generate-manifest":     NewGenerateManifestAction(h.ManifestGenerator),
+		"create-binding":        NewCreateBindingAction(h.Binder),
+		"delete-binding":        NewDeleteBindingAction(h.Binder),
+		"dashboard-url":         NewDashboardUrlAction(h.DashboardURLGenerator),
+		"generate-plan-schemas": NewGeneratePlanSchemasAction(h.SchemaGenerator, errorWriter),
+	}
+	supportedCommands := h.generateSupportedCommandsMessage(actions)
 
 	if len(args) < 2 {
 		return CLIHandlerError{
@@ -92,12 +93,6 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 	fmt.Fprintf(errorWriter, "[odb-sdk] handling %s\n", action)
 
 	var inputParams InputParams
-	actions := map[string]Action{
-		"generate-manifest": NewGenerateManifestAction(h.ManifestGenerator),
-		"create-binding":    NewCreateBindingAction(h.Binder),
-		"delete-binding":    NewDeleteBindingAction(h.Binder),
-		"dashboard-url":     NewDashboardUrlAction(h.DashboardURLGenerator),
-	}
 
 	var err error
 	ac, ok := actions[action]
@@ -116,60 +111,8 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		return ac.Execute(inputParams, outputWriter)
 	}
 
-	switch action {
-	case "generate-plan-schemas":
-		if h.SchemaGenerator == nil {
-			return CLIHandlerError{NotImplementedExitCode, "plan schema generator not implemented"}
-		}
-
-		var planJson string
-		if data, err := usingStdin(inputParamsReader); len(data) > 0 {
-			inputParams, err := buildInputParams(data)
-			if err != nil {
-				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
-			}
-
-			planJson = inputParams.GeneratePlanSchemas.Plan
-		} else if err == nil {
-			planJson, err = parseGeneratePlanSchemaArguments(args, errorWriter)
-			if err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-		return h.generatePlanSchema(planJson, outputWriter)
-
-	default:
-		failWithCode(ErrorExitCode, fmt.Sprintf("unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands))
-	}
+	failWithCode(ErrorExitCode, fmt.Sprintf("unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands))
 	return nil
-}
-
-func buildInputParams(d []byte) (InputParams, error) {
-	s := InputParams{}
-	return s, json.Unmarshal(d, &s)
-}
-
-func usingStdin(reader io.Reader) ([]byte, error) {
-	return ioutil.ReadAll(reader)
-}
-
-func parseGeneratePlanSchemaArguments(args []string, errorWriter io.Writer) (string, error) {
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
-	flagPlanJSON := fs.String("plan-json", "", "Plan JSON")
-	fs.SetOutput(errorWriter)
-
-	err := fs.Parse(args[2:])
-	if err != nil {
-		return "", incorrectArgsError(args[1])
-	}
-
-	if *flagPlanJSON == "" {
-		return "", incorrectArgsError(args[1])
-	}
-
-	return *flagPlanJSON, nil
 }
 
 func failWithMissingArgsError(args []string, argumentNames string) {
@@ -205,46 +148,16 @@ func missingArgsError(args []string, argumentNames string) error {
 	}
 }
 
-func (h CommandLineHandler) generateSupportedCommandsMessage() string {
-	var commands []string
-	if h.ManifestGenerator != nil {
-		commands = append(commands, "generate-manifest")
+func (h CommandLineHandler) generateSupportedCommandsMessage(actions map[string]Action) string {
+	var commands sort.StringSlice
+	for key, action := range actions {
+		if action.IsImplemented() {
+			commands = append(commands, key)
+		}
 	}
 
-	if h.Binder != nil {
-		commands = append(commands, "create-binding, delete-binding")
-	}
-
-	if h.DashboardURLGenerator != nil {
-		commands = append(commands, "dashboard-url")
-	}
-
-	if h.SchemaGenerator != nil {
-		commands = append(commands, "generate-plan-schemas")
-	}
-
+	commands.Sort()
 	return strings.Join(commands, ", ")
-}
-
-func (h CommandLineHandler) generatePlanSchema(planJSON string, outputWriter io.Writer) error {
-	var plan Plan
-	if err := json.Unmarshal([]byte(planJSON), &plan); err != nil {
-		return errors.Wrap(err, "error unmarshalling plan JSON")
-	}
-	if err := plan.Validate(); err != nil {
-		return errors.Wrap(err, "error validating plan JSON")
-	}
-	schema, err := h.SchemaGenerator.GeneratePlanSchema(plan)
-	if err != nil {
-		fmt.Fprintf(outputWriter, err.Error())
-		return CLIHandlerError{ErrorExitCode, err.Error()}
-	}
-	err = json.NewEncoder(outputWriter).Encode(schema)
-	if err != nil {
-		return errors.Wrap(err, "error marshalling plan schema")
-	}
-
-	return nil
 }
 
 func (h CommandLineHandler) must(err error, msg string) {

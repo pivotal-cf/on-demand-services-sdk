@@ -7,49 +7,44 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter/fakes"
 )
 
-var _ = Describe("DashboardUrl", func() {
+var _ = Describe("GeneratePlanSchemas", func() {
 	var (
-		fakeDashboardUrlGenerator *fakes.FakeDashboardUrlGenerator
-		instanceId                string
-		plan                      serviceadapter.Plan
-		manifest                  bosh.BoshManifest
-
+		fakeSchemaGenerator *fakes.FakeSchemaGenerator
+		plan                serviceadapter.Plan
 		expectedInputParams serviceadapter.InputParams
-		action              *serviceadapter.DashboardUrlAction
+		action              *serviceadapter.GeneratePlanSchemasAction
 		outputBuffer        *gbytes.Buffer
+		errorBuffer         *gbytes.Buffer
 	)
 
 	BeforeEach(func() {
-		fakeDashboardUrlGenerator = new(fakes.FakeDashboardUrlGenerator)
-		instanceId = "my-instance-identifier"
+		fakeSchemaGenerator = new(fakes.FakeSchemaGenerator)
 		plan = defaultPlan()
-		manifest = defaultManifest()
 		outputBuffer = gbytes.NewBuffer()
+		errorBuffer = gbytes.NewBuffer()
 
 		expectedInputParams = serviceadapter.InputParams{
-			DashboardUrl: serviceadapter.DashboardUrlParams{
-				InstanceId: instanceId,
-				Plan:       toJson(plan),
-				Manifest:   toYaml(manifest),
+			GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+				Plan: toJson(plan),
 			},
 		}
 
-		action = serviceadapter.NewDashboardUrlAction(fakeDashboardUrlGenerator)
+		action = serviceadapter.NewGeneratePlanSchemasAction(fakeSchemaGenerator, errorBuffer)
 	})
 
 	Describe("IsImplemented", func() {
 		It("returns true if implemented", func() {
-			Expect(action.IsImplemented()).To(BeTrue())
+			g := serviceadapter.NewGeneratePlanSchemasAction(fakeSchemaGenerator, errorBuffer)
+			Expect(g.IsImplemented()).To(BeTrue())
 		})
 
 		It("returns false if not implemented", func() {
-			c := serviceadapter.NewDashboardUrlAction(nil)
-			Expect(c.IsImplemented()).To(BeFalse())
+			g := serviceadapter.NewGeneratePlanSchemasAction(nil, errorBuffer)
+			Expect(g.IsImplemented()).To(BeFalse())
 		})
 	})
 
@@ -66,97 +61,105 @@ var _ = Describe("DashboardUrl", func() {
 			It("returns an error when cannot read from input buffer", func() {
 				fakeReader := new(FakeReader)
 				_, err := action.ParseArgs(fakeReader, []string{})
-
 				Expect(err).To(BeACLIError(1, "error reading input params JSON"))
 			})
 
 			It("returns an error when cannot unmarshal from input buffer", func() {
 				input := bytes.NewBuffer([]byte("not-valid-json"))
 				_, err := action.ParseArgs(input, []string{})
-
 				Expect(err).To(BeACLIError(1, "error unmarshalling input params JSON"))
 			})
 
 			It("returns an error when input buffer is empty", func() {
 				input := bytes.NewBuffer([]byte{})
 				_, err := action.ParseArgs(input, []string{})
-
 				Expect(err).To(BeACLIError(1, "expecting parameters to be passed via stdin"))
 			})
 		})
 
 		When("given positional arguments", func() {
+			var emptyBuffer *bytes.Buffer
+
+			BeforeEach(func() {
+				emptyBuffer = bytes.NewBuffer(nil)
+			})
+
 			It("can parse positional arguments", func() {
 				positionalArgs := []string{
-					expectedInputParams.DashboardUrl.InstanceId,
-					expectedInputParams.DashboardUrl.Plan,
-					expectedInputParams.DashboardUrl.Manifest,
+					"-plan-json",
+					expectedInputParams.GeneratePlanSchemas.Plan,
 				}
 
-				actualInputParams, err := action.ParseArgs(nil, positionalArgs)
+				actualInputParams, err := action.ParseArgs(emptyBuffer, positionalArgs)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualInputParams).To(Equal(expectedInputParams))
 			})
 
 			It("returns an error when required arguments are not passed in", func() {
-				_, err := action.ParseArgs(nil, []string{"foo"})
+				_, err := action.ParseArgs(emptyBuffer, []string{"-plan-json", ""})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(BeAssignableToTypeOf(serviceadapter.MissingArgsError{}))
-				Expect(err).To(MatchError(ContainSubstring("<instance-ID> <plan-JSON> <manifest-YAML>")))
+				Expect(err).To(MatchError(ContainSubstring("<plan-JSON>")))
+			})
+
+			It("returns an error when unrecognised arguments are passed in", func() {
+				_, err := action.ParseArgs(emptyBuffer, []string{"-what"})
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("flag provided but not defined: -what")))
 			})
 		})
 	})
 
 	Describe("Execute", func() {
 		It("calls the supplied handler passing args through", func() {
-			fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{DashboardUrl: "gopher://foo"}, nil)
+			planSchema := serviceadapter.PlanSchema{
+				ServiceInstance: serviceadapter.ServiceInstanceSchema{
+					Create: serviceadapter.JSONSchemas{
+						Parameters: map[string]interface{}{
+							"foo": "string",
+						},
+					},
+				},
+			}
+			fakeSchemaGenerator.GeneratePlanSchemaReturns(planSchema, nil)
 
 			err := action.Execute(expectedInputParams, outputBuffer)
-
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeDashboardUrlGenerator.DashboardUrlCallCount()).To(Equal(1))
-			actualInstanceId, actualPlan, actualManifest := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
+			Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
+			actualPlan := fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)
 
-			Expect(actualInstanceId).To(Equal(instanceId))
 			Expect(actualPlan).To(Equal(plan))
-			Expect(actualManifest).To(Equal(manifest))
-
-			Expect(outputBuffer).To(gbytes.Say(`{"dashboard_url":"gopher://foo"}`))
+			Expect(outputBuffer).To(gbytes.Say(toJson(planSchema)))
 		})
 
 		Context("error handling", func() {
 			It("returns an error when plan cannot be unmarshalled", func() {
-				expectedInputParams.DashboardUrl.Plan = "not-json"
+				expectedInputParams.GeneratePlanSchemas.Plan = "not-json"
 				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(MatchError(ContainSubstring("unmarshalling service plan")))
-			})
-
-			It("returns an error when manifest cannot be unmarshalled", func() {
-				expectedInputParams.DashboardUrl.Manifest = "not-yaml"
-				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling plan JSON")))
 			})
 
 			It("returns an error when plan is invalid", func() {
-				expectedInputParams.DashboardUrl.Plan = "{}"
+				expectedInputParams.GeneratePlanSchemas.Plan = "{}"
 				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(MatchError(ContainSubstring("validating service plan")))
+				Expect(err).To(MatchError(ContainSubstring("validating plan JSON")))
 			})
 
-			It("returns an error when dashboardUrlGenerator returns an error", func() {
-				fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{}, errors.New("something went wrong"))
+			It("returns an error when schemaGenerator returns an error", func() {
+				fakeSchemaGenerator.GeneratePlanSchemaReturns(serviceadapter.PlanSchema{}, errors.New("something went wrong"))
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(BeACLIError(1, "something went wrong"))
 			})
 
-			It("returns an error when dashboardUrlGenerator returns an unmarshalable struct", func() {
+			It("returns an error when the returned object cannot be unmarshalled", func() {
 				fakeWriter := new(FakeWriter)
-				fakeDashboardUrlGenerator.DashboardUrlReturns(serviceadapter.DashboardUrl{}, nil)
+				fakeSchemaGenerator.GeneratePlanSchemaReturns(serviceadapter.PlanSchema{}, nil)
 
 				err := action.Execute(expectedInputParams, fakeWriter)
-				Expect(err).To(MatchError(ContainSubstring("marshalling dashboardUrl")))
+				Expect(err).To(MatchError(ContainSubstring("marshalling plan schema")))
 			})
+
 		})
 	})
 })
