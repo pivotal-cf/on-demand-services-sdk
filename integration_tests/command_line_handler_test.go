@@ -515,7 +515,7 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("logs and exits with 1 when an argument is missing", func() {
-				exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url"})
+				exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url", "foo"})
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stderr.String()).To(ContainSubstring(
@@ -532,11 +532,11 @@ var _ = Describe("Command line handler", func() {
 		})
 
 		Describe("with arguments passed via stdin", func() {
-			It("falls back to positional argument flow when nothing is passed through stdin", func() {
+			It("fails when nothing is sent through stdin", func() {
 				exitCode = startCommandWithNoStdinAndGetExitCode([]string{"dashboard-url"})
 
 				Expect(exitCode).To(Equal(1))
-				Expect(stderr.String()).To(MatchRegexp(`Missing arguments for dashboard-url`))
+				Expect(stderr.String()).To(ContainSubstring("expecting parameters to be passed via stdin"))
 			})
 
 			It("succeeds", func() {
