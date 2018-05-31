@@ -330,7 +330,7 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("logs and exits with 1 when an argument is missing", func() {
-				exitCode = startPassingCommandAndGetExitCode([]string{"create-binding"})
+				exitCode = startPassingCommandAndGetExitCode([]string{"create-binding", "arg1"})
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stderr.String()).To(ContainSubstring(
@@ -372,11 +372,11 @@ var _ = Describe("Command line handler", func() {
 				}
 			})
 
-			It("falls back to positional argument flow when nothing is passed through stdin", func() {
+			It("errors when stdin is empty", func() {
 				exitCode = startCommandWithNoStdinAndGetExitCode([]string{"create-binding"})
 
 				Expect(exitCode).To(Equal(1))
-				Expect(stderr.String()).To(MatchRegexp(`Missing arguments for create-binding`))
+				Expect(stderr.String()).To(ContainSubstring("expecting parameters to be passed via stdin"))
 			})
 
 			It("succeeds", func() {
@@ -427,7 +427,7 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("logs and exits with 1 when an argument is missing", func() {
-				exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding"})
+				exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding", "arg1"})
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stderr.String()).To(ContainSubstring(
@@ -463,11 +463,11 @@ var _ = Describe("Command line handler", func() {
 				}
 			})
 
-			It("falls back to positional argument flow when nothing is passed through stdin", func() {
+			It("fails when stdin is empty", func() {
 				exitCode = startCommandWithNoStdinAndGetExitCode([]string{"delete-binding"})
 
 				Expect(exitCode).To(Equal(1))
-				Expect(stderr.String()).To(MatchRegexp(`Missing arguments for delete-binding`))
+				Expect(stderr.String()).To(MatchRegexp("expecting parameters to be passed via stdin"))
 			})
 
 			It("succeeds", func() {

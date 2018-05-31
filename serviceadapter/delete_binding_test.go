@@ -12,7 +12,7 @@ import (
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter/fakes"
 )
 
-var _ = Describe("CreateBinding", func() {
+var _ = Describe("DeleteBinding", func() {
 	var (
 		fakeBinder    *fakes.FakeBinder
 		bindingId     string
@@ -21,7 +21,7 @@ var _ = Describe("CreateBinding", func() {
 		manifest      bosh.BoshManifest
 
 		expectedInputParams serviceadapter.InputParams
-		action              *serviceadapter.CreateBindingAction
+		action              *serviceadapter.DeleteBindingAction
 		outputBuffer        *gbytes.Buffer
 	)
 
@@ -34,7 +34,7 @@ var _ = Describe("CreateBinding", func() {
 		outputBuffer = gbytes.NewBuffer()
 
 		expectedInputParams = serviceadapter.InputParams{
-			CreateBinding: serviceadapter.CreateBindingParams{
+			DeleteBinding: serviceadapter.DeleteBindingParams{
 				BindingId:         bindingId,
 				BoshVms:           toJson(boshVMs),
 				Manifest:          toYaml(manifest),
@@ -42,7 +42,7 @@ var _ = Describe("CreateBinding", func() {
 			},
 		}
 
-		action = serviceadapter.NewCreateBindingAction(fakeBinder)
+		action = serviceadapter.NewDeleteBindingAction(fakeBinder)
 	})
 
 	Describe("IsImplemented", func() {
@@ -51,7 +51,7 @@ var _ = Describe("CreateBinding", func() {
 		})
 
 		It("returns false if not implemented", func() {
-			c := serviceadapter.NewCreateBindingAction(nil)
+			c := serviceadapter.NewDeleteBindingAction(nil)
 			Expect(c.IsImplemented()).To(BeFalse())
 		})
 	})
@@ -100,10 +100,10 @@ var _ = Describe("CreateBinding", func() {
 		When("given positional arguments", func() {
 			It("can parse positional arguments", func() {
 				positionalArgs := []string{
-					expectedInputParams.CreateBinding.BindingId,
-					expectedInputParams.CreateBinding.BoshVms,
-					expectedInputParams.CreateBinding.Manifest,
-					expectedInputParams.CreateBinding.RequestParameters,
+					expectedInputParams.DeleteBinding.BindingId,
+					expectedInputParams.DeleteBinding.BoshVms,
+					expectedInputParams.DeleteBinding.Manifest,
+					expectedInputParams.DeleteBinding.RequestParameters,
 				}
 
 				actualInputParams, err := action.ParseArgs(nil, positionalArgs)
@@ -122,49 +122,42 @@ var _ = Describe("CreateBinding", func() {
 
 	Describe("Execute", func() {
 		It("calls the supplied handler passing args through", func() {
-			binding := serviceadapter.Binding{
-				Credentials: map[string]interface{}{
-					"password": "letmein",
-				},
-			}
-			fakeBinder.CreateBindingReturns(binding, nil)
+			fakeBinder.DeleteBindingReturns(nil)
 
 			err := action.Execute(expectedInputParams, outputBuffer)
 
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVms, actualManifest, actualRequestParams := fakeBinder.CreateBindingArgsForCall(0)
+			Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
+			actualBindingId, actualBoshVms, actualManifest, actualRequestParams := fakeBinder.DeleteBindingArgsForCall(0)
 
 			Expect(actualBindingId).To(Equal(bindingId))
 			Expect(actualBoshVms).To(Equal(boshVMs))
 			Expect(actualManifest).To(Equal(manifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
-
-			Expect(outputBuffer).To(gbytes.Say(`"password":"letmein"`))
 		})
 
 		Context("error handling", func() {
 			It("returns an error when bosh VMs cannot be unmarshalled", func() {
-				expectedInputParams.CreateBinding.BoshVms = "not-json"
+				expectedInputParams.DeleteBinding.BoshVms = "not-json"
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
 			})
 
 			It("returns an error when manifest cannot be unmarshalled", func() {
-				expectedInputParams.CreateBinding.Manifest = "not-yaml"
+				expectedInputParams.DeleteBinding.Manifest = "not-yaml"
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
 			})
 
 			It("returns an error when request params cannot be unmarshalled", func() {
-				expectedInputParams.CreateBinding.RequestParameters = "not-json"
+				expectedInputParams.DeleteBinding.RequestParameters = "not-json"
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
 			})
 
-			It("returns a generic error when binder returns an error", func() {
-				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, errors.New("something went wrong"))
+			It("returns an error when binder returns an error", func() {
+				fakeBinder.DeleteBindingReturns(errors.New("something went wrong"))
 				expected := serviceadapter.CLIHandlerError{
 					ExitCode: 1, Message: "something went wrong",
 				}
@@ -173,36 +166,16 @@ var _ = Describe("CreateBinding", func() {
 				Expect(err).To(BeACLIError(expected))
 			})
 
-			It("returns a BindingAlreadyExistsError when binding already exists", func() {
-				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewBindingAlreadyExistsError(errors.New("something went wrong")))
+			It("returns a BindingNotFoundError when binding not found", func() {
+				fakeBinder.DeleteBindingReturns(serviceadapter.NewBindingNotFoundError(errors.New("something went wrong")))
 				expected := serviceadapter.CLIHandlerError{
-					ExitCode: serviceadapter.BindingAlreadyExistsErrorExitCode, Message: "something went wrong",
+					ExitCode: serviceadapter.BindingNotFoundErrorExitCode, Message: "something went wrong",
 				}
 
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(BeACLIError(expected))
 			})
 
-			It("returns an AppGuidNotProvidedError when app guid is not provided", func() {
-				fakeBinder.CreateBindingReturns(serviceadapter.Binding{}, serviceadapter.NewAppGuidNotProvidedError(errors.New("something went wrong")))
-				expected := serviceadapter.CLIHandlerError{
-					ExitCode: serviceadapter.AppGuidNotProvidedErrorExitCode, Message: "something went wrong",
-				}
-
-				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(BeACLIError(expected))
-			})
-
-			It("returns an error when the binding cannot be marshalled", func() {
-				fakeBinder.CreateBindingReturns(serviceadapter.Binding{
-					Credentials: map[string]interface{}{"a": make(chan bool)},
-				},
-					nil,
-				)
-
-				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(MatchError(ContainSubstring("error marshalling binding")))
-			})
 		})
 	})
 })

@@ -97,6 +97,7 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 	actions := map[string]Action{
 		"generate-manifest": NewGenerateManifestAction(h.ManifestGenerator),
 		"create-binding":    NewCreateBindingAction(h.Binder),
+		"delete-binding":    NewDeleteBindingAction(h.Binder),
 	}
 
 	var err error
@@ -117,37 +118,6 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 	}
 
 	switch action {
-	case "delete-binding":
-		if h.Binder == nil {
-			return CLIHandlerError{NotImplementedExitCode, "binder not implemented"}
-		}
-
-		var bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams string
-
-		if data, err := usingStdin(inputParamsReader); len(data) > 0 {
-			inputParams, err := buildInputParams(data)
-			if err != nil {
-				return CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
-			}
-
-			bindingID = inputParams.DeleteBinding.BindingId
-			boshVMsJSON = inputParams.DeleteBinding.BoshVms
-			manifestYAML = inputParams.DeleteBinding.Manifest
-			unbindingRequestParams = inputParams.DeleteBinding.RequestParameters
-		} else if err == nil {
-			if len(args) < 6 {
-				return missingArgsError(args, "<binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>")
-			}
-
-			bindingID = args[2]
-			boshVMsJSON = args[3]
-			manifestYAML = args[4]
-			unbindingRequestParams = args[5]
-		} else {
-			return err
-		}
-
-		return h.deleteBinding(bindingID, boshVMsJSON, manifestYAML, unbindingRequestParams, outputWriter)
 	case "dashboard-url":
 		if h.DashboardURLGenerator == nil {
 			return CLIHandlerError{NotImplementedExitCode, "dashboard-url not implemented"}

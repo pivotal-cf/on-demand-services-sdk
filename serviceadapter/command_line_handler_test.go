@@ -264,6 +264,89 @@ var _ = Describe("CommandLineHandler", func() {
 		})
 	})
 
+	Describe("delete-binding action", func() {
+		It("succeeds with positional arguments", func() {
+			fakeBinder.DeleteBindingReturns(nil)
+
+			err := handler.Handle([]string{
+				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
+			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+				fakeBinder.DeleteBindingArgsForCall(0)
+
+			Expect(actualBindingId).To(Equal(bindingID))
+			Expect(actualBoshVMs).To(Equal(boshVMs))
+			Expect(actualManifest).To(Equal(previousManifest))
+			Expect(actualRequestParams).To(Equal(requestParams))
+
+		})
+
+		It("succeeds with arguments from stdin", func() {
+			rawInputParams := serviceadapter.InputParams{
+				DeleteBinding: serviceadapter.DeleteBindingParams{
+					RequestParameters: toJson(requestParams),
+					BindingId:         bindingID,
+					BoshVms:           toJson(boshVMs),
+					Manifest:          toYaml(previousManifest),
+				},
+			}
+
+			fakeBinder.DeleteBindingReturns(nil)
+
+			fakeStdin := bytes.NewBuffer([]byte(toJson(rawInputParams)))
+			err := handler.Handle([]string{commandName, "delete-binding"}, outputBuffer, errorBuffer, fakeStdin)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
+			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+				fakeBinder.DeleteBindingArgsForCall(0)
+
+			Expect(actualBindingId).To(Equal(bindingID))
+			Expect(actualBoshVMs).To(Equal(boshVMs))
+			Expect(actualManifest).To(Equal(previousManifest))
+			Expect(actualRequestParams).To(Equal(requestParams))
+		})
+
+		It("returns a not-implemented error where there is no binder handler", func() {
+			handler.Binder = nil
+			err := handler.Handle([]string{
+				commandName, "delete-binding",
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			Expect(err).To(BeACLIError(serviceadapter.CLIHandlerError{ExitCode: 10, Message: "delete-binding not implemented"}))
+		})
+
+		It("returns a missing args error when request JSON is missing", func() {
+			err := handler.Handle([]string{
+				commandName, "delete-binding", previousManifestYAML}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			Expect(err).To(BeACLIError(serviceadapter.CLIHandlerError{ExitCode: 1, Message: "Missing arguments for delete-binding. Usage:"}))
+		})
+
+		It("returns an error when parsing the arguments fails", func() {
+			boshVMsJSON += `aaa`
+			err := handler.Handle([]string{
+				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
+		})
+
+		It("returns an error when the binding cannot be created because of generic error", func() {
+			fakeBinder.DeleteBindingReturns(errors.New("oops"))
+			err := handler.Handle([]string{
+				commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+
+			Expect(err).To(BeACLIError(serviceadapter.CLIHandlerError{ExitCode: 1, Message: "oops"}))
+			Expect(outputBuffer).To(gbytes.Say("oops"))
+		})
+	})
+
 	Context("When adapter is called with positional arguments", func() {
 		It("when no arguments passed returns error", func() {
 			err := handler.Handle([]string{commandName}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
@@ -287,91 +370,6 @@ var _ = Describe("CommandLineHandler", func() {
 			)
 			Expect(err.Error()).NotTo(ContainSubstring("dashboard-url"))
 			Expect(err.Error()).NotTo(ContainSubstring("generate-plan-schemas"))
-		})
-
-		Describe("Delete Binding", func() {
-			It("calls the supplied handler passing args through", func() {
-				fakeBinder.DeleteBindingReturns(nil)
-
-				err := handler.Handle([]string{
-					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
-				actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
-					fakeBinder.DeleteBindingArgsForCall(0)
-
-				Expect(actualBindingId).To(Equal(bindingID))
-				Expect(actualBoshVMs).To(Equal(boshVMs))
-				Expect(actualManifest).To(Equal(previousManifest))
-				Expect(actualRequestParams).To(Equal(requestParams))
-			})
-
-			It("returns a not-implemented error where there is no binder handler", func() {
-				handler.Binder = nil
-				err := handler.Handle([]string{
-					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "binder not implemented")
-			})
-
-			It("returns a missing args error when request JSON is missing", func() {
-				err := handler.Handle([]string{
-					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, `Missing arguments for delete-binding. Usage:`)
-			})
-
-			It("fails with an error when BOSH VMs is corrupt", func() {
-				boshVMsJSON += `aaa`
-				err := handler.Handle([]string{
-					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
-			})
-
-			It("fails with an error when previous manifest is corrupt", func() {
-				previousManifestYAML = previousPlanJSON
-				err := handler.Handle([]string{
-					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
-			})
-
-			It("fails with an error when request binding params are corrupt", func() {
-				requestParamsJSON += "asdf"
-				err := handler.Handle([]string{
-					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
-			})
-
-			It("returns an error when the binding cannot be deleted because of generic error", func() {
-				fakeBinder.DeleteBindingReturns(errors.New("oops"))
-				err := handler.Handle([]string{
-					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-				Expect(outputBuffer).To(gbytes.Say("oops"))
-			})
-
-			It("returns an error when the binding cannot be deleted because binding is not found", func() {
-				fakeBinder.DeleteBindingReturns(serviceadapter.NewBindingNotFoundError(errors.New("binding not found")))
-				err := handler.Handle([]string{
-					commandName, "delete-binding", bindingID, boshVMsJSON, previousManifestYAML, requestParamsJSON,
-				}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
-
-				assertCLIHandlerErr(err, serviceadapter.BindingNotFoundErrorExitCode, "binding not found")
-				Expect(outputBuffer).To(gbytes.Say("binding not found"))
-			})
 		})
 
 		Describe("Dashboard URL", func() {
@@ -662,89 +660,6 @@ var _ = Describe("CommandLineHandler", func() {
 
 					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
 					Expect(outputBuffer).To(gbytes.Say("oops"))
-				})
-			})
-		})
-
-		Describe("delete Binding", func() {
-			BeforeEach(func() {
-				subCommand = "delete-binding"
-
-				rawInputParams = serviceadapter.InputParams{
-					DeleteBinding: serviceadapter.DeleteBindingParams{
-						RequestParameters: toJson(requestParams),
-						BindingId:         bindingID,
-						BoshVms:           toJson(boshVMs),
-						Manifest:          toYaml(previousManifest),
-					},
-				}
-			})
-
-			It("calls the supplied handler passing args through", func() {
-				fakeBinder.DeleteBindingReturns(nil)
-
-				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
-				actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
-					fakeBinder.DeleteBindingArgsForCall(0)
-
-				Expect(actualBindingId).To(Equal(bindingID))
-				Expect(actualBoshVMs).To(Equal(boshVMs))
-				Expect(actualManifest).To(Equal(previousManifest))
-				Expect(actualRequestParams).To(Equal(requestParams))
-			})
-
-			It("returns a not-implemented error where there is no binder handler", func() {
-				handler.Binder = nil
-				err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-				assertCLIHandlerErr(err, serviceadapter.NotImplementedExitCode, "binder not implemented")
-			})
-
-			Describe("error handling", func() {
-				It("fails with an error when BOSH VMs is corrupt", func() {
-					rawInputParams.DeleteBinding.BoshVms = "notjson"
-					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-					Expect(err).To(MatchError(ContainSubstring("unmarshalling BOSH VMs")))
-				})
-
-				It("fails with an error when previous manifest is corrupt", func() {
-					rawInputParams.DeleteBinding.Manifest = "notyaml"
-					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-					Expect(err).To(MatchError(ContainSubstring("unmarshalling manifest YAML")))
-				})
-
-				It("fails with an error when request binding params are corrupt", func() {
-					rawInputParams.DeleteBinding.RequestParameters = "notjson"
-					fakeStdin = bytes.NewBufferString(toJson(rawInputParams))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-					Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
-				})
-
-				It("returns an error if cannot read from stdin", func() {
-					fakeStdin = NewFakeReader()
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "error reading input params JSON")
-				})
-
-				It("returns an error when the binding cannot be deleted because of generic error", func() {
-					fakeBinder.DeleteBindingReturns(errors.New("oops"))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-					assertCLIHandlerErr(err, serviceadapter.ErrorExitCode, "oops")
-					Expect(outputBuffer).To(gbytes.Say("oops"))
-				})
-
-				It("returns an error when the binding cannot be deleted because binding is not found", func() {
-					fakeBinder.DeleteBindingReturns(serviceadapter.NewBindingNotFoundError(errors.New("binding not found")))
-					err := handler.Handle(command, outputBuffer, errorBuffer, fakeStdin)
-
-					assertCLIHandlerErr(err, serviceadapter.BindingNotFoundErrorExitCode, "binding not found")
-					Expect(outputBuffer).To(gbytes.Say("binding not found"))
 				})
 			})
 		})
