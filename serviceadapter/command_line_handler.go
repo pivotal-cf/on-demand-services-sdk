@@ -96,23 +96,24 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 
 	var err error
 	ac, ok := actions[action]
-	if ok {
-		if !ac.IsImplemented() {
-			return CLIHandlerError{NotImplementedExitCode, fmt.Sprintf("%s not implemented", action)}
-		}
-		if inputParams, err = ac.ParseArgs(inputParamsReader, args[2:]); err != nil {
-			switch e := err.(type) {
-			case MissingArgsError:
-				return missingArgsError(args, e.Error())
-			default:
-				return e
-			}
-		}
-		return ac.Execute(inputParams, outputWriter)
+	if !ok {
+		failWithCode(ErrorExitCode, fmt.Sprintf("unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands))
+		return nil
 	}
 
-	failWithCode(ErrorExitCode, fmt.Sprintf("unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands))
-	return nil
+	if !ac.IsImplemented() {
+		return CLIHandlerError{NotImplementedExitCode, fmt.Sprintf("%s not implemented", action)}
+	}
+
+	if inputParams, err = ac.ParseArgs(inputParamsReader, args[2:]); err != nil {
+		switch e := err.(type) {
+		case MissingArgsError:
+			return missingArgsError(args, e.Error())
+		default:
+			return e
+		}
+	}
+	return ac.Execute(inputParams, outputWriter)
 }
 
 func failWithMissingArgsError(args []string, argumentNames string) {
@@ -149,14 +150,14 @@ func missingArgsError(args []string, argumentNames string) error {
 }
 
 func (h CommandLineHandler) generateSupportedCommandsMessage(actions map[string]Action) string {
-	var commands sort.StringSlice
+	commands := []string{}
 	for key, action := range actions {
 		if action.IsImplemented() {
 			commands = append(commands, key)
 		}
 	}
 
-	commands.Sort()
+	sort.Strings(commands)
 	return strings.Join(commands, ", ")
 }
 
