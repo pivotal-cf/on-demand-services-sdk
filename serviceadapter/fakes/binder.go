@@ -9,13 +9,14 @@ import (
 )
 
 type FakeBinder struct {
-	CreateBindingStub        func(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters) (serviceadapter.Binding, error)
+	CreateBindingStub        func(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters, secrets serviceadapter.ManifestSecrets) (serviceadapter.Binding, error)
 	createBindingMutex       sync.RWMutex
 	createBindingArgsForCall []struct {
 		bindingID          string
 		deploymentTopology bosh.BoshVMs
 		manifest           bosh.BoshManifest
 		requestParams      serviceadapter.RequestParameters
+		secrets            serviceadapter.ManifestSecrets
 	}
 	createBindingReturns struct {
 		result1 serviceadapter.Binding
@@ -43,7 +44,7 @@ type FakeBinder struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeBinder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters) (serviceadapter.Binding, error) {
+func (fake *FakeBinder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters, secrets serviceadapter.ManifestSecrets) (serviceadapter.Binding, error) {
 	fake.createBindingMutex.Lock()
 	ret, specificReturn := fake.createBindingReturnsOnCall[len(fake.createBindingArgsForCall)]
 	fake.createBindingArgsForCall = append(fake.createBindingArgsForCall, struct {
@@ -51,11 +52,12 @@ func (fake *FakeBinder) CreateBinding(bindingID string, deploymentTopology bosh.
 		deploymentTopology bosh.BoshVMs
 		manifest           bosh.BoshManifest
 		requestParams      serviceadapter.RequestParameters
-	}{bindingID, deploymentTopology, manifest, requestParams})
-	fake.recordInvocation("CreateBinding", []interface{}{bindingID, deploymentTopology, manifest, requestParams})
+		secrets            serviceadapter.ManifestSecrets
+	}{bindingID, deploymentTopology, manifest, requestParams, secrets})
+	fake.recordInvocation("CreateBinding", []interface{}{bindingID, deploymentTopology, manifest, requestParams, secrets})
 	fake.createBindingMutex.Unlock()
 	if fake.CreateBindingStub != nil {
-		return fake.CreateBindingStub(bindingID, deploymentTopology, manifest, requestParams)
+		return fake.CreateBindingStub(bindingID, deploymentTopology, manifest, requestParams, secrets)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -69,10 +71,10 @@ func (fake *FakeBinder) CreateBindingCallCount() int {
 	return len(fake.createBindingArgsForCall)
 }
 
-func (fake *FakeBinder) CreateBindingArgsForCall(i int) (string, bosh.BoshVMs, bosh.BoshManifest, serviceadapter.RequestParameters) {
+func (fake *FakeBinder) CreateBindingArgsForCall(i int) (string, bosh.BoshVMs, bosh.BoshManifest, serviceadapter.RequestParameters, serviceadapter.ManifestSecrets) {
 	fake.createBindingMutex.RLock()
 	defer fake.createBindingMutex.RUnlock()
-	return fake.createBindingArgsForCall[i].bindingID, fake.createBindingArgsForCall[i].deploymentTopology, fake.createBindingArgsForCall[i].manifest, fake.createBindingArgsForCall[i].requestParams
+	return fake.createBindingArgsForCall[i].bindingID, fake.createBindingArgsForCall[i].deploymentTopology, fake.createBindingArgsForCall[i].manifest, fake.createBindingArgsForCall[i].requestParams, fake.createBindingArgsForCall[i].secrets
 }
 
 func (fake *FakeBinder) CreateBindingReturns(result1 serviceadapter.Binding, result2 error) {

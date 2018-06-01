@@ -83,6 +83,16 @@ var _ = Describe("CreateBinding", func() {
 				_, err := action.ParseArgs(input, []string{})
 				Expect(err).To(BeACLIError(1, "expecting parameters to be passed via stdin"))
 			})
+
+			It("can parse manifest secrets", func() {
+				expectedInputParamsWithSecrets := expectedInputParams
+				expectedInputParamsWithSecrets.CreateBinding.Secrets = `{ "/foo": "{ "status": "foo" }" }`
+				input := bytes.NewBuffer([]byte(toJson(expectedInputParamsWithSecrets)))
+				actualInputParams, err := action.ParseArgs(input, []string{})
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actualInputParams).To(Equal(expectedInputParamsWithSecrets))
+			})
 		})
 
 		When("given positional arguments", func() {
@@ -117,17 +127,22 @@ var _ = Describe("CreateBinding", func() {
 			}
 			fakeBinder.CreateBindingReturns(binding, nil)
 
-			err := action.Execute(expectedInputParams, outputBuffer)
+			expectedInputParamsWithSecrets := expectedInputParams
+			expectedInputParamsWithSecrets.CreateBinding.Secrets = `{ "/foo": "{ \"status\": \"bar\" }" }`
+			err := action.Execute(expectedInputParamsWithSecrets, outputBuffer)
 
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVms, actualManifest, actualRequestParams := fakeBinder.CreateBindingArgsForCall(0)
+			actualBindingId, actualBoshVms, actualManifest, actualRequestParams, actualSecrets := fakeBinder.CreateBindingArgsForCall(0)
 
 			Expect(actualBindingId).To(Equal(bindingId))
 			Expect(actualBoshVms).To(Equal(boshVMs))
 			Expect(actualManifest).To(Equal(manifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
+			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{
+				"/foo": `{ "status": "bar" }`,
+			}))
 
 			Expect(outputBuffer).To(gbytes.Say(`"password":"letmein"`))
 		})
@@ -149,6 +164,12 @@ var _ = Describe("CreateBinding", func() {
 				expectedInputParams.CreateBinding.RequestParameters = "not-json"
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
+			})
+
+			It("returns an error when secrets cannot be unmarshalled", func() {
+				expectedInputParams.CreateBinding.Secrets = "not-json"
+				err := action.Execute(expectedInputParams, outputBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling secrets")))
 			})
 
 			It("returns an generic error when binder returns an error", func() {

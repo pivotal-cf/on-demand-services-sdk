@@ -36,7 +36,7 @@ type ManifestGenerator interface {
 
 //go:generate counterfeiter -o fakes/binder.go . Binder
 type Binder interface {
-	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters) (Binding, error)
+	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters, secrets ManifestSecrets) (Binding, error)
 	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters) error
 }
 
@@ -91,6 +91,7 @@ type CreateBindingParams struct {
 	BoshVms           string `json:"bosh_vms"`
 	Manifest          string `json:"manifest"`
 	RequestParameters string `json:"request_parameters"`
+	Secrets           string `json:"secrets"`
 }
 
 type DeleteBindingParams struct {

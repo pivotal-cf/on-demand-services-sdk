@@ -78,7 +78,7 @@ func (m *manifestGenerator) GenerateManifest(serviceDeployment serviceadapter.Se
 
 type binder struct{}
 
-func (b *binder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters) (serviceadapter.Binding, error) {
+func (b *binder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters, secrets serviceadapter.ManifestSecrets) (serviceadapter.Binding, error) {
 	errs := func(err error) (serviceadapter.Binding, error) {
 		return serviceadapter.Binding{}, err
 	}

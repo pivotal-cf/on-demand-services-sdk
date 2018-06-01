@@ -58,6 +58,8 @@ var _ = Describe("CommandLineHandler", func() {
 		instanceID            string
 		boshVMs               bosh.BoshVMs
 		boshVMsJSON           string
+		secrets               map[string]string
+		secretsJSON           string
 
 		expectedBinding serviceadapter.Binding
 
@@ -92,6 +94,8 @@ var _ = Describe("CommandLineHandler", func() {
 		instanceID = "my-instance-id"
 		boshVMs = bosh.BoshVMs{"kafka": []string{"a", "b"}}
 		boshVMsJSON = toJson(boshVMs)
+		secrets = map[string]string{"admin_pass": "pa55w0rd"}
+		secretsJSON = toJson(secrets)
 		expectedBinding = serviceadapter.Binding{
 			Credentials: map[string]interface{}{
 				"username": "alice",
@@ -203,13 +207,14 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, actualSecrets :=
 				fakeBinder.CreateBindingArgsForCall(0)
 
 			Expect(actualBindingId).To(Equal(bindingID))
 			Expect(actualBoshVMs).To(Equal(boshVMs))
 			Expect(actualManifest).To(Equal(previousManifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
+			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{}))
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
 		})
@@ -232,13 +237,14 @@ var _ = Describe("CommandLineHandler", func() {
 
 			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
 
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, actualSecrets :=
 				fakeBinder.CreateBindingArgsForCall(0)
 
 			Expect(actualBindingId).To(Equal(bindingID))
 			Expect(actualBoshVMs).To(Equal(boshVMs))
 			Expect(actualManifest).To(Equal(previousManifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
+			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{}))
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
 		})
