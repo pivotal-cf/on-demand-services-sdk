@@ -17,6 +17,7 @@ package serviceadapter_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 
 	. "github.com/onsi/ginkgo"
@@ -122,6 +123,7 @@ var _ = Describe("GenerateManifest", func() {
 
 				actualInputParams, err := action.ParseArgs(emptyBuffer, positionalArgs)
 				Expect(err).NotTo(HaveOccurred())
+				expectedInputParams.TextOutput = true
 				Expect(actualInputParams).To(Equal(expectedInputParams))
 			})
 
@@ -153,7 +155,23 @@ var _ = Describe("GenerateManifest", func() {
 			Expect(actualPreviousManifest).To(Equal(&previousManifest))
 			Expect(actualPreviousPlan).To(Equal(&previousPlan))
 
-			Expect(outputBuffer).To(gbytes.Say("bill"))
+			var output serviceadapter.GenerateManifestOutput
+			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())
+			Expect(output.Manifest).To(Equal(toYaml(manifest)))
+		})
+
+		When("not outputting json", func() {
+			It("outputs the manifest as text", func() {
+				action = serviceadapter.NewGenerateManifestAction(fakeManifestGenerator)
+				manifest := bosh.BoshManifest{Name: "bill"}
+				fakeManifestGenerator.GenerateManifestReturns(manifest, nil)
+
+				expectedInputParams.TextOutput = true
+				err := action.Execute(expectedInputParams, outputBuffer)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(string(outputBuffer.Contents())).To(Equal(toYaml(manifest)))
+			})
 		})
 
 		Context("error handling", func() {

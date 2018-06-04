@@ -89,7 +89,7 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		}
 	}
 
-	action := args[1]
+	action, arguments := args[1], args[2:]
 	fmt.Fprintf(errorWriter, "[odb-sdk] handling %s\n", action)
 
 	var inputParams InputParams
@@ -105,7 +105,7 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 		return CLIHandlerError{NotImplementedExitCode, fmt.Sprintf("%s not implemented", action)}
 	}
 
-	if inputParams, err = ac.ParseArgs(inputParamsReader, args[2:]); err != nil {
+	if inputParams, err = ac.ParseArgs(inputParamsReader, arguments); err != nil {
 		switch e := err.(type) {
 		case MissingArgsError:
 			return missingArgsError(args, e.Error())

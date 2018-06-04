@@ -41,6 +41,7 @@ func (g *GenerateManifestAction) ParseArgs(reader io.Reader, args []string) (Inp
 				PreviousManifest:  args[3],
 				PreviousPlan:      args[4],
 			},
+			TextOutput: true,
 		}
 		return inputParams, nil
 	}
@@ -49,17 +50,16 @@ func (g *GenerateManifestAction) ParseArgs(reader io.Reader, args []string) (Inp
 	if err != nil {
 		return inputParams, CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
 	}
-
-	if len(data) > 0 {
-		err = json.Unmarshal(data, &inputParams)
-		if err != nil {
-			return inputParams, CLIHandlerError{ErrorExitCode, fmt.Sprintf("error unmarshalling input params JSON, error: %s", err)}
-		}
-
-		return inputParams, err
+	if len(data) <= 0 {
+		return inputParams, CLIHandlerError{ErrorExitCode, "expecting parameters to be passed via stdin"}
 	}
 
-	return inputParams, CLIHandlerError{ErrorExitCode, "expecting parameters to be passed via stdin"}
+	err = json.Unmarshal(data, &inputParams)
+	if err != nil {
+		return inputParams, CLIHandlerError{ErrorExitCode, fmt.Sprintf("error unmarshalling input params JSON, error: %s", err)}
+	}
+
+	return inputParams, nil
 }
 
 func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter io.Writer) (err error) {
@@ -113,7 +113,20 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 		return errors.Wrap(err, "error marshalling bosh manifest")
 	}
 
-	fmt.Fprint(outputWriter, string(manifestBytes))
+	var output []byte
+	if inputParams.TextOutput {
+		output = manifestBytes
+	} else {
+		generatedManifest := GenerateManifestOutput{
+			Manifest: string(manifestBytes),
+		}
+		output, err = json.Marshal(generatedManifest)
+		if err != nil {
+			return errors.Wrap(err, "error marshalling generate-manifest json output")
+		}
+	}
+
+	fmt.Fprint(outputWriter, string(output))
 	return nil
 }
 

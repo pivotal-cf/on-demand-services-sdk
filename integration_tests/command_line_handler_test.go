@@ -251,7 +251,10 @@ var _ = Describe("Command line handler", func() {
 					toJson(rawInputParams),
 				)
 				Expect(exitCode).To(Equal(0))
-				Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
+
+				var output serviceadapter.GenerateManifestOutput
+				Expect(json.Unmarshal(stdout.Bytes(), &output)).To(Succeed())
+				Expect(output.Manifest).To(Equal(toYaml(expectedResultantBoshManifest)))
 			})
 
 			It("generate-manifest exits with 10 when command not implemented", func() {
@@ -273,7 +276,10 @@ var _ = Describe("Command line handler", func() {
 					toJson(rawInputParams),
 				)
 				Expect(exitCode).To(Equal(0))
-				Expect(stdout.String()).To(Equal(toYaml(expectedResultantBoshManifest)))
+
+				var output serviceadapter.GenerateManifestOutput
+				Expect(json.Unmarshal(stdout.Bytes(), &output)).To(Succeed())
+				Expect(output.Manifest).To(Equal(toYaml(expectedResultantBoshManifest)))
 			})
 
 			It("logs and exits with 1 when a required field param is missing", func() {

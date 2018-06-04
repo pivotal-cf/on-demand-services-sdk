@@ -111,6 +111,11 @@ type InputParams struct {
 	CreateBinding       CreateBindingParams       `json:"create_binding,omitempty"`
 	DeleteBinding       DeleteBindingParams       `json:"delete_binding,omitempty"`
 	GeneratePlanSchemas GeneratePlanSchemasParams `json:"generate_plan_schemas,omitempty"`
+	TextOutput          bool                      `json:"-"`
+}
+
+type GenerateManifestOutput struct {
+	Manifest string `json:"manifest"`
 }
 
 const (
