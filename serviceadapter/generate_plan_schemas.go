@@ -89,7 +89,8 @@ func (g *GeneratePlanSchemasAction) Execute(inputParams InputParams, outputWrite
 	if inputParams.TextOutput {
 		outputSchema = schema
 	} else {
-		outputSchema = GeneratePlanSchemasOutput{schema}
+		b, _ := json.Marshal(schema)
+		outputSchema = GeneratePlanSchemasOutput{string(b)}
 	}
 
 	err = json.NewEncoder(outputWriter).Encode(outputSchema)

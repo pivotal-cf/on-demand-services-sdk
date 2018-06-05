@@ -127,11 +127,10 @@ var _ = Describe("GeneratePlanSchemas", func() {
 			actualPlan := fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)
 
 			Expect(actualPlan).To(Equal(plan))
-			Expect(outputBuffer).To(gbytes.Say(toJson(planSchema)))
 
 			var output serviceadapter.GeneratePlanSchemasOutput
 			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())
-			Expect(output.Schemas).To(Equal(planSchema))
+			Expect(output.Schemas).To(Equal(toJson(planSchema)))
 		})
 
 		When("not outputting json", func() {

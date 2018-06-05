@@ -119,7 +119,7 @@ type GenerateManifestOutput struct {
 }
 
 type GeneratePlanSchemasOutput struct {
-	Schemas PlanSchema `json:"schemas"`
+	Schemas string `json:"schemas"`
 }
 
 const (
