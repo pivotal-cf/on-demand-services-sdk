@@ -162,7 +162,6 @@ var _ = Describe("GenerateManifest", func() {
 
 		When("not outputting json", func() {
 			It("outputs the manifest as text", func() {
-				action = serviceadapter.NewGenerateManifestAction(fakeManifestGenerator)
 				manifest := bosh.BoshManifest{Name: "bill"}
 				fakeManifestGenerator.GenerateManifestReturns(manifest, nil)
 

@@ -2,7 +2,9 @@ package serviceadapter_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -78,32 +80,27 @@ var _ = Describe("GeneratePlanSchemas", func() {
 		})
 
 		When("given positional arguments", func() {
-			var emptyBuffer *bytes.Buffer
-
-			BeforeEach(func() {
-				emptyBuffer = bytes.NewBuffer(nil)
-			})
-
 			It("can parse positional arguments", func() {
 				positionalArgs := []string{
 					"-plan-json",
 					expectedInputParams.GeneratePlanSchemas.Plan,
 				}
 
-				actualInputParams, err := action.ParseArgs(emptyBuffer, positionalArgs)
+				actualInputParams, err := action.ParseArgs(nil, positionalArgs)
 				Expect(err).NotTo(HaveOccurred())
+				expectedInputParams.TextOutput = true
 				Expect(actualInputParams).To(Equal(expectedInputParams))
 			})
 
 			It("returns an error when required arguments are not passed in", func() {
-				_, err := action.ParseArgs(emptyBuffer, []string{"-plan-json", ""})
+				_, err := action.ParseArgs(nil, []string{"-plan-json", ""})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(BeAssignableToTypeOf(serviceadapter.MissingArgsError{}))
 				Expect(err).To(MatchError(ContainSubstring("<plan-JSON>")))
 			})
 
 			It("returns an error when unrecognised arguments are passed in", func() {
-				_, err := action.ParseArgs(emptyBuffer, []string{"-what"})
+				_, err := action.ParseArgs(nil, []string{"-what"})
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring("flag provided but not defined: -what")))
 			})
@@ -131,6 +128,31 @@ var _ = Describe("GeneratePlanSchemas", func() {
 
 			Expect(actualPlan).To(Equal(plan))
 			Expect(outputBuffer).To(gbytes.Say(toJson(planSchema)))
+
+			var output serviceadapter.GeneratePlanSchemasOutput
+			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())
+			Expect(output.Schemas).To(Equal(planSchema))
+		})
+
+		When("not outputting json", func() {
+			It("outputs the manifest as text", func() {
+				planSchema := serviceadapter.PlanSchema{
+					ServiceInstance: serviceadapter.ServiceInstanceSchema{
+						Create: serviceadapter.JSONSchemas{
+							Parameters: map[string]interface{}{
+								"foo": "string",
+							},
+						},
+					},
+				}
+				fakeSchemaGenerator.GeneratePlanSchemaReturns(planSchema, nil)
+				expectedInputParams.TextOutput = true
+				err := action.Execute(expectedInputParams, outputBuffer)
+
+				Expect(err).NotTo(HaveOccurred())
+				outputContents := strings.TrimRight(string(outputBuffer.Contents()), "\n")
+				Expect(outputContents).To(Equal(toJson(planSchema)))
+			})
 		})
 
 		Context("error handling", func() {

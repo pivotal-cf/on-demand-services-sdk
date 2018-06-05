@@ -514,8 +514,7 @@ var _ = Describe("CommandLineHandler", func() {
 
 			contents, err := ioutil.ReadAll(outputBuffer)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(contents).To(MatchJSON(toJson(expectedPlanSchema)))
-
+			Expect(contents).To(MatchJSON(toJson(serviceadapter.GeneratePlanSchemasOutput{expectedPlanSchema})))
 		})
 
 		It("returns a not-implemented error when there is no generate-plan-schemas handler", func() {

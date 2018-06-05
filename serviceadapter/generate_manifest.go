@@ -117,10 +117,9 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 	if inputParams.TextOutput {
 		output = manifestBytes
 	} else {
-		generatedManifest := GenerateManifestOutput{
+		output, err = json.Marshal(GenerateManifestOutput{
 			Manifest: string(manifestBytes),
-		}
-		output, err = json.Marshal(generatedManifest)
+		})
 		if err != nil {
 			return errors.Wrap(err, "error marshalling generate-manifest json output")
 		}

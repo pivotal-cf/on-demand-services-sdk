@@ -677,7 +677,7 @@ var _ = Describe("Command line handler", func() {
 					},
 				}
 				Expect(exitCode).To(Equal(0))
-				Expect(stdout.Bytes()).To(MatchJSON(toJson(expectedPlanSchema)))
+				Expect(stdout.Bytes()).To(MatchJSON(toJson(serviceadapter.GeneratePlanSchemasOutput{Schemas: expectedPlanSchema})))
 			})
 
 			It("returns 1 if an error occurred while generating the schema", func() {
