@@ -2,6 +2,7 @@ package serviceadapter_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 
 	. "github.com/onsi/ginkgo"
@@ -144,7 +145,9 @@ var _ = Describe("CreateBinding", func() {
 				"/foo": `{ "status": "bar" }`,
 			}))
 
-			Expect(outputBuffer).To(gbytes.Say(`"password":"letmein"`))
+			var bindingOutput serviceadapter.Binding
+			json.Unmarshal(outputBuffer.Contents(), &bindingOutput)
+			Expect(bindingOutput).To(Equal(binding))
 		})
 
 		Context("error handling", func() {
