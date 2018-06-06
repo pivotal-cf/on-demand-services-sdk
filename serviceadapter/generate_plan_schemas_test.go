@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -127,31 +126,9 @@ var _ = Describe("GeneratePlanSchemas", func() {
 			actualPlan := fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)
 
 			Expect(actualPlan).To(Equal(plan))
-
-			var output serviceadapter.GeneratePlanSchemasOutput
-			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())
-			Expect(output.Schemas).To(Equal(toJson(planSchema)))
-		})
-
-		When("not outputting json", func() {
-			It("outputs the manifest as text", func() {
-				planSchema := serviceadapter.PlanSchema{
-					ServiceInstance: serviceadapter.ServiceInstanceSchema{
-						Create: serviceadapter.JSONSchemas{
-							Parameters: map[string]interface{}{
-								"foo": "string",
-							},
-						},
-					},
-				}
-				fakeSchemaGenerator.GeneratePlanSchemaReturns(planSchema, nil)
-				expectedInputParams.TextOutput = true
-				err := action.Execute(expectedInputParams, outputBuffer)
-
-				Expect(err).NotTo(HaveOccurred())
-				outputContents := strings.TrimRight(string(outputBuffer.Contents()), "\n")
-				Expect(outputContents).To(Equal(toJson(planSchema)))
-			})
+			var planSchemasOutput serviceadapter.PlanSchema
+			Expect(json.Unmarshal(outputBuffer.Contents(), &planSchemasOutput)).To(Succeed())
+			Expect(planSchemasOutput).To(Equal(planSchema))
 		})
 
 		Context("error handling", func() {
