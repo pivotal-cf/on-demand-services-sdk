@@ -118,10 +118,6 @@ type GenerateManifestOutput struct {
 	Manifest string `json:"manifest"`
 }
 
-type GeneratePlanSchemasOutput struct {
-	Schemas string `json:"schemas"`
-}
-
 const (
 	ErrorExitCode                     = 1
 	NotImplementedExitCode            = 10

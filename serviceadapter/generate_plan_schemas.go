@@ -84,16 +84,7 @@ func (g *GeneratePlanSchemasAction) Execute(inputParams InputParams, outputWrite
 		return CLIHandlerError{ErrorExitCode, err.Error()}
 	}
 
-	var outputSchema interface{}
-
-	if inputParams.TextOutput {
-		outputSchema = schema
-	} else {
-		b, _ := json.Marshal(schema)
-		outputSchema = GeneratePlanSchemasOutput{string(b)}
-	}
-
-	err = json.NewEncoder(outputWriter).Encode(outputSchema)
+	err = json.NewEncoder(outputWriter).Encode(schema)
 	if err != nil {
 		return errors.Wrap(err, "error marshalling plan schema")
 	}
