@@ -124,7 +124,7 @@ var _ = Describe("CommandLineHandler", func() {
 	Describe("generate-manifest action", func() {
 		It("succeeds with positional arguments", func() {
 			manifest := bosh.BoshManifest{Name: "bill"}
-			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{manifest}, nil)
+			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{Manifest: manifest, ODBManagedSecrets: serviceadapter.ODBManagedSecrets{}}, nil)
 
 			err := handler.Handle([]string{
 				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,

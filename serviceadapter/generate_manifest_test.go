@@ -139,7 +139,7 @@ var _ = Describe("GenerateManifest", func() {
 	Describe("Execute", func() {
 		It("calls the supplied handler passing args through", func() {
 			manifest := bosh.BoshManifest{Name: "bill"}
-			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{manifest}, nil)
+			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{Manifest: manifest, ODBManagedSecrets: serviceadapter.ODBManagedSecrets{}}, nil)
 
 			err := action.Execute(expectedInputParams, outputBuffer)
 
