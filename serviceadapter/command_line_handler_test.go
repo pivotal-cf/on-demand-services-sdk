@@ -58,8 +58,6 @@ var _ = Describe("CommandLineHandler", func() {
 		instanceID            string
 		boshVMs               bosh.BoshVMs
 		boshVMsJSON           string
-		secrets               map[string]string
-		secretsJSON           string
 
 		expectedBinding serviceadapter.Binding
 
@@ -94,8 +92,6 @@ var _ = Describe("CommandLineHandler", func() {
 		instanceID = "my-instance-id"
 		boshVMs = bosh.BoshVMs{"kafka": []string{"a", "b"}}
 		boshVMsJSON = toJson(boshVMs)
-		secrets = map[string]string{"admin_pass": "pa55w0rd"}
-		secretsJSON = toJson(secrets)
 		expectedBinding = serviceadapter.Binding{
 			Credentials: map[string]interface{}{
 				"username": "alice",
@@ -128,7 +124,7 @@ var _ = Describe("CommandLineHandler", func() {
 	Describe("generate-manifest action", func() {
 		It("succeeds with positional arguments", func() {
 			manifest := bosh.BoshManifest{Name: "bill"}
-			fakeManifestGenerator.GenerateManifestReturns(manifest, nil)
+			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{manifest}, nil)
 
 			err := handler.Handle([]string{
 				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,

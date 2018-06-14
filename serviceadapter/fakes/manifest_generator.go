@@ -9,7 +9,7 @@ import (
 )
 
 type FakeManifestGenerator struct {
-	GenerateManifestStub        func(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams serviceadapter.RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (bosh.BoshManifest, error)
+	GenerateManifestStub        func(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams serviceadapter.RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (serviceadapter.GenerateManifestOutput, error)
 	generateManifestMutex       sync.RWMutex
 	generateManifestArgsForCall []struct {
 		serviceDeployment serviceadapter.ServiceDeployment
@@ -19,18 +19,18 @@ type FakeManifestGenerator struct {
 		previousPlan      *serviceadapter.Plan
 	}
 	generateManifestReturns struct {
-		result1 bosh.BoshManifest
+		result1 serviceadapter.GenerateManifestOutput
 		result2 error
 	}
 	generateManifestReturnsOnCall map[int]struct {
-		result1 bosh.BoshManifest
+		result1 serviceadapter.GenerateManifestOutput
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeManifestGenerator) GenerateManifest(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams serviceadapter.RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (bosh.BoshManifest, error) {
+func (fake *FakeManifestGenerator) GenerateManifest(serviceDeployment serviceadapter.ServiceDeployment, plan serviceadapter.Plan, requestParams serviceadapter.RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *serviceadapter.Plan) (serviceadapter.GenerateManifestOutput, error) {
 	fake.generateManifestMutex.Lock()
 	ret, specificReturn := fake.generateManifestReturnsOnCall[len(fake.generateManifestArgsForCall)]
 	fake.generateManifestArgsForCall = append(fake.generateManifestArgsForCall, struct {
@@ -63,24 +63,24 @@ func (fake *FakeManifestGenerator) GenerateManifestArgsForCall(i int) (servicead
 	return fake.generateManifestArgsForCall[i].serviceDeployment, fake.generateManifestArgsForCall[i].plan, fake.generateManifestArgsForCall[i].requestParams, fake.generateManifestArgsForCall[i].previousManifest, fake.generateManifestArgsForCall[i].previousPlan
 }
 
-func (fake *FakeManifestGenerator) GenerateManifestReturns(result1 bosh.BoshManifest, result2 error) {
+func (fake *FakeManifestGenerator) GenerateManifestReturns(result1 serviceadapter.GenerateManifestOutput, result2 error) {
 	fake.GenerateManifestStub = nil
 	fake.generateManifestReturns = struct {
-		result1 bosh.BoshManifest
+		result1 serviceadapter.GenerateManifestOutput
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeManifestGenerator) GenerateManifestReturnsOnCall(i int, result1 bosh.BoshManifest, result2 error) {
+func (fake *FakeManifestGenerator) GenerateManifestReturnsOnCall(i int, result1 serviceadapter.GenerateManifestOutput, result2 error) {
 	fake.GenerateManifestStub = nil
 	if fake.generateManifestReturnsOnCall == nil {
 		fake.generateManifestReturnsOnCall = make(map[int]struct {
-			result1 bosh.BoshManifest
+			result1 serviceadapter.GenerateManifestOutput
 			result2 error
 		})
 	}
 	fake.generateManifestReturnsOnCall[i] = struct {
-		result1 bosh.BoshManifest
+		result1 serviceadapter.GenerateManifestOutput
 		result2 error
 	}{result1, result2}
 }

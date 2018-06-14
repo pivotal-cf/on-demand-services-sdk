@@ -101,25 +101,22 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 		}
 	}
 
-	manifest, err := g.manifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan)
+	generateManifestOutput, err := g.manifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan)
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())
 		return CLIHandlerError{ErrorExitCode, err.Error()}
 	}
 
-	defer handleErr(&err)
-	manifestBytes, err := yaml.Marshal(manifest)
-	if err != nil {
-		return errors.Wrap(err, "error marshalling bosh manifest")
-	}
-
 	var output []byte
 	if inputParams.TextOutput {
+		defer handleErr(&err)
+		manifestBytes, err := yaml.Marshal(generateManifestOutput.Manifest)
+		if err != nil {
+			return errors.Wrap(err, "error marshalling bosh manifest")
+		}
 		output = manifestBytes
 	} else {
-		output, err = json.Marshal(GenerateManifestOutput{
-			Manifest: string(manifestBytes),
-		})
+		output, err = json.Marshal(generateManifestOutput)
 		if err != nil {
 			return errors.Wrap(err, "error marshalling generate-manifest json output")
 		}

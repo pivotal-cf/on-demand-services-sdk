@@ -139,7 +139,7 @@ var _ = Describe("GenerateManifest", func() {
 	Describe("Execute", func() {
 		It("calls the supplied handler passing args through", func() {
 			manifest := bosh.BoshManifest{Name: "bill"}
-			fakeManifestGenerator.GenerateManifestReturns(manifest, nil)
+			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{manifest}, nil)
 
 			err := action.Execute(expectedInputParams, outputBuffer)
 
@@ -157,13 +157,13 @@ var _ = Describe("GenerateManifest", func() {
 
 			var output serviceadapter.GenerateManifestOutput
 			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())
-			Expect(output.Manifest).To(Equal(toYaml(manifest)))
+			Expect(output.Manifest).To(Equal(manifest))
 		})
 
 		When("not outputting json", func() {
 			It("outputs the manifest as text", func() {
 				manifest := bosh.BoshManifest{Name: "bill"}
-				fakeManifestGenerator.GenerateManifestReturns(manifest, nil)
+				fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{Manifest: manifest}, nil)
 
 				expectedInputParams.TextOutput = true
 				err := action.Execute(expectedInputParams, outputBuffer)
@@ -223,24 +223,34 @@ var _ = Describe("GenerateManifest", func() {
 			})
 
 			It("returns an error when manifestGenerator returns an error", func() {
-				fakeManifestGenerator.GenerateManifestReturns(bosh.BoshManifest{}, errors.New("something went wrong"))
+				fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{}, errors.New("something went wrong"))
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(BeACLIError(1, "something went wrong"))
 			})
 
-			It("returns an error when the manifest cannot be marshalled", func() {
+			It("returns an error when the manifest is invalid", func() {
 				var invalidYAML struct {
 					A int
 					B int `yaml:"a"`
 				}
 
-				fakeManifestGenerator.GenerateManifestReturns(bosh.BoshManifest{
-					Tags: map[string]interface{}{"foo": invalidYAML}},
-					nil,
-				)
+				manifest := bosh.BoshManifest{
+					Tags: map[string]interface{}{"foo": invalidYAML},
+				}
 
+				expectedInputParams.TextOutput = true
+				fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{Manifest: manifest}, nil)
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(MatchError(ContainSubstring("error marshalling bosh manifest")))
+			})
+
+			It("returns an error when the generated output cannot be marshalled", func() {
+				manifest := bosh.BoshManifest{
+					Tags: map[string]interface{}{"foo": make(chan int)},
+				}
+				fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{Manifest: manifest}, nil)
+				err := action.Execute(expectedInputParams, outputBuffer)
+				Expect(err).To(MatchError(ContainSubstring("error marshalling generate-manifest json output")))
 			})
 		})
 	})

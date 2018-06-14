@@ -21,16 +21,16 @@ import (
 )
 
 type BoshManifest struct {
-	Addons         []Addon                `yaml:"addons,omitempty"`
-	Name           string                 `yaml:"name"`
-	Releases       []Release              `yaml:"releases"`
-	Stemcells      []Stemcell             `yaml:"stemcells"`
-	InstanceGroups []InstanceGroup        `yaml:"instance_groups"`
-	Update         *Update                `yaml:"update"`
-	Properties     map[string]interface{} `yaml:"properties,omitempty"`
-	Variables      []Variable             `yaml:"variables,omitempty"`
-	Tags           map[string]interface{} `yaml:"tags,omitempty"`
-	Features       BoshFeatures           `yaml:"features,omitempty"`
+	Addons         []Addon                `yaml:"addons,omitempty" json:"addons"`
+	Name           string                 `yaml:"name" json:"name"`
+	Releases       []Release              `yaml:"releases" json:"releases"`
+	Stemcells      []Stemcell             `yaml:"stemcells" json:"stemcells"`
+	InstanceGroups []InstanceGroup        `yaml:"instance_groups" json:"instance_groups"`
+	Update         *Update                `yaml:"update" json:"update"`
+	Properties     map[string]interface{} `yaml:"properties,omitempty" json:"properties,omitempty"`
+	Variables      []Variable             `yaml:"variables,omitempty" json:"variables,omitempty"`
+	Tags           map[string]interface{} `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Features       BoshFeatures           `yaml:"features,omitempty" json:"features,omitempty"`
 }
 
 type BoshFeatures struct {

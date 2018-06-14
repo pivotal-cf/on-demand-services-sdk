@@ -31,7 +31,7 @@ import (
 
 //go:generate counterfeiter -o fakes/manifest_generator.go . ManifestGenerator
 type ManifestGenerator interface {
-	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan) (bosh.BoshManifest, error)
+	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan) (GenerateManifestOutput, error)
 }
 
 //go:generate counterfeiter -o fakes/binder.go . Binder
@@ -115,7 +115,7 @@ type InputParams struct {
 }
 
 type GenerateManifestOutput struct {
-	Manifest string `json:"manifest"`
+	Manifest bosh.BoshManifest `json:"manifest"`
 }
 
 const (
