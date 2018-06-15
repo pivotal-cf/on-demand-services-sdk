@@ -116,7 +116,16 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 		}
 		output = manifestBytes
 	} else {
-		output, err = json.Marshal(generateManifestOutput)
+		defer handleErr(&err)
+		manifestBytes, err := yaml.Marshal(generateManifestOutput.Manifest)
+		if err != nil {
+			return errors.Wrap(err, "error marshalling manifest yaml output")
+		}
+		marshalledOutput := MarshalledGenerateManifest{
+			Manifest:          string(manifestBytes),
+			ODBManagedSecrets: generateManifestOutput.ODBManagedSecrets,
+		}
+		output, err = json.Marshal(marshalledOutput)
 		if err != nil {
 			return errors.Wrap(err, "error marshalling generate-manifest json output")
 		}
@@ -128,6 +137,6 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 
 func handleErr(err *error) {
 	if v := recover(); v != nil {
-		*err = errors.Wrap(v.(error), "error marshalling bosh manifest")
+		*err = errors.New("error marshalling bosh manifest")
 	}
 }

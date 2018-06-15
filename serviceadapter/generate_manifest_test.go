@@ -155,9 +155,9 @@ var _ = Describe("GenerateManifest", func() {
 			Expect(actualPreviousManifest).To(Equal(&previousManifest))
 			Expect(actualPreviousPlan).To(Equal(&previousPlan))
 
-			var output serviceadapter.GenerateManifestOutput
+			var output serviceadapter.MarshalledGenerateManifest
 			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())
-			Expect(output.Manifest).To(Equal(manifest))
+			Expect(output.Manifest).To(Equal(toYaml(manifest)))
 		})
 
 		When("not outputting json", func() {
@@ -248,9 +248,10 @@ var _ = Describe("GenerateManifest", func() {
 				manifest := bosh.BoshManifest{
 					Tags: map[string]interface{}{"foo": make(chan int)},
 				}
+
 				fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{Manifest: manifest}, nil)
 				err := action.Execute(expectedInputParams, outputBuffer)
-				Expect(err).To(MatchError(ContainSubstring("error marshalling generate-manifest json output")))
+				Expect(err).To(MatchError(ContainSubstring("error marshalling bosh manifest")))
 			})
 		})
 	})

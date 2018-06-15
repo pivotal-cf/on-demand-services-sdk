@@ -121,6 +121,11 @@ type GenerateManifestOutput struct {
 	ODBManagedSecrets ODBManagedSecrets `json:"secrets"`
 }
 
+type MarshalledGenerateManifest struct {
+	Manifest          string            `json:"manifest"`
+	ODBManagedSecrets ODBManagedSecrets `json:"secrets"`
+}
+
 const (
 	ErrorExitCode                     = 1
 	NotImplementedExitCode            = 10
