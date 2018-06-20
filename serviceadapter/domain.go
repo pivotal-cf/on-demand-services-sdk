@@ -132,6 +132,8 @@ const (
 	BindingNotFoundErrorExitCode      = 41
 	AppGuidNotProvidedErrorExitCode   = 42
 	BindingAlreadyExistsErrorExitCode = 49
+
+	ODBSecretPrefix = "odb_secret"
 )
 
 type BindingAlreadyExistsError struct {
