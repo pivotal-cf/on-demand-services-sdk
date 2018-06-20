@@ -114,7 +114,7 @@ type InputParams struct {
 	TextOutput          bool                      `json:"-"`
 }
 
-type ODBManagedSecrets map[string]string
+type ODBManagedSecrets map[string]interface{}
 
 type GenerateManifestOutput struct {
 	Manifest          bosh.BoshManifest `json:"manifest"`
