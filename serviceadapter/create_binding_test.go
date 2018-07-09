@@ -20,6 +20,7 @@ var _ = Describe("CreateBinding", func() {
 		boshVMs       bosh.BoshVMs
 		requestParams serviceadapter.RequestParameters
 		manifest      bosh.BoshManifest
+		dnsAddresses  serviceadapter.DNSAddresses
 
 		expectedInputParams serviceadapter.InputParams
 		action              *serviceadapter.CreateBindingAction
@@ -128,19 +129,23 @@ var _ = Describe("CreateBinding", func() {
 			}
 			fakeBinder.CreateBindingReturns(binding, nil)
 
-			expectedInputParamsWithSecrets := expectedInputParams
-			expectedInputParamsWithSecrets.CreateBinding.Secrets = `{ "/foo": "{ \"status\": \"bar\" }" }`
-			err := action.Execute(expectedInputParamsWithSecrets, outputBuffer)
+			dnsAddresses = serviceadapter.DNSAddresses{
+				"config-1": "some-dns.bosh",
+			}
+			expectedInputParams.CreateBinding.DNSAddresses = toJson(dnsAddresses)
+			expectedInputParams.CreateBinding.Secrets = `{ "/foo": "{ \"status\": \"bar\" }" }`
+			err := action.Execute(expectedInputParams, outputBuffer)
 
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVms, actualManifest, actualRequestParams, actualSecrets := fakeBinder.CreateBindingArgsForCall(0)
+			actualBindingId, actualBoshVms, actualManifest, actualRequestParams, actualSecrets, actualDNSAddresses := fakeBinder.CreateBindingArgsForCall(0)
 
 			Expect(actualBindingId).To(Equal(bindingId))
 			Expect(actualBoshVms).To(Equal(boshVMs))
 			Expect(actualManifest).To(Equal(manifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
+			Expect(actualDNSAddresses).To(Equal(dnsAddresses))
 			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{
 				"/foo": `{ "status": "bar" }`,
 			}))
@@ -173,6 +178,12 @@ var _ = Describe("CreateBinding", func() {
 				expectedInputParams.CreateBinding.Secrets = "not-json"
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(MatchError(ContainSubstring("unmarshalling secrets")))
+			})
+
+			It("returns an error when DNS addresses cannot be unmarshalled", func() {
+				expectedInputParams.CreateBinding.DNSAddresses = "not-json"
+				err := action.Execute(expectedInputParams, outputBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling DNS addresses")))
 			})
 
 			It("returns an generic error when binder returns an error", func() {

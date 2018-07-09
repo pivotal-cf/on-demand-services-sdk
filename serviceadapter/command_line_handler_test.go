@@ -203,7 +203,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, actualSecrets :=
+			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, actualSecrets, actualDNSAddresses :=
 				fakeBinder.CreateBindingArgsForCall(0)
 
 			Expect(actualBindingId).To(Equal(bindingID))
@@ -211,6 +211,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(actualManifest).To(Equal(previousManifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
 			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{}))
+			Expect(actualDNSAddresses).To(Equal(serviceadapter.DNSAddresses{}))
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
 		})
@@ -233,7 +234,7 @@ var _ = Describe("CommandLineHandler", func() {
 
 			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
 
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, actualSecrets :=
+			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, actualSecrets, actualDNSAddresses :=
 				fakeBinder.CreateBindingArgsForCall(0)
 
 			Expect(actualBindingId).To(Equal(bindingID))
@@ -241,6 +242,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(actualManifest).To(Equal(previousManifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
 			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{}))
+			Expect(actualDNSAddresses).To(Equal(serviceadapter.DNSAddresses{}))
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
 		})

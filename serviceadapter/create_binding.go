@@ -16,6 +16,7 @@ type CreateBindingAction struct {
 }
 
 type ManifestSecrets map[string]string
+type DNSAddresses map[string]string
 
 func NewCreateBindingAction(binder Binder) *CreateBindingAction {
 	action := CreateBindingAction{
@@ -87,7 +88,14 @@ func (a *CreateBindingAction) Execute(inputParams InputParams, outputWriter io.W
 		}
 	}
 
-	binding, err := a.bindingCreator.CreateBinding(inputParams.CreateBinding.BindingId, boshVMs, manifest, reqParams, secrets)
+	dnsAddresses := DNSAddresses{}
+	if inputParams.CreateBinding.DNSAddresses != "" {
+		if err := json.Unmarshal([]byte(inputParams.CreateBinding.DNSAddresses), &dnsAddresses); err != nil {
+			return errors.Wrap(err, "unmarshalling DNS addresses")
+		}
+	}
+
+	binding, err := a.bindingCreator.CreateBinding(inputParams.CreateBinding.BindingId, boshVMs, manifest, reqParams, secrets, dnsAddresses)
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())
 		switch err := err.(type) {
