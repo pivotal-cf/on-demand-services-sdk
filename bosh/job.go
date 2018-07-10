@@ -24,12 +24,18 @@ type Job struct {
 }
 
 type ProvidesLink struct {
-	As string `yaml:"as"`
+	As     string `yaml:"as,omitempty"`
+	Shared bool   `yaml:"shared,omitempty"`
 }
 
 type ConsumesLink struct {
-	From       string `yaml:"from"`
+	From       string `yaml:"from,omitempty"`
 	Deployment string `yaml:"deployment,omitempty"`
+	Network    string `yaml:"network,omitempty"`
+}
+
+func (j Job) AddSharedProvidesLink(name string) Job {
+	return j.addProvidesLink(name, ProvidesLink{Shared: true})
 }
 
 func (j Job) AddConsumesLink(name, fromJob string) Job {
@@ -49,5 +55,13 @@ func (j Job) addConsumesLink(name string, value interface{}) Job {
 		j.Consumes = map[string]interface{}{}
 	}
 	j.Consumes[name] = value
+	return j
+}
+
+func (j Job) addProvidesLink(name string, providesLink ProvidesLink) Job {
+	if j.Provides == nil {
+		j.Provides = map[string]ProvidesLink{}
+	}
+	j.Provides[name] = providesLink
 	return j
 }

@@ -22,12 +22,20 @@ import (
 )
 
 var _ = Describe("bosh jobs", func() {
-	It("can add links", func() {
+	It("can add consumer links", func() {
 		job := bosh.Job{}.
 			AddConsumesLink("foo", "a-job").
 			AddConsumesLink("bar", "other-job")
 		Expect(job.Consumes["foo"]).To(Equal(bosh.ConsumesLink{From: "a-job"}))
 		Expect(job.Consumes["bar"]).To(Equal(bosh.ConsumesLink{From: "other-job"}))
+	})
+
+	It("can add provider links", func() {
+		job := bosh.Job{}.
+			AddSharedProvidesLink("foo").
+			AddSharedProvidesLink("bar")
+		Expect(job.Provides["foo"]).To(Equal(bosh.ProvidesLink{Shared: true}))
+		Expect(job.Provides["bar"]).To(Equal(bosh.ProvidesLink{Shared: true}))
 	})
 
 	It("can cross deployment links", func() {
