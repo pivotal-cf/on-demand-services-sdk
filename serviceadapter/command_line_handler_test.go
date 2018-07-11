@@ -217,12 +217,16 @@ var _ = Describe("CommandLineHandler", func() {
 		})
 
 		It("succeeds with arguments from stdin", func() {
+			dnsAddresses := serviceadapter.DNSAddresses{
+				"some-config": "a.dns.address.for.bosh",
+			}
 			rawInputParams := serviceadapter.InputParams{
 				CreateBinding: serviceadapter.CreateBindingParams{
 					RequestParameters: toJson(requestParams),
 					BindingId:         bindingID,
 					BoshVms:           toJson(boshVMs),
 					Manifest:          toYaml(previousManifest),
+					DNSAddresses:      toJson(dnsAddresses),
 				},
 			}
 
@@ -242,7 +246,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(actualManifest).To(Equal(previousManifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
 			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{}))
-			Expect(actualDNSAddresses).To(Equal(serviceadapter.DNSAddresses{}))
+			Expect(actualDNSAddresses).To(Equal(dnsAddresses))
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
 		})
