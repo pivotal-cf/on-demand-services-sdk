@@ -42,7 +42,12 @@ instance_groups:
         remove_static_libraries: false
         swap_size: 0
       something_else: foo
-
+    update:
+      canaries: 1
+      canary_watch_time: 30000-180000
+      update_watch_time: 30000-180000
+      max_in_flight: 10
+      serial: false
   - name: an-errand
     lifecycle: errand
     instances: 1
