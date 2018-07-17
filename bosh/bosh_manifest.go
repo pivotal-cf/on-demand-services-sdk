@@ -80,6 +80,7 @@ type InstanceGroup struct {
 	Properties         map[string]interface{} `yaml:"properties,omitempty"`
 	MigratedFrom       []Migration            `yaml:"migrated_from,omitempty"`
 	Env                map[string]interface{} `yaml:"env,omitempty"`
+	Update             *Update                `yaml:"update,omitempty"`
 }
 
 type Migration struct {

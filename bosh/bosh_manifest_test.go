@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
@@ -97,6 +98,13 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 						"swap_size":               0,
 					},
 					"something_else": "foo",
+				},
+				Update: &bosh.Update{
+					Canaries:        1,
+					CanaryWatchTime: "30000-180000",
+					UpdateWatchTime: "30000-180000",
+					MaxInFlight:     10,
+					Serial:          boolPointer(false),
 				},
 			},
 			{
@@ -222,6 +230,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("migrated_from:"))
 		Expect(content).NotTo(ContainSubstring("tags:"))
 		Expect(content).NotTo(ContainSubstring("features:"))
+		Expect(strings.Count(string(content), "update:")).To(Equal(1))
 	})
 
 	It("omits optional options from Variables", func() {
