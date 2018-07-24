@@ -210,8 +210,8 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(actualBoshVMs).To(Equal(boshVMs))
 			Expect(actualManifest).To(Equal(previousManifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
-			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{}))
-			Expect(actualDNSAddresses).To(Equal(serviceadapter.DNSAddresses{}))
+			Expect(actualSecrets).To(BeNil())
+			Expect(actualDNSAddresses).To(BeNil())
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
 		})
@@ -245,7 +245,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(actualBoshVMs).To(Equal(boshVMs))
 			Expect(actualManifest).To(Equal(previousManifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
-			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{}))
+			Expect(actualSecrets).To(BeNil())
 			Expect(actualDNSAddresses).To(Equal(dnsAddresses))
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
