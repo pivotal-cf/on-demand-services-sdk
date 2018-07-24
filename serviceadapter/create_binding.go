@@ -81,14 +81,14 @@ func (a *CreateBindingAction) Execute(inputParams InputParams, outputWriter io.W
 		return errors.Wrap(err, "unmarshalling request binding parameters")
 	}
 
-	secrets := ManifestSecrets{}
+	var secrets ManifestSecrets
 	if inputParams.CreateBinding.Secrets != "" {
 		if err := json.Unmarshal([]byte(inputParams.CreateBinding.Secrets), &secrets); err != nil {
 			return errors.Wrap(err, "unmarshalling secrets")
 		}
 	}
 
-	dnsAddresses := DNSAddresses{}
+	var dnsAddresses DNSAddresses
 	if inputParams.CreateBinding.DNSAddresses != "" {
 		if err := json.Unmarshal([]byte(inputParams.CreateBinding.DNSAddresses), &dnsAddresses); err != nil {
 			return errors.Wrap(err, "unmarshalling DNS addresses")
