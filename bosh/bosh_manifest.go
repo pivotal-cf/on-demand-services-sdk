@@ -106,6 +106,7 @@ type Update struct {
 	UpdateWatchTime string           `yaml:"update_watch_time"`
 	MaxInFlight     MaxInFlightValue `yaml:"max_in_flight"`
 	Serial          *bool            `yaml:"serial,omitempty"`
+	VmStrategy      string           `yaml:"vm_strategy,omitempty"`
 }
 
 type updateAlias Update
