@@ -73,12 +73,11 @@ type DashboardUrl struct {
 }
 
 type GenerateManifestParams struct {
-	ServiceDeployment     string `json:"service_deployment"`
-	Plan                  string `json:"plan"`
-	PreviousPlan          string `json:"previous_plan"`
-	PreviousManifest      string `json:"previous_manifest"`
-	RequestParameters     string `json:"request_parameters"`
-	SecureManifestEnabled bool   `json:"secure_manifest_enabled"`
+	ServiceDeployment string `json:"service_deployment"`
+	Plan              string `json:"plan"`
+	PreviousPlan      string `json:"previous_plan"`
+	PreviousManifest  string `json:"previous_manifest"`
+	RequestParameters string `json:"request_parameters"`
 }
 
 type DashboardUrlParams struct {
