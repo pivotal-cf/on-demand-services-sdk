@@ -71,6 +71,10 @@ func defaultRequestParams() serviceadapter.RequestParameters {
 	return serviceadapter.RequestParameters{"key": "foo", "bar": "baz"}
 }
 
+func defaultSecretParams() serviceadapter.ManifestSecrets {
+	return serviceadapter.ManifestSecrets{"((/a/secret/path))": "some r34||y s3cr3t v41", "((another))": "one"}
+}
+
 func defaultPlan() serviceadapter.Plan {
 	return serviceadapter.Plan{
 		InstanceGroups: []serviceadapter.InstanceGroup{{

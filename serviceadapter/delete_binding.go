@@ -77,7 +77,14 @@ func (d *DeleteBindingAction) Execute(inputParams InputParams, outputWriter io.W
 		return errors.Wrap(err, "unmarshalling request binding parameters")
 	}
 
-	err := d.unbinder.DeleteBinding(inputParams.DeleteBinding.BindingId, boshVMs, manifest, reqParams)
+	var secrets ManifestSecrets
+	if inputParams.DeleteBinding.Secrets != "" {
+		if err := json.Unmarshal([]byte(inputParams.DeleteBinding.Secrets), &secrets); err != nil {
+			return errors.Wrap(err, "unmarshalling secrets")
+		}
+	}
+
+	err := d.unbinder.DeleteBinding(inputParams.DeleteBinding.BindingId, boshVMs, manifest, reqParams, secrets)
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())
 		switch err.(type) {

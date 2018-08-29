@@ -54,6 +54,7 @@ var _ = Describe("CommandLineHandler", func() {
 		previousManifestYAML  string
 		requestParams         serviceadapter.RequestParameters
 		requestParamsJSON     string
+		secrets               serviceadapter.ManifestSecrets
 		bindingID             string
 		instanceID            string
 		boshVMs               bosh.BoshVMs
@@ -88,6 +89,7 @@ var _ = Describe("CommandLineHandler", func() {
 
 		requestParams = defaultRequestParams()
 		requestParamsJSON = toJson(requestParams)
+		secrets = defaultSecretParams()
 		bindingID = "my-binding-id"
 		instanceID = "my-instance-id"
 		boshVMs = bosh.BoshVMs{"kafka": []string{"a", "b"}}
@@ -366,14 +368,13 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, _ :=
 				fakeBinder.DeleteBindingArgsForCall(0)
 
 			Expect(actualBindingId).To(Equal(bindingID))
 			Expect(actualBoshVMs).To(Equal(boshVMs))
 			Expect(actualManifest).To(Equal(previousManifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
-
 		})
 
 		It("succeeds with arguments from stdin", func() {
@@ -383,6 +384,7 @@ var _ = Describe("CommandLineHandler", func() {
 					BindingId:         bindingID,
 					BoshVms:           toJson(boshVMs),
 					Manifest:          toYaml(previousManifest),
+					Secrets:           toJson(secrets),
 				},
 			}
 
@@ -393,13 +395,14 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams :=
+			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, actualSecrets :=
 				fakeBinder.DeleteBindingArgsForCall(0)
 
 			Expect(actualBindingId).To(Equal(bindingID))
 			Expect(actualBoshVMs).To(Equal(boshVMs))
 			Expect(actualManifest).To(Equal(previousManifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
+			Expect(actualSecrets).To(Equal(secrets))
 		})
 
 		It("returns a not-implemented error where there is no binder handler", func() {

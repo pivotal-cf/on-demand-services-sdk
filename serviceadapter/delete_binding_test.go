@@ -18,6 +18,7 @@ var _ = Describe("DeleteBinding", func() {
 		bindingId     string
 		boshVMs       bosh.BoshVMs
 		requestParams serviceadapter.RequestParameters
+		secrets       serviceadapter.ManifestSecrets
 		manifest      bosh.BoshManifest
 
 		expectedInputParams serviceadapter.InputParams
@@ -30,6 +31,7 @@ var _ = Describe("DeleteBinding", func() {
 		bindingId = "binding-id"
 		boshVMs = bosh.BoshVMs{}
 		requestParams = defaultRequestParams()
+		secrets = defaultSecretParams()
 		manifest = defaultManifest()
 		outputBuffer = gbytes.NewBuffer()
 
@@ -59,6 +61,7 @@ var _ = Describe("DeleteBinding", func() {
 	Describe("ParseArgs", func() {
 		When("giving arguments in stdin", func() {
 			It("can parse arguments from stdin", func() {
+				expectedInputParams.DeleteBinding.Secrets = toJson(defaultSecretParams())
 				input := bytes.NewBuffer([]byte(toJson(expectedInputParams)))
 				actualInputParams, err := action.ParseArgs(input, []string{})
 
@@ -112,17 +115,19 @@ var _ = Describe("DeleteBinding", func() {
 		It("calls the supplied handler passing args through", func() {
 			fakeBinder.DeleteBindingReturns(nil)
 
+			expectedInputParams.DeleteBinding.Secrets = toJson(secrets)
 			err := action.Execute(expectedInputParams, outputBuffer)
 
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVms, actualManifest, actualRequestParams := fakeBinder.DeleteBindingArgsForCall(0)
+			actualBindingId, actualBoshVms, actualManifest, actualRequestParams, actualSecrets := fakeBinder.DeleteBindingArgsForCall(0)
 
 			Expect(actualBindingId).To(Equal(bindingId))
 			Expect(actualBoshVms).To(Equal(boshVMs))
 			Expect(actualManifest).To(Equal(manifest))
 			Expect(actualRequestParams).To(Equal(requestParams))
+			Expect(actualSecrets).To(Equal(secrets))
 		})
 
 		Context("error handling", func() {
@@ -142,6 +147,12 @@ var _ = Describe("DeleteBinding", func() {
 				expectedInputParams.DeleteBinding.RequestParameters = "not-json"
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(MatchError(ContainSubstring("unmarshalling request binding parameters")))
+			})
+
+			It("returns an error when secrets cannot be unmarshalled", func() {
+				expectedInputParams.DeleteBinding.Secrets = "not-json"
+				err := action.Execute(expectedInputParams, outputBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling secrets")))
 			})
 
 			It("returns an error when binder returns an error", func() {

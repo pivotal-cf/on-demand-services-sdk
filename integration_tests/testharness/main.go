@@ -98,7 +98,7 @@ func (b *binder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs
 	return testvariables.SuccessfulBinding, nil
 }
 
-func (b *binder) DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters) error {
+func (b *binder) DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters, secrets serviceadapter.ManifestSecrets) error {
 	switch os.Getenv(testvariables.OperationFailsKey) {
 	case testvariables.ErrBindingNotFound:
 		return serviceadapter.NewBindingNotFoundError(errors.New("not found"))

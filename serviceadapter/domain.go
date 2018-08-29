@@ -37,7 +37,7 @@ type ManifestGenerator interface {
 //go:generate counterfeiter -o fakes/binder.go . Binder
 type Binder interface {
 	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters, secrets ManifestSecrets, dnsAddresses DNSAddresses) (Binding, error)
-	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters) error
+	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters, secrets ManifestSecrets) error
 }
 
 //go:generate counterfeiter -o fakes/dashboard_url_generator.go . DashboardUrlGenerator
@@ -101,6 +101,7 @@ type DeleteBindingParams struct {
 	BoshVms           string `json:"bosh_vms"`
 	Manifest          string `json:"manifest"`
 	RequestParameters string `json:"request_parameters"`
+	Secrets           string `json:"secrets"`
 }
 
 type GeneratePlanSchemasParams struct {
