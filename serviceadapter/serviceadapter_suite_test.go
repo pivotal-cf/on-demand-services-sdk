@@ -162,7 +162,7 @@ func (c CLIErrorMatcher) Match(actual interface{}) (bool, error) {
 
 	theError, ok := actual.(serviceadapter.CLIHandlerError)
 	if !ok {
-		return false, errors.New("Expected error to be of type serviceadapter.CLIHandlerError")
+		return false, fmt.Errorf("Expected error to be of type serviceadapter.CLIHandlerError, instead got '%v'", actual)
 	}
 
 	if theError.ExitCode != c.exitCode {
