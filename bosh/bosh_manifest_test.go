@@ -135,6 +135,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 			UpdateWatchTime: "30000-180000",
 			MaxInFlight:     4,
 			Serial:          boolPointer(false),
+			VmStrategy:      "create-and-swap",
 		},
 		Variables: []bosh.Variable{
 			bosh.Variable{
@@ -230,6 +231,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("migrated_from:"))
 		Expect(content).NotTo(ContainSubstring("tags:"))
 		Expect(content).NotTo(ContainSubstring("features:"))
+		Expect(content).NotTo(ContainSubstring("vm_strategy:"))
 		Expect(strings.Count(string(content), "update:")).To(Equal(1))
 	})
 
