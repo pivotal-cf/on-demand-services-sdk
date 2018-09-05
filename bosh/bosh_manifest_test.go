@@ -147,8 +147,18 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 				Type: "certificate",
 				Options: map[string]interface{}{
 					"is_ca":             true,
-					"common_name":       "some-ca",
 					"alternative_names": []string{"some-other-ca"},
+				},
+				Consumes: bosh.VariableConsumes{
+					AlternativeName: bosh.VariableConsumesLink{
+						From: "my-custom-app-server-address",
+					},
+					CommonName: bosh.VariableConsumesLink{
+						From: "my-custom-app-server-address",
+						Properties: map[string]interface{}{
+							"wildcard": true,
+						},
+					},
 				},
 			},
 		},

@@ -50,9 +50,20 @@ type Addon struct {
 }
 
 type Variable struct {
-	Name    string                 `yaml:"name"`
-	Type    string                 `yaml:"type"`
-	Options map[string]interface{} `yaml:"options,omitempty"`
+	Name     string                 `yaml:"name"`
+	Type     string                 `yaml:"type"`
+	Options  map[string]interface{} `yaml:"options,omitempty"`
+	Consumes VariableConsumes       `yaml:"consumes,omitempty"`
+}
+
+type VariableConsumes struct {
+	AlternativeName VariableConsumesLink `yaml:"alternative_name,omitempty"`
+	CommonName      VariableConsumesLink `yaml:"common_name,omitempty"`
+}
+
+type VariableConsumesLink struct {
+	From       string                 `yaml:"from"`
+	Properties map[string]interface{} `yaml:"properties,omitempty"`
 }
 
 type Release struct {

@@ -66,8 +66,14 @@ variables:
   type: certificate
   options:
     is_ca: true
-    common_name: some-ca
     alternative_names: [some-other-ca]
+  consumes:
+    alternative_name:
+      from: my-custom-app-server-address
+    common_name:
+      from: my-custom-app-server-address
+      properties:
+        wildcard: true
 update:
   canaries: 1
   canary_watch_time: 30000-180000
