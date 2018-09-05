@@ -53,7 +53,7 @@ type Variable struct {
 	Name     string                 `yaml:"name"`
 	Type     string                 `yaml:"type"`
 	Options  map[string]interface{} `yaml:"options,omitempty"`
-	Consumes VariableConsumes       `yaml:"consumes,omitempty"`
+	Consumes *VariableConsumes      `yaml:"consumes,omitempty"`
 }
 
 type VariableConsumes struct {

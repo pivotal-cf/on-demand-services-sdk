@@ -152,7 +152,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 					"is_ca":             true,
 					"alternative_names": []string{"some-other-ca"},
 				},
-				Consumes: bosh.VariableConsumes{
+				Consumes: &bosh.VariableConsumes{
 					AlternativeName: bosh.VariableConsumesLink{
 						From: "my-custom-app-server-address",
 					},
@@ -245,10 +245,11 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 		Expect(content).NotTo(ContainSubstring("tags:"))
 		Expect(content).NotTo(ContainSubstring("features:"))
 		Expect(content).NotTo(ContainSubstring("vm_strategy:"))
+		Expect(content).NotTo(ContainSubstring("custom_provider_definitions:"))
 		Expect(strings.Count(string(content), "update:")).To(Equal(1))
 	})
 
-	It("omits optional options from Variables", func() {
+	It("omits optional keys from Variables", func() {
 		emptyManifest := bosh.BoshManifest{
 			Variables: []bosh.Variable{
 				bosh.Variable{
@@ -261,6 +262,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 		content, err := yaml.Marshal(emptyManifest)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(content).NotTo(ContainSubstring("options:"))
+		Expect(content).NotTo(ContainSubstring("consumes:"))
 	})
 
 	It("includes set properties and omits unset properties in Features", func() {
