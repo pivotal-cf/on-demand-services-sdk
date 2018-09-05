@@ -21,6 +21,12 @@ instance_groups:
         consumes:
           another_link: {from: jerb-link}
           nullified_link: nil
+        custom_provider_definitions:
+          - name: some-custom-link
+            type: some-link-type
+            properties:
+            - prop1
+            - url
         properties:
           some_property: some_value
     vm_type: massive

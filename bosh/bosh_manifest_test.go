@@ -67,6 +67,9 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 							"another_link":   bosh.ConsumesLink{From: "jerb-link"},
 							"nullified_link": "nil",
 						},
+						CustomProviderDefinitions: []bosh.CustomProviderDefinition{
+							{Name: "some-custom-link", Type: "some-link-type", Properties: []string{"prop1", "url"}},
+						},
 						Properties: map[string]interface{}{
 							"some_property": "some_value",
 						},
