@@ -47,4 +47,15 @@ var _ = Describe("bosh jobs", func() {
 		job := bosh.Job{}.AddNullifiedConsumesLink("not-wired")
 		Expect(job.Consumes["not-wired"]).To(Equal("nil")) // Yes, this really should be string "nil"
 	})
+
+	It("can add custom provider definitions", func() {
+		job := bosh.Job{}.AddCustomProviderDefinition("some-name", "some-type", []string{"prop1"})
+		job = job.AddCustomProviderDefinition("some-other", "some-other-type", nil)
+		Expect(job.CustomProviderDefinitions).To(
+			ConsistOf(
+				bosh.CustomProviderDefinition{Name: "some-name", Type: "some-type", Properties: []string{"prop1"}},
+				bosh.CustomProviderDefinition{Name: "some-other", Type: "some-other-type"},
+			),
+		)
+	})
 })

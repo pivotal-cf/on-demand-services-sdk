@@ -41,6 +41,17 @@ type ConsumesLink struct {
 	Network    string `yaml:"network,omitempty"`
 }
 
+func (j Job) AddCustomProviderDefinition(name, providerType string, properties []string) Job {
+	if j.CustomProviderDefinitions == nil {
+		j.CustomProviderDefinitions = []CustomProviderDefinition{}
+	}
+	j.CustomProviderDefinitions = append(
+		j.CustomProviderDefinitions,
+		CustomProviderDefinition{Name: name, Type: providerType, Properties: properties},
+	)
+	return j
+}
+
 func (j Job) AddSharedProvidesLink(name string) Job {
 	return j.addProvidesLink(name, ProvidesLink{Shared: true})
 }
