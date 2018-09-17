@@ -3,23 +3,30 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:0c15dd74b13a40dfe9c77840568167e78df00d25a1344e3685020d36b1ae6464"
   name = "code.cloudfoundry.org/lager"
   packages = ["."]
+  pruneopts = "UT"
   revision = "a77e1033ba8d8e36597be5c0d384ee6054105bc2"
 
 [[projects]]
+  digest = "1:160eabf7a69910fd74f29c692718bc2437c1c1c7d4c9dea9712357752a70e5df"
   name = "github.com/gorilla/context"
   packages = ["."]
+  pruneopts = "UT"
   revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
   version = "v1.1"
 
 [[projects]]
+  digest = "1:3c44722a6360b8d8abf6f70f122c69007189be992a150e39571224c54a9bc380"
   name = "github.com/gorilla/mux"
   packages = ["."]
+  pruneopts = "UT"
   revision = "7f08801859139f86dfafd1c296e2cba9a80d292e"
   version = "v1.6.0"
 
 [[projects]]
+  digest = "1:14327fe738e2d365af75e7d870ae5ecf03eea9d910e127b1d2ea5bd2cac477aa"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -40,12 +47,14 @@
     "reporters/stenographer",
     "reporters/stenographer/support/go-colorable",
     "reporters/stenographer/support/go-isatty",
-    "types"
+    "types",
   ]
+  pruneopts = "UT"
   revision = "fa5fabab2a1bfbd924faf4c067d07ae414e2aedf"
   version = "v1.5.0"
 
 [[projects]]
+  digest = "1:714c6da391ddef79e2a4f0a892352e203d554f95370fe2c16417071022bc5da1"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -61,43 +70,53 @@
     "matchers/support/goraph/edge",
     "matchers/support/goraph/node",
     "matchers/support/goraph/util",
-    "types"
+    "types",
   ]
+  pruneopts = "UT"
   revision = "62bff4df71bdbc266561a0caee19f0594b17c240"
   version = "v1.4.0"
 
 [[projects]]
+  digest = "1:8f1c30a8c970e49e491c6ff2f01267eeb7525a0a04c7cc1e178f0a11402b71e1"
   name = "github.com/pivotal-cf/brokerapi"
   packages = [
     ".",
-    "auth"
+    "auth",
   ]
-  revision = "bc29a3e7d6f911097c2c4998fc7cc7a408cc4268"
-  version = "v2.0.1"
+  pruneopts = "UT"
+  revision = "1d947bc993fc9a770418577540bebabb8657980a"
+  version = "v2.0.5"
 
 [[projects]]
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:0016922c9d04af9df4c4af9ca2b7f3f8abfa85fa510fbc4d1fb09e54cb2e63c3"
   name = "golang.org/x/net"
   packages = [
     "html",
     "html/atom",
-    "html/charset"
+    "html/charset",
   ]
+  pruneopts = "UT"
   revision = "0ed95abb35c445290478a5348a7b38bb154135fd"
 
 [[projects]]
+  digest = "1:e16c53d2592b2ba64d1a6da684a952bdff8815ed8b901b220fe875864b664643"
   name = "golang.org/x/sys"
   packages = ["unix"]
+  pruneopts = "UT"
   revision = "a408501be4d17ee978c04a618e7a1b22af058c0e"
 
 [[projects]]
   branch = "master"
+  digest = "1:aa4d6967a3237f8367b6bf91503964a77183ecf696f1273e8ad3551bb4412b5f"
   name = "golang.org/x/text"
   packages = [
     "encoding",
@@ -116,25 +135,41 @@
     "language",
     "runes",
     "transform",
-    "unicode/cldr"
+    "unicode/cldr",
   ]
+  pruneopts = "UT"
   revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
 
 [[projects]]
+  digest = "1:1b4724d3c8125f6044925f02b485b74bfec9905cbf579d95aafd1a6c8f8447d3"
   name = "gopkg.in/go-playground/validator.v8"
   packages = ["."]
+  pruneopts = "UT"
   revision = "5f57d2222ad794d0dffb07e664ea05e2ee07d60c"
   version = "v8.18.1"
 
 [[projects]]
   branch = "v2"
+  digest = "1:73e6fda93622790d2371344759df06ff5ff2fac64a6b6e8832b792e7402956e7"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = "UT"
   revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "62247d97cd45ddfd4de5a26f561e47134d392edb0a08be85fa7ddc32bea1316f"
+  input-imports = [
+    "github.com/onsi/ginkgo",
+    "github.com/onsi/ginkgo/extensions/table",
+    "github.com/onsi/gomega",
+    "github.com/onsi/gomega/gbytes",
+    "github.com/onsi/gomega/gexec",
+    "github.com/onsi/gomega/types",
+    "github.com/pivotal-cf/brokerapi",
+    "github.com/pkg/errors",
+    "gopkg.in/go-playground/validator.v8",
+    "gopkg.in/yaml.v2",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
