@@ -150,6 +150,8 @@ var (
 	expectedManifest = expectedPreviousManifest
 
 	expectedUnbindingRequestParams = serviceadapter.RequestParameters{"unbinding_param": "unbinding_value"}
+
+	expectedSecretsMap = serviceadapter.ODBManagedSecrets{"foo": "bar"}
 )
 
 var _ = Describe("Command line handler", func() {
@@ -270,6 +272,7 @@ var _ = Describe("Command line handler", func() {
 						PreviousPlan:      toJson(expectedPreviousPlan),
 						RequestParameters: toJson(expectedRequestParams),
 						PreviousManifest:  toYaml(expectedPreviousManifest),
+						PreviousSecrets:   toJson(expectedSecretsMap),
 					},
 				}
 				exitCode = startCommandWithStdinAndGetExitCode([]string{"generate-manifest"},

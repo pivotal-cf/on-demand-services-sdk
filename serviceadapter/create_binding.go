@@ -15,9 +15,6 @@ type CreateBindingAction struct {
 	bindingCreator Binder
 }
 
-type ManifestSecrets map[string]string
-type DNSAddresses map[string]string
-
 func NewCreateBindingAction(binder Binder) *CreateBindingAction {
 	action := CreateBindingAction{
 		bindingCreator: binder,

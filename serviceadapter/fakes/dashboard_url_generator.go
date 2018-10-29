@@ -2,19 +2,19 @@
 package fakes
 
 import (
-	"sync"
+	sync "sync"
 
-	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
-	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
+	bosh "github.com/pivotal-cf/on-demand-services-sdk/bosh"
+	serviceadapter "github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
 )
 
 type FakeDashboardUrlGenerator struct {
-	DashboardUrlStub        func(instanceID string, plan serviceadapter.Plan, manifest bosh.BoshManifest) (serviceadapter.DashboardUrl, error)
+	DashboardUrlStub        func(string, serviceadapter.Plan, bosh.BoshManifest) (serviceadapter.DashboardUrl, error)
 	dashboardUrlMutex       sync.RWMutex
 	dashboardUrlArgsForCall []struct {
-		instanceID string
-		plan       serviceadapter.Plan
-		manifest   bosh.BoshManifest
+		arg1 string
+		arg2 serviceadapter.Plan
+		arg3 bosh.BoshManifest
 	}
 	dashboardUrlReturns struct {
 		result1 serviceadapter.DashboardUrl
@@ -28,23 +28,24 @@ type FakeDashboardUrlGenerator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDashboardUrlGenerator) DashboardUrl(instanceID string, plan serviceadapter.Plan, manifest bosh.BoshManifest) (serviceadapter.DashboardUrl, error) {
+func (fake *FakeDashboardUrlGenerator) DashboardUrl(arg1 string, arg2 serviceadapter.Plan, arg3 bosh.BoshManifest) (serviceadapter.DashboardUrl, error) {
 	fake.dashboardUrlMutex.Lock()
 	ret, specificReturn := fake.dashboardUrlReturnsOnCall[len(fake.dashboardUrlArgsForCall)]
 	fake.dashboardUrlArgsForCall = append(fake.dashboardUrlArgsForCall, struct {
-		instanceID string
-		plan       serviceadapter.Plan
-		manifest   bosh.BoshManifest
-	}{instanceID, plan, manifest})
-	fake.recordInvocation("DashboardUrl", []interface{}{instanceID, plan, manifest})
+		arg1 string
+		arg2 serviceadapter.Plan
+		arg3 bosh.BoshManifest
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("DashboardUrl", []interface{}{arg1, arg2, arg3})
 	fake.dashboardUrlMutex.Unlock()
 	if fake.DashboardUrlStub != nil {
-		return fake.DashboardUrlStub(instanceID, plan, manifest)
+		return fake.DashboardUrlStub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.dashboardUrlReturns.result1, fake.dashboardUrlReturns.result2
+	fakeReturns := fake.dashboardUrlReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeDashboardUrlGenerator) DashboardUrlCallCount() int {
@@ -53,13 +54,22 @@ func (fake *FakeDashboardUrlGenerator) DashboardUrlCallCount() int {
 	return len(fake.dashboardUrlArgsForCall)
 }
 
+func (fake *FakeDashboardUrlGenerator) DashboardUrlCalls(stub func(string, serviceadapter.Plan, bosh.BoshManifest) (serviceadapter.DashboardUrl, error)) {
+	fake.dashboardUrlMutex.Lock()
+	defer fake.dashboardUrlMutex.Unlock()
+	fake.DashboardUrlStub = stub
+}
+
 func (fake *FakeDashboardUrlGenerator) DashboardUrlArgsForCall(i int) (string, serviceadapter.Plan, bosh.BoshManifest) {
 	fake.dashboardUrlMutex.RLock()
 	defer fake.dashboardUrlMutex.RUnlock()
-	return fake.dashboardUrlArgsForCall[i].instanceID, fake.dashboardUrlArgsForCall[i].plan, fake.dashboardUrlArgsForCall[i].manifest
+	argsForCall := fake.dashboardUrlArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeDashboardUrlGenerator) DashboardUrlReturns(result1 serviceadapter.DashboardUrl, result2 error) {
+	fake.dashboardUrlMutex.Lock()
+	defer fake.dashboardUrlMutex.Unlock()
 	fake.DashboardUrlStub = nil
 	fake.dashboardUrlReturns = struct {
 		result1 serviceadapter.DashboardUrl
@@ -68,6 +78,8 @@ func (fake *FakeDashboardUrlGenerator) DashboardUrlReturns(result1 serviceadapte
 }
 
 func (fake *FakeDashboardUrlGenerator) DashboardUrlReturnsOnCall(i int, result1 serviceadapter.DashboardUrl, result2 error) {
+	fake.dashboardUrlMutex.Lock()
+	defer fake.dashboardUrlMutex.Unlock()
 	fake.DashboardUrlStub = nil
 	if fake.dashboardUrlReturnsOnCall == nil {
 		fake.dashboardUrlReturnsOnCall = make(map[int]struct {

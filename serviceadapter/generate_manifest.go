@@ -101,7 +101,14 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 		}
 	}
 
-	generateManifestOutput, err := g.manifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan)
+	previousSecrets := ManifestSecrets{}
+	if generateManifestParams.PreviousSecrets != "" {
+		if err = json.Unmarshal([]byte(generateManifestParams.PreviousSecrets), &previousSecrets); err != nil {
+			return errors.Wrap(err, "unmarshalling previous secrets")
+		}
+	}
+
+	generateManifestOutput, err := g.manifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan, previousSecrets)
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())
 		return CLIHandlerError{ErrorExitCode, err.Error()}

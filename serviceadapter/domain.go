@@ -31,7 +31,7 @@ import (
 
 //go:generate counterfeiter -o fakes/manifest_generator.go . ManifestGenerator
 type ManifestGenerator interface {
-	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan) (GenerateManifestOutput, error)
+	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan, previousSecrets ManifestSecrets) (GenerateManifestOutput, error)
 }
 
 //go:generate counterfeiter -o fakes/binder.go . Binder
@@ -68,6 +68,9 @@ type PlanSchema struct {
 	ServiceBinding  ServiceBindingSchema  `json:"service_binding"`
 }
 
+type ManifestSecrets map[string]string
+type DNSAddresses map[string]string
+
 type DashboardUrl struct {
 	DashboardUrl string `json:"dashboard_url"`
 }
@@ -78,6 +81,7 @@ type GenerateManifestParams struct {
 	PreviousPlan      string `json:"previous_plan"`
 	PreviousManifest  string `json:"previous_manifest"`
 	RequestParameters string `json:"request_parameters"`
+	PreviousSecrets   string `json:"previous_secrets"`
 }
 
 type DashboardUrlParams struct {

@@ -37,6 +37,7 @@ var _ = Describe("GenerateManifest", func() {
 		plan                  serviceadapter.Plan
 		previousPlan          serviceadapter.Plan
 		previousManifest      bosh.BoshManifest
+		secretsMap            serviceadapter.ManifestSecrets
 		expectedInputParams   serviceadapter.InputParams
 		action                *serviceadapter.GenerateManifestAction
 		outputBuffer          *gbytes.Buffer
@@ -49,6 +50,9 @@ var _ = Describe("GenerateManifest", func() {
 		plan = defaultPlan()
 		previousPlan = defaultPreviousPlan()
 		previousManifest = defaultManifest()
+		secretsMap = serviceadapter.ManifestSecrets{
+			"foo": "b4r",
+		}
 		outputBuffer = gbytes.NewBuffer()
 
 		expectedInputParams = serviceadapter.InputParams{
@@ -79,6 +83,7 @@ var _ = Describe("GenerateManifest", func() {
 	Describe("ParseArgs", func() {
 		When("giving arguments in stdin", func() {
 			It("can parse arguments from stdin", func() {
+				expectedInputParams.GenerateManifest.PreviousSecrets = toJson(secretsMap)
 				input := bytes.NewBuffer([]byte(toJson(expectedInputParams)))
 				actualInputParams, err := action.ParseArgs(input, []string{})
 
@@ -141,12 +146,13 @@ var _ = Describe("GenerateManifest", func() {
 			manifest := bosh.BoshManifest{Name: "bill"}
 			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{Manifest: manifest, ODBManagedSecrets: serviceadapter.ODBManagedSecrets{}}, nil)
 
+			expectedInputParams.GenerateManifest.PreviousSecrets = toJson(secretsMap)
 			err := action.Execute(expectedInputParams, outputBuffer)
 
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeManifestGenerator.GenerateManifestCallCount()).To(Equal(1))
-			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan :=
+			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan, actualSecretsMap :=
 				fakeManifestGenerator.GenerateManifestArgsForCall(0)
 
 			Expect(actualServiceDeployment).To(Equal(serviceDeployment))
@@ -154,6 +160,7 @@ var _ = Describe("GenerateManifest", func() {
 			Expect(actualRequestParams).To(Equal(requestParams))
 			Expect(actualPreviousManifest).To(Equal(&previousManifest))
 			Expect(actualPreviousPlan).To(Equal(&previousPlan))
+			Expect(actualSecretsMap).To(Equal(secretsMap))
 
 			var output serviceadapter.MarshalledGenerateManifest
 			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())

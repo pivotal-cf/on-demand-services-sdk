@@ -46,6 +46,7 @@ var _ = Describe("CommandLineHandler", func() {
 		plan              serviceadapter.Plan
 		previousPlan      serviceadapter.Plan
 		previousManifest  bosh.BoshManifest
+		secretsMap        serviceadapter.ManifestSecrets
 
 		serviceDeploymentJSON string
 		argsJSON              string
@@ -86,6 +87,7 @@ var _ = Describe("CommandLineHandler", func() {
 		plan = defaultPlan()
 		previousPlan = defaultPreviousPlan()
 		previousManifest = defaultPreviousManifest()
+		secretsMap = serviceadapter.ManifestSecrets{"foo": "baa"}
 
 		requestParams = defaultRequestParams()
 		requestParamsJSON = toJson(requestParams)
@@ -135,7 +137,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeManifestGenerator.GenerateManifestCallCount()).To(Equal(1))
-			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan :=
+			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan, actualSecrets :=
 				fakeManifestGenerator.GenerateManifestArgsForCall(0)
 
 			Expect(actualServiceDeployment).To(Equal(serviceDeployment))
@@ -143,6 +145,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(actualRequestParams).To(Equal(args))
 			Expect(actualPreviousManifest).To(Equal(&previousManifest))
 			Expect(actualPreviousPlan).To(Equal(&previousPlan))
+			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{}))
 
 			Expect(outputBuffer).To(gbytes.Say("bill"))
 		})
@@ -155,18 +158,20 @@ var _ = Describe("CommandLineHandler", func() {
 					PreviousPlan:      toJson(previousPlan),
 					RequestParameters: toJson(requestParams),
 					PreviousManifest:  previousManifestYAML,
+					PreviousSecrets:   toJson(secretsMap),
 				},
 			}
 			fakeStdin := bytes.NewBuffer([]byte(toJson(rawInputParams)))
 			err := handler.Handle([]string{commandName, "generate-manifest"}, outputBuffer, errorBuffer, fakeStdin)
 			Expect(err).ToNot(HaveOccurred())
 
-			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan := fakeManifestGenerator.GenerateManifestArgsForCall(0)
+			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan, actualSecrets := fakeManifestGenerator.GenerateManifestArgsForCall(0)
 			Expect(actualServiceDeployment).To(Equal(serviceDeployment))
 			Expect(actualPlan).To(Equal(plan))
 			Expect(actualRequestParams).To(Equal(requestParams))
 			Expect(actualPreviousManifest).To(Equal(&previousManifest))
 			Expect(actualPreviousPlan).To(Equal(&previousPlan))
+			Expect(actualSecrets).To(Equal(secretsMap))
 		})
 
 		It("returns a not-implemented error when there is no generate-manifest handler", func() {
