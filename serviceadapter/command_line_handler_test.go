@@ -41,12 +41,13 @@ var _ = Describe("CommandLineHandler", func() {
 		fakeSchemaGenerator       *fakes.FakeSchemaGenerator
 		handler                   serviceadapter.CommandLineHandler
 
-		serviceDeployment serviceadapter.ServiceDeployment
-		args              serviceadapter.RequestParameters
-		plan              serviceadapter.Plan
-		previousPlan      serviceadapter.Plan
-		previousManifest  bosh.BoshManifest
-		secretsMap        serviceadapter.ManifestSecrets
+		serviceDeployment   serviceadapter.ServiceDeployment
+		args                serviceadapter.RequestParameters
+		plan                serviceadapter.Plan
+		previousPlan        serviceadapter.Plan
+		previousManifest    bosh.BoshManifest
+		secretsMap          serviceadapter.ManifestSecrets
+		previousBoshConfigs serviceadapter.BOSHConfigs
 
 		serviceDeploymentJSON string
 		argsJSON              string
@@ -88,6 +89,7 @@ var _ = Describe("CommandLineHandler", func() {
 		previousPlan = defaultPreviousPlan()
 		previousManifest = defaultPreviousManifest()
 		secretsMap = serviceadapter.ManifestSecrets{"foo": "baa"}
+		previousBoshConfigs = defaultPreviousBoshConfigs()
 
 		requestParams = defaultRequestParams()
 		requestParamsJSON = toJson(requestParams)
@@ -128,7 +130,7 @@ var _ = Describe("CommandLineHandler", func() {
 	Describe("generate-manifest action", func() {
 		It("succeeds with positional arguments", func() {
 			manifest := bosh.BoshManifest{Name: "bill"}
-			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{Manifest: manifest, ODBManagedSecrets: serviceadapter.ODBManagedSecrets{}}, nil)
+			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{Manifest: manifest, ODBManagedSecrets: serviceadapter.ODBManagedSecrets{}, Configs: serviceadapter.BOSHConfigs{}}, nil)
 
 			err := handler.Handle([]string{
 				commandName, "generate-manifest", serviceDeploymentJSON, planJSON, argsJSON, previousManifestYAML, previousPlanJSON,
@@ -137,7 +139,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeManifestGenerator.GenerateManifestCallCount()).To(Equal(1))
-			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan, actualSecrets :=
+			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan, actualSecrets, actualConfigs :=
 				fakeManifestGenerator.GenerateManifestArgsForCall(0)
 
 			Expect(actualServiceDeployment).To(Equal(serviceDeployment))
@@ -146,6 +148,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(actualPreviousManifest).To(Equal(&previousManifest))
 			Expect(actualPreviousPlan).To(Equal(&previousPlan))
 			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{}))
+			Expect(actualConfigs).To(BeNil())
 
 			Expect(outputBuffer).To(gbytes.Say("bill"))
 		})
@@ -159,19 +162,21 @@ var _ = Describe("CommandLineHandler", func() {
 					RequestParameters: toJson(requestParams),
 					PreviousManifest:  previousManifestYAML,
 					PreviousSecrets:   toJson(secretsMap),
+					PreviousConfigs:   toJson(previousBoshConfigs),
 				},
 			}
 			fakeStdin := bytes.NewBuffer([]byte(toJson(rawInputParams)))
 			err := handler.Handle([]string{commandName, "generate-manifest"}, outputBuffer, errorBuffer, fakeStdin)
 			Expect(err).ToNot(HaveOccurred())
 
-			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan, actualSecrets := fakeManifestGenerator.GenerateManifestArgsForCall(0)
+			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan, actualSecrets, actualConfigs := fakeManifestGenerator.GenerateManifestArgsForCall(0)
 			Expect(actualServiceDeployment).To(Equal(serviceDeployment))
 			Expect(actualPlan).To(Equal(plan))
 			Expect(actualRequestParams).To(Equal(requestParams))
 			Expect(actualPreviousManifest).To(Equal(&previousManifest))
 			Expect(actualPreviousPlan).To(Equal(&previousPlan))
 			Expect(actualSecrets).To(Equal(secretsMap))
+			Expect(actualConfigs).To(Equal(previousBoshConfigs))
 		})
 
 		It("returns a not-implemented error when there is no generate-manifest handler", func() {

@@ -31,7 +31,7 @@ import (
 
 //go:generate counterfeiter -o fakes/manifest_generator.go . ManifestGenerator
 type ManifestGenerator interface {
-	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan, previousSecrets ManifestSecrets) (GenerateManifestOutput, error)
+	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan, previousSecrets ManifestSecrets, previousConfigs BOSHConfigs) (GenerateManifestOutput, error)
 }
 
 //go:generate counterfeiter -o fakes/binder.go . Binder
@@ -82,6 +82,7 @@ type GenerateManifestParams struct {
 	PreviousManifest  string `json:"previous_manifest"`
 	RequestParameters string `json:"request_parameters"`
 	PreviousSecrets   string `json:"previous_secrets"`
+	PreviousConfigs   string `json:"previous_configs"`
 }
 
 type DashboardUrlParams struct {
@@ -121,15 +122,18 @@ type InputParams struct {
 }
 
 type ODBManagedSecrets map[string]interface{}
+type BOSHConfigs map[string]string
 
 type GenerateManifestOutput struct {
 	Manifest          bosh.BoshManifest `json:"manifest"`
 	ODBManagedSecrets ODBManagedSecrets `json:"secrets"`
+	Configs           BOSHConfigs       `json:"configs"`
 }
 
 type MarshalledGenerateManifest struct {
 	Manifest          string            `json:"manifest"`
 	ODBManagedSecrets ODBManagedSecrets `json:"secrets"`
+	Configs           BOSHConfigs       `json:"configs"`
 }
 
 const (
