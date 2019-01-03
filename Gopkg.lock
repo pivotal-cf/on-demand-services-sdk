@@ -18,12 +18,12 @@
   version = "v1.1"
 
 [[projects]]
-  digest = "1:3c44722a6360b8d8abf6f70f122c69007189be992a150e39571224c54a9bc380"
+  digest = "1:e73f5b0152105f18bc131fba127d9949305c8693f8a762588a82a48f61756f5f"
   name = "github.com/gorilla/mux"
   packages = ["."]
   pruneopts = "UT"
-  revision = "7f08801859139f86dfafd1c296e2cba9a80d292e"
-  version = "v1.6.0"
+  revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+  version = "v1.6.2"
 
 [[projects]]
   digest = "1:14327fe738e2d365af75e7d870ae5ecf03eea9d910e127b1d2ea5bd2cac477aa"
@@ -77,7 +77,7 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:e550297be47b6f5d5dfa7816c7237a4b2536fac89fc82d5a45c10c2dbc490bd1"
+  digest = "1:433525450278b3319b436d1ff367fbad32ac553809c8e879a070b7fd0ef92cc5"
   name = "github.com/pivotal-cf/brokerapi"
   packages = [
     ".",
@@ -85,8 +85,8 @@
     "middlewares/originating_identity_header",
   ]
   pruneopts = "UT"
-  revision = "63fe461ff045fb037a43cf1635578120dc891c16"
-  version = "v4.2.0"
+  revision = "644cda48aed126142816ea9fdf0c676e7d66032e"
+  version = "v4.2.1"
 
 [[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
