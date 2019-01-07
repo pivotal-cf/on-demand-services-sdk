@@ -3,30 +3,30 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0c15dd74b13a40dfe9c77840568167e78df00d25a1344e3685020d36b1ae6464"
+  digest = "1:bc8e726b0ac938981d62a7fdbc14aa9314e8af92c75d3858cb583e563d41802b"
   name = "code.cloudfoundry.org/lager"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "a77e1033ba8d8e36597be5c0d384ee6054105bc2"
 
 [[projects]]
-  digest = "1:160eabf7a69910fd74f29c692718bc2437c1c1c7d4c9dea9712357752a70e5df"
+  digest = "1:dbd86d229eacaa86a98b10f8fb3e3fc69a1913e0f4e010e7cc1f92bf12edca92"
   name = "github.com/gorilla/context"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
   version = "v1.1"
 
 [[projects]]
-  digest = "1:e73f5b0152105f18bc131fba127d9949305c8693f8a762588a82a48f61756f5f"
+  digest = "1:bf5cf1d53d703332e9bd8984c69784645b73a938317bf5ace9aadf20ac49379a"
   name = "github.com/gorilla/mux"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
   version = "v1.6.2"
 
 [[projects]]
-  digest = "1:14327fe738e2d365af75e7d870ae5ecf03eea9d910e127b1d2ea5bd2cac477aa"
+  digest = "1:0413dd101df90e8a7f0c228b0fd64cc42cd98c7c1e3ec5c0dcf3b2598507052b"
   name = "github.com/onsi/ginkgo"
   packages = [
     ".",
@@ -49,12 +49,12 @@
     "reporters/stenographer/support/go-isatty",
     "types",
   ]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "fa5fabab2a1bfbd924faf4c067d07ae414e2aedf"
   version = "v1.5.0"
 
 [[projects]]
-  digest = "1:714c6da391ddef79e2a4f0a892352e203d554f95370fe2c16417071022bc5da1"
+  digest = "1:3ec3d482f3a7c3718b0330711a0d0de8148af3dfaa66df63426969b0ec820961"
   name = "github.com/onsi/gomega"
   packages = [
     ".",
@@ -72,27 +72,27 @@
     "matchers/support/goraph/util",
     "types",
   ]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "62bff4df71bdbc266561a0caee19f0594b17c240"
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:433525450278b3319b436d1ff367fbad32ac553809c8e879a070b7fd0ef92cc5"
+  digest = "1:0bfa4f0b35189da783ead03572b0c7c3ff3810b94b9cf0f55c2150e61f173580"
   name = "github.com/pivotal-cf/brokerapi"
   packages = [
     ".",
     "auth",
     "middlewares/originating_identity_header",
   ]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "644cda48aed126142816ea9fdf0c676e7d66032e"
   version = "v4.2.1"
 
 [[projects]]
-  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
+  digest = "1:5cf3f025cbee5951a4ee961de067c8a89fc95a5adabead774f82822efabab121"
   name = "github.com/pkg/errors"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
@@ -105,19 +105,19 @@
     "html/atom",
     "html/charset",
   ]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "0ed95abb35c445290478a5348a7b38bb154135fd"
 
 [[projects]]
-  digest = "1:e16c53d2592b2ba64d1a6da684a952bdff8815ed8b901b220fe875864b664643"
+  digest = "1:198f42363ef336331e9312f442198587d0a110928a494ed8c01e0871a809da6b"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "a408501be4d17ee978c04a618e7a1b22af058c0e"
 
 [[projects]]
   branch = "master"
-  digest = "1:aa4d6967a3237f8367b6bf91503964a77183ecf696f1273e8ad3551bb4412b5f"
+  digest = "1:7c61a813b250ba8bb02bebb0382e6c3d00e04da2b577dc58985b86312fb89ffd"
   name = "golang.org/x/text"
   packages = [
     "encoding",
@@ -138,23 +138,23 @@
     "transform",
     "unicode/cldr",
   ]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
 
 [[projects]]
-  digest = "1:1b4724d3c8125f6044925f02b485b74bfec9905cbf579d95aafd1a6c8f8447d3"
+  digest = "1:0215407129c5f116ae8f6d3af64df59c39d3f606a72ef77a1e6ed874f92a8d9c"
   name = "gopkg.in/go-playground/validator.v8"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "5f57d2222ad794d0dffb07e664ea05e2ee07d60c"
   version = "v8.18.1"
 
 [[projects]]
   branch = "v2"
-  digest = "1:73e6fda93622790d2371344759df06ff5ff2fac64a6b6e8832b792e7402956e7"
+  digest = "1:13e704c08924325be00f96e47e7efe0bfddf0913cdfc237423c83f9b183ff590"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  pruneopts = "UT"
+  pruneopts = "NUT"
   revision = "d670f9405373e636a5a2765eea47fac0c9bc91a4"
 
 [solve-meta]
