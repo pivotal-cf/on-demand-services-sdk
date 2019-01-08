@@ -172,6 +172,26 @@ var _ = Describe("GenerateManifest", func() {
 			Expect(output.Manifest).To(Equal(toYaml(manifest)))
 		})
 
+		It("returns the bosh configs", func() {
+			manifest := bosh.BoshManifest{Name: "bill"}
+			expectedBoshConfigs := serviceadapter.BOSHConfigs{
+				"foo": "{}",
+			}
+			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{
+				Manifest: manifest,
+				Configs:  expectedBoshConfigs,
+			}, nil)
+
+			err := action.Execute(expectedInputParams, outputBuffer)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeManifestGenerator.GenerateManifestCallCount()).To(Equal(1))
+
+			var output serviceadapter.MarshalledGenerateManifest
+			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())
+			Expect(output.Configs).To(Equal(expectedBoshConfigs))
+		})
+
 		When("not outputting json", func() {
 			It("outputs the manifest as text", func() {
 				manifest := bosh.BoshManifest{Name: "bill"}
