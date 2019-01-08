@@ -108,7 +108,14 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 		}
 	}
 
-	generateManifestOutput, err := g.manifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan, previousSecrets)
+	var previousConfigs BOSHConfigs
+	if generateManifestParams.PreviousConfigs != "" {
+		if err = json.Unmarshal([]byte(generateManifestParams.PreviousConfigs), &previousConfigs); err != nil {
+			return errors.Wrap(err, "unmarshalling previous configs")
+		}
+	}
+
+	generateManifestOutput, err := g.manifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan, previousSecrets, previousConfigs)
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())
 		return CLIHandlerError{ErrorExitCode, err.Error()}

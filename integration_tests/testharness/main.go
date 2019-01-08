@@ -51,7 +51,8 @@ func (m *manifestGenerator) GenerateManifest(
 	requestParams serviceadapter.RequestParameters,
 	previousManifest *bosh.BoshManifest,
 	previousPlan *serviceadapter.Plan,
-	previousSecrets serviceadapter.ManifestSecrets) (serviceadapter.GenerateManifestOutput, error) {
+	previousSecrets serviceadapter.ManifestSecrets,
+	previousConfigs serviceadapter.BOSHConfigs) (serviceadapter.GenerateManifestOutput, error) {
 
 	if os.Getenv(testvariables.OperationFailsKey) == OperationShouldFail {
 		fmt.Fprintf(os.Stderr, "not valid")

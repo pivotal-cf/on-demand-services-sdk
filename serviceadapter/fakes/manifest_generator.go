@@ -9,7 +9,7 @@ import (
 )
 
 type FakeManifestGenerator struct {
-	GenerateManifestStub        func(serviceadapter.ServiceDeployment, serviceadapter.Plan, serviceadapter.RequestParameters, *bosh.BoshManifest, *serviceadapter.Plan, serviceadapter.ManifestSecrets) (serviceadapter.GenerateManifestOutput, error)
+	GenerateManifestStub        func(serviceadapter.ServiceDeployment, serviceadapter.Plan, serviceadapter.RequestParameters, *bosh.BoshManifest, *serviceadapter.Plan, serviceadapter.ManifestSecrets, serviceadapter.BOSHConfigs) (serviceadapter.GenerateManifestOutput, error)
 	generateManifestMutex       sync.RWMutex
 	generateManifestArgsForCall []struct {
 		arg1 serviceadapter.ServiceDeployment
@@ -18,6 +18,7 @@ type FakeManifestGenerator struct {
 		arg4 *bosh.BoshManifest
 		arg5 *serviceadapter.Plan
 		arg6 serviceadapter.ManifestSecrets
+		arg7 serviceadapter.BOSHConfigs
 	}
 	generateManifestReturns struct {
 		result1 serviceadapter.GenerateManifestOutput
@@ -31,7 +32,7 @@ type FakeManifestGenerator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeManifestGenerator) GenerateManifest(arg1 serviceadapter.ServiceDeployment, arg2 serviceadapter.Plan, arg3 serviceadapter.RequestParameters, arg4 *bosh.BoshManifest, arg5 *serviceadapter.Plan, arg6 serviceadapter.ManifestSecrets) (serviceadapter.GenerateManifestOutput, error) {
+func (fake *FakeManifestGenerator) GenerateManifest(arg1 serviceadapter.ServiceDeployment, arg2 serviceadapter.Plan, arg3 serviceadapter.RequestParameters, arg4 *bosh.BoshManifest, arg5 *serviceadapter.Plan, arg6 serviceadapter.ManifestSecrets, arg7 serviceadapter.BOSHConfigs) (serviceadapter.GenerateManifestOutput, error) {
 	fake.generateManifestMutex.Lock()
 	ret, specificReturn := fake.generateManifestReturnsOnCall[len(fake.generateManifestArgsForCall)]
 	fake.generateManifestArgsForCall = append(fake.generateManifestArgsForCall, struct {
@@ -41,11 +42,12 @@ func (fake *FakeManifestGenerator) GenerateManifest(arg1 serviceadapter.ServiceD
 		arg4 *bosh.BoshManifest
 		arg5 *serviceadapter.Plan
 		arg6 serviceadapter.ManifestSecrets
-	}{arg1, arg2, arg3, arg4, arg5, arg6})
-	fake.recordInvocation("GenerateManifest", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6})
+		arg7 serviceadapter.BOSHConfigs
+	}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	fake.recordInvocation("GenerateManifest", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
 	fake.generateManifestMutex.Unlock()
 	if fake.GenerateManifestStub != nil {
-		return fake.GenerateManifestStub(arg1, arg2, arg3, arg4, arg5, arg6)
+		return fake.GenerateManifestStub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -60,17 +62,17 @@ func (fake *FakeManifestGenerator) GenerateManifestCallCount() int {
 	return len(fake.generateManifestArgsForCall)
 }
 
-func (fake *FakeManifestGenerator) GenerateManifestCalls(stub func(serviceadapter.ServiceDeployment, serviceadapter.Plan, serviceadapter.RequestParameters, *bosh.BoshManifest, *serviceadapter.Plan, serviceadapter.ManifestSecrets) (serviceadapter.GenerateManifestOutput, error)) {
+func (fake *FakeManifestGenerator) GenerateManifestCalls(stub func(serviceadapter.ServiceDeployment, serviceadapter.Plan, serviceadapter.RequestParameters, *bosh.BoshManifest, *serviceadapter.Plan, serviceadapter.ManifestSecrets, serviceadapter.BOSHConfigs) (serviceadapter.GenerateManifestOutput, error)) {
 	fake.generateManifestMutex.Lock()
 	defer fake.generateManifestMutex.Unlock()
 	fake.GenerateManifestStub = stub
 }
 
-func (fake *FakeManifestGenerator) GenerateManifestArgsForCall(i int) (serviceadapter.ServiceDeployment, serviceadapter.Plan, serviceadapter.RequestParameters, *bosh.BoshManifest, *serviceadapter.Plan, serviceadapter.ManifestSecrets) {
+func (fake *FakeManifestGenerator) GenerateManifestArgsForCall(i int) (serviceadapter.ServiceDeployment, serviceadapter.Plan, serviceadapter.RequestParameters, *bosh.BoshManifest, *serviceadapter.Plan, serviceadapter.ManifestSecrets, serviceadapter.BOSHConfigs) {
 	fake.generateManifestMutex.RLock()
 	defer fake.generateManifestMutex.RUnlock()
 	argsForCall := fake.generateManifestArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
 }
 
 func (fake *FakeManifestGenerator) GenerateManifestReturns(result1 serviceadapter.GenerateManifestOutput, result2 error) {

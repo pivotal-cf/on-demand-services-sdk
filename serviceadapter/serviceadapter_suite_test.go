@@ -143,6 +143,14 @@ func defaultPreviousManifest() bosh.BoshManifest {
 	}
 }
 
+func defaultPreviousBoshConfigs() serviceadapter.BOSHConfigs {
+	return serviceadapter.BOSHConfigs{
+		"cloud-config":   "fake-cloud-config",
+		"cpi-config":     "fake-cpi-config",
+		"runtime-config": "fake-runtime-config",
+	}
+}
+
 type CLIErrorMatcher struct {
 	exitCode       int
 	errorSubstring string
