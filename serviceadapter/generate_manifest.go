@@ -34,7 +34,7 @@ func (g *GenerateManifestAction) ParseArgs(reader io.Reader, args []string) (Inp
 		}
 
 		inputParams = InputParams{
-			GenerateManifest: GenerateManifestParams{
+			GenerateManifest: GenerateManifestJSONParams{
 				ServiceDeployment: args[0],
 				Plan:              args[1],
 				RequestParameters: args[2],
@@ -115,7 +115,15 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 		}
 	}
 
-	generateManifestOutput, err := g.manifestGenerator.GenerateManifest(serviceDeployment, plan, requestParams, previousManifest, previousPlan, previousSecrets, previousConfigs)
+	generateManifestOutput, err := g.manifestGenerator.GenerateManifest(GenerateManifestParams{
+		ServiceDeployment: serviceDeployment,
+		Plan:              plan,
+		RequestParams:     requestParams,
+		PreviousManifest:  previousManifest,
+		PreviousPlan:      previousPlan,
+		PreviousSecrets:   previousSecrets,
+		PreviousConfigs:   previousConfigs,
+	})
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())
 		return CLIHandlerError{ErrorExitCode, err.Error()}

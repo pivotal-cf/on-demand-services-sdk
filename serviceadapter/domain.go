@@ -29,9 +29,19 @@ import (
 	"gopkg.in/go-playground/validator.v8"
 )
 
+type GenerateManifestParams struct {
+	ServiceDeployment ServiceDeployment
+	Plan              Plan
+	RequestParams     RequestParameters
+	PreviousManifest  *bosh.BoshManifest
+	PreviousPlan      *Plan
+	PreviousSecrets   ManifestSecrets
+	PreviousConfigs   BOSHConfigs
+}
+
 //go:generate counterfeiter -o fakes/manifest_generator.go . ManifestGenerator
 type ManifestGenerator interface {
-	GenerateManifest(serviceDeployment ServiceDeployment, plan Plan, requestParams RequestParameters, previousManifest *bosh.BoshManifest, previousPlan *Plan, previousSecrets ManifestSecrets, previousConfigs BOSHConfigs) (GenerateManifestOutput, error)
+	GenerateManifest(params GenerateManifestParams) (GenerateManifestOutput, error)
 }
 
 //go:generate counterfeiter -o fakes/binder.go . Binder
@@ -75,7 +85,7 @@ type DashboardUrl struct {
 	DashboardUrl string `json:"dashboard_url"`
 }
 
-type GenerateManifestParams struct {
+type GenerateManifestJSONParams struct {
 	ServiceDeployment string `json:"service_deployment"`
 	Plan              string `json:"plan"`
 	PreviousPlan      string `json:"previous_plan"`
@@ -113,12 +123,12 @@ type GeneratePlanSchemasParams struct {
 }
 
 type InputParams struct {
-	GenerateManifest    GenerateManifestParams    `json:"generate_manifest,omitempty"`
-	DashboardUrl        DashboardUrlParams        `json:"dashboard_url,omitempty"`
-	CreateBinding       CreateBindingParams       `json:"create_binding,omitempty"`
-	DeleteBinding       DeleteBindingParams       `json:"delete_binding,omitempty"`
-	GeneratePlanSchemas GeneratePlanSchemasParams `json:"generate_plan_schemas,omitempty"`
-	TextOutput          bool                      `json:"-"`
+	GenerateManifest    GenerateManifestJSONParams `json:"generate_manifest,omitempty"`
+	DashboardUrl        DashboardUrlParams         `json:"dashboard_url,omitempty"`
+	CreateBinding       CreateBindingParams        `json:"create_binding,omitempty"`
+	DeleteBinding       DeleteBindingParams        `json:"delete_binding,omitempty"`
+	GeneratePlanSchemas GeneratePlanSchemasParams  `json:"generate_plan_schemas,omitempty"`
+	TextOutput          bool                       `json:"-"`
 }
 
 type ODBManagedSecrets map[string]interface{}

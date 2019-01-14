@@ -45,14 +45,7 @@ func main() {
 
 type manifestGenerator struct{}
 
-func (m *manifestGenerator) GenerateManifest(
-	serviceDeployment serviceadapter.ServiceDeployment,
-	plan serviceadapter.Plan,
-	requestParams serviceadapter.RequestParameters,
-	previousManifest *bosh.BoshManifest,
-	previousPlan *serviceadapter.Plan,
-	previousSecrets serviceadapter.ManifestSecrets,
-	previousConfigs serviceadapter.BOSHConfigs) (serviceadapter.GenerateManifestOutput, error) {
+func (m *manifestGenerator) GenerateManifest(params serviceadapter.GenerateManifestParams) (serviceadapter.GenerateManifestOutput, error) {
 
 	if os.Getenv(testvariables.OperationFailsKey) == OperationShouldFail {
 		fmt.Fprintf(os.Stderr, "not valid")

@@ -58,7 +58,7 @@ var _ = Describe("GenerateManifest", func() {
 		outputBuffer = gbytes.NewBuffer()
 
 		expectedInputParams = serviceadapter.InputParams{
-			GenerateManifest: serviceadapter.GenerateManifestParams{
+			GenerateManifest: serviceadapter.GenerateManifestJSONParams{
 				ServiceDeployment: toJson(serviceDeployment),
 				Plan:              toJson(plan),
 				PreviousPlan:      toJson(previousPlan),
@@ -156,16 +156,15 @@ var _ = Describe("GenerateManifest", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeManifestGenerator.GenerateManifestCallCount()).To(Equal(1))
-			actualServiceDeployment, actualPlan, actualRequestParams, actualPreviousManifest, actualPreviousPlan, actualSecretsMap, actualConfigs :=
-				fakeManifestGenerator.GenerateManifestArgsForCall(0)
+			actualParams := fakeManifestGenerator.GenerateManifestArgsForCall(0)
 
-			Expect(actualServiceDeployment).To(Equal(serviceDeployment))
-			Expect(actualPlan).To(Equal(plan))
-			Expect(actualRequestParams).To(Equal(requestParams))
-			Expect(actualPreviousManifest).To(Equal(&previousManifest))
-			Expect(actualPreviousPlan).To(Equal(&previousPlan))
-			Expect(actualSecretsMap).To(Equal(secretsMap))
-			Expect(actualConfigs).To(Equal(previousBoshConfigs))
+			Expect(actualParams.ServiceDeployment).To(Equal(serviceDeployment))
+			Expect(actualParams.Plan).To(Equal(plan))
+			Expect(actualParams.RequestParams).To(Equal(requestParams))
+			Expect(actualParams.PreviousManifest).To(Equal(&previousManifest))
+			Expect(actualParams.PreviousPlan).To(Equal(&previousPlan))
+			Expect(actualParams.PreviousSecrets).To(Equal(secretsMap))
+			Expect(actualParams.PreviousConfigs).To(Equal(previousBoshConfigs))
 
 			var output serviceadapter.MarshalledGenerateManifest
 			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())

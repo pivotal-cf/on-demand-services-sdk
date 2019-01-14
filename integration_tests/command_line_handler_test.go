@@ -241,7 +241,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("succeeds", func() {
 				rawInputParams := serviceadapter.InputParams{
-					GenerateManifest: serviceadapter.GenerateManifestParams{
+					GenerateManifest: serviceadapter.GenerateManifestJSONParams{
 						ServiceDeployment: toJson(expectedServiceDeployment),
 						Plan:              toJson(expectedCurrentPlan),
 						PreviousPlan:      toJson(expectedPreviousPlan),
@@ -266,7 +266,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("succeeds with optional parameters", func() {
 				rawInputParams := serviceadapter.InputParams{
-					GenerateManifest: serviceadapter.GenerateManifestParams{
+					GenerateManifest: serviceadapter.GenerateManifestJSONParams{
 						ServiceDeployment: toJson(expectedServiceDeployment),
 						Plan:              toJson(expectedCurrentPlan),
 						PreviousPlan:      toJson(expectedPreviousPlan),
@@ -287,7 +287,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("logs and exits with 1 when a required field param is missing", func() {
 				rawInputParams := serviceadapter.InputParams{
-					GenerateManifest: serviceadapter.GenerateManifestParams{
+					GenerateManifest: serviceadapter.GenerateManifestJSONParams{
 						ServiceDeployment: toJson(expectedServiceDeployment),
 						Plan:              "{}",
 						PreviousPlan:      toJson(expectedPreviousPlan),
@@ -305,7 +305,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("exits 1 and logs when a generic error occurs", func() {
 				rawInputParams := serviceadapter.InputParams{
-					GenerateManifest: serviceadapter.GenerateManifestParams{
+					GenerateManifest: serviceadapter.GenerateManifestJSONParams{
 						ServiceDeployment: toJson(expectedServiceDeployment),
 						Plan:              toJson(expectedCurrentPlan),
 						PreviousPlan:      toJson(expectedPreviousPlan),
