@@ -309,17 +309,17 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeDashboardUrlGenerator.DashboardUrlCallCount()).To(Equal(1))
-			actualInstanceID, actualPlanJSON, actualManifestYAML := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
+			actualParams := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
 
-			Expect(actualInstanceID).To(Equal(instanceID))
-			Expect(actualPlanJSON).To(Equal(plan))
-			Expect(actualManifestYAML).To(Equal(previousManifest))
+			Expect(actualParams.InstanceID).To(Equal(instanceID))
+			Expect(actualParams.Plan).To(Equal(plan))
+			Expect(actualParams.Manifest).To(Equal(previousManifest))
 			Expect(outputBuffer).To(gbytes.Say(`{"dashboard_url":"http://url.example.com"}`))
 		})
 
 		It("succeeds with arguments from stdin", func() {
 			rawInputParams := serviceadapter.InputParams{
-				DashboardUrl: serviceadapter.DashboardUrlParams{
+				DashboardUrl: serviceadapter.DashboardUrlJSONParams{
 					InstanceId: instanceID,
 					Plan:       toJson(plan),
 					Manifest:   previousManifestYAML,
@@ -333,11 +333,11 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeDashboardUrlGenerator.DashboardUrlCallCount()).To(Equal(1))
-			actualInstanceID, actualPlanJSON, actualManifestYAML := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
+			actualParams := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
 
-			Expect(actualInstanceID).To(Equal(instanceID))
-			Expect(actualPlanJSON).To(Equal(plan))
-			Expect(actualManifestYAML).To(Equal(previousManifest))
+			Expect(actualParams.InstanceID).To(Equal(instanceID))
+			Expect(actualParams.Plan).To(Equal(plan))
+			Expect(actualParams.Manifest).To(Equal(previousManifest))
 			Expect(outputBuffer).To(gbytes.Say(`{"dashboard_url":"http://url.example.com"}`))
 		})
 
@@ -479,7 +479,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
 
-			Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)).To(Equal(plan))
+			Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0).Plan).To(Equal(plan))
 
 			contents, err := ioutil.ReadAll(outputBuffer)
 			Expect(err).NotTo(HaveOccurred())
@@ -488,7 +488,7 @@ var _ = Describe("CommandLineHandler", func() {
 
 		It("succeeds with arguments from stdin", func() {
 			rawInputParams := serviceadapter.InputParams{
-				GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+				GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasJSONParams{
 					Plan: planJSON,
 				},
 			}
@@ -521,7 +521,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
 
-			Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)).To(Equal(plan))
+			Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0).Plan).To(Equal(plan))
 
 			contents, err := ioutil.ReadAll(outputBuffer)
 			Expect(err).NotTo(HaveOccurred())

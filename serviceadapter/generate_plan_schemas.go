@@ -46,7 +46,7 @@ func (g *GeneratePlanSchemasAction) ParseArgs(reader io.Reader, args []string) (
 
 		inputParams = InputParams{
 			TextOutput: true,
-			GeneratePlanSchemas: GeneratePlanSchemasParams{
+			GeneratePlanSchemas: GeneratePlanSchemasJSONParams{
 				Plan: *planJSON,
 			},
 		}
@@ -78,7 +78,7 @@ func (g *GeneratePlanSchemasAction) Execute(inputParams InputParams, outputWrite
 	if err := plan.Validate(); err != nil {
 		return errors.Wrap(err, "error validating plan JSON")
 	}
-	schema, err := g.schemaGenerator.GeneratePlanSchema(plan)
+	schema, err := g.schemaGenerator.GeneratePlanSchema(GeneratePlanSchemaParams{Plan: plan})
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())
 		return CLIHandlerError{ErrorExitCode, err.Error()}

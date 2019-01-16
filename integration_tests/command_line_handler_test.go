@@ -550,7 +550,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("succeeds", func() {
 				rawInputParams := serviceadapter.InputParams{
-					DashboardUrl: serviceadapter.DashboardUrlParams{
+					DashboardUrl: serviceadapter.DashboardUrlJSONParams{
 						InstanceId: "some-id",
 						Plan:       toJson(expectedCurrentPlan),
 						Manifest:   toYaml(expectedManifest),
@@ -570,7 +570,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("exits with 1 if a generic error occurs", func() {
 				rawInputParams := serviceadapter.InputParams{
-					DashboardUrl: serviceadapter.DashboardUrlParams{
+					DashboardUrl: serviceadapter.DashboardUrlJSONParams{
 						InstanceId: "some-id",
 						Plan:       toJson(expectedCurrentPlan),
 						Manifest:   toYaml(expectedManifest),
@@ -651,7 +651,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("returns 0 and output the schema for a plan", func() {
 				rawInputParams := serviceadapter.InputParams{
-					GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+					GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasJSONParams{
 						Plan: toJson(expectedCurrentPlan),
 					},
 				}
@@ -685,7 +685,7 @@ var _ = Describe("Command line handler", func() {
 
 			It("returns 1 if an error occurred while generating the schema", func() {
 				rawInputParams := serviceadapter.InputParams{
-					GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+					GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasJSONParams{
 						Plan: toJson(expectedCurrentPlan),
 					},
 				}

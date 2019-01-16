@@ -34,7 +34,7 @@ func (d *DashboardUrlAction) ParseArgs(reader io.Reader, args []string) (InputPa
 		}
 
 		inputParams = InputParams{
-			DashboardUrl: DashboardUrlParams{
+			DashboardUrl: DashboardUrlJSONParams{
 				InstanceId: args[0],
 				Plan:       args[1],
 				Manifest:   args[2],
@@ -74,7 +74,12 @@ func (d *DashboardUrlAction) Execute(inputParams InputParams, outputWriter io.Wr
 		return errors.Wrap(err, "unmarshalling manifest YAML")
 	}
 
-	dashboardUrl, err := d.dashboardUrlGenerator.DashboardUrl(inputParams.DashboardUrl.InstanceId, plan, manifest)
+	params := DashboardUrlParams{
+		InstanceID: inputParams.DashboardUrl.InstanceId,
+		Plan:       plan,
+		Manifest:   manifest,
+	}
+	dashboardUrl, err := d.dashboardUrlGenerator.DashboardUrl(params)
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())
 		return CLIHandlerError{ErrorExitCode, err.Error()}

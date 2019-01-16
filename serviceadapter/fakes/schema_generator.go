@@ -8,10 +8,10 @@ import (
 )
 
 type FakeSchemaGenerator struct {
-	GeneratePlanSchemaStub        func(plan serviceadapter.Plan) (serviceadapter.PlanSchema, error)
+	GeneratePlanSchemaStub        func(params serviceadapter.GeneratePlanSchemaParams) (serviceadapter.PlanSchema, error)
 	generatePlanSchemaMutex       sync.RWMutex
 	generatePlanSchemaArgsForCall []struct {
-		plan serviceadapter.Plan
+		params serviceadapter.GeneratePlanSchemaParams
 	}
 	generatePlanSchemaReturns struct {
 		result1 serviceadapter.PlanSchema
@@ -25,16 +25,16 @@ type FakeSchemaGenerator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSchemaGenerator) GeneratePlanSchema(plan serviceadapter.Plan) (serviceadapter.PlanSchema, error) {
+func (fake *FakeSchemaGenerator) GeneratePlanSchema(params serviceadapter.GeneratePlanSchemaParams) (serviceadapter.PlanSchema, error) {
 	fake.generatePlanSchemaMutex.Lock()
 	ret, specificReturn := fake.generatePlanSchemaReturnsOnCall[len(fake.generatePlanSchemaArgsForCall)]
 	fake.generatePlanSchemaArgsForCall = append(fake.generatePlanSchemaArgsForCall, struct {
-		plan serviceadapter.Plan
-	}{plan})
-	fake.recordInvocation("GeneratePlanSchema", []interface{}{plan})
+		params serviceadapter.GeneratePlanSchemaParams
+	}{params})
+	fake.recordInvocation("GeneratePlanSchema", []interface{}{params})
 	fake.generatePlanSchemaMutex.Unlock()
 	if fake.GeneratePlanSchemaStub != nil {
-		return fake.GeneratePlanSchemaStub(plan)
+		return fake.GeneratePlanSchemaStub(params)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -48,10 +48,10 @@ func (fake *FakeSchemaGenerator) GeneratePlanSchemaCallCount() int {
 	return len(fake.generatePlanSchemaArgsForCall)
 }
 
-func (fake *FakeSchemaGenerator) GeneratePlanSchemaArgsForCall(i int) serviceadapter.Plan {
+func (fake *FakeSchemaGenerator) GeneratePlanSchemaArgsForCall(i int) serviceadapter.GeneratePlanSchemaParams {
 	fake.generatePlanSchemaMutex.RLock()
 	defer fake.generatePlanSchemaMutex.RUnlock()
-	return fake.generatePlanSchemaArgsForCall[i].plan
+	return fake.generatePlanSchemaArgsForCall[i].params
 }
 
 func (fake *FakeSchemaGenerator) GeneratePlanSchemaReturns(result1 serviceadapter.PlanSchema, result2 error) {

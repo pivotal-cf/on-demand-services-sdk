@@ -112,7 +112,7 @@ func (b *binder) DeleteBinding(params serviceadapter.DeleteBindingParams) error 
 
 type dashboard struct{}
 
-func (d *dashboard) DashboardUrl(instanceID string, plan serviceadapter.Plan, manifest bosh.BoshManifest) (serviceadapter.DashboardUrl, error) {
+func (d *dashboard) DashboardUrl(params serviceadapter.DashboardUrlParams) (serviceadapter.DashboardUrl, error) {
 	if os.Getenv(testvariables.OperationFailsKey) == OperationShouldFail {
 		return serviceadapter.DashboardUrl{}, errors.New("An error occurred")
 	}
@@ -122,7 +122,7 @@ func (d *dashboard) DashboardUrl(instanceID string, plan serviceadapter.Plan, ma
 
 type schemaGenerator struct{}
 
-func (s *schemaGenerator) GeneratePlanSchema(plan serviceadapter.Plan) (serviceadapter.PlanSchema, error) {
+func (s *schemaGenerator) GeneratePlanSchema(params serviceadapter.GeneratePlanSchemaParams) (serviceadapter.PlanSchema, error) {
 	errs := func(err error) (serviceadapter.PlanSchema, error) {
 		return serviceadapter.PlanSchema{}, err
 	}

@@ -32,7 +32,7 @@ var _ = Describe("DashboardUrl", func() {
 		outputBuffer = gbytes.NewBuffer()
 
 		expectedInputParams = serviceadapter.InputParams{
-			DashboardUrl: serviceadapter.DashboardUrlParams{
+			DashboardUrl: serviceadapter.DashboardUrlJSONParams{
 				InstanceId: instanceId,
 				Plan:       toJson(plan),
 				Manifest:   toYaml(manifest),
@@ -116,11 +116,11 @@ var _ = Describe("DashboardUrl", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeDashboardUrlGenerator.DashboardUrlCallCount()).To(Equal(1))
-			actualInstanceId, actualPlan, actualManifest := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
+			actualParams := fakeDashboardUrlGenerator.DashboardUrlArgsForCall(0)
 
-			Expect(actualInstanceId).To(Equal(instanceId))
-			Expect(actualPlan).To(Equal(plan))
-			Expect(actualManifest).To(Equal(manifest))
+			Expect(actualParams.InstanceID).To(Equal(instanceId))
+			Expect(actualParams.Plan).To(Equal(plan))
+			Expect(actualParams.Manifest).To(Equal(manifest))
 
 			Expect(outputBuffer).To(gbytes.Say(`{"dashboard_url":"gopher://foo"}`))
 		})

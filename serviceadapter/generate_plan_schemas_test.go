@@ -29,7 +29,7 @@ var _ = Describe("GeneratePlanSchemas", func() {
 		errorBuffer = gbytes.NewBuffer()
 
 		expectedInputParams = serviceadapter.InputParams{
-			GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasParams{
+			GeneratePlanSchemas: serviceadapter.GeneratePlanSchemasJSONParams{
 				Plan: toJson(plan),
 			},
 		}
@@ -123,9 +123,9 @@ var _ = Describe("GeneratePlanSchemas", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeSchemaGenerator.GeneratePlanSchemaCallCount()).To(Equal(1))
-			actualPlan := fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)
+			actualParams := fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0)
 
-			Expect(actualPlan).To(Equal(plan))
+			Expect(actualParams.Plan).To(Equal(plan))
 			var planSchemasOutput serviceadapter.PlanSchema
 			Expect(json.Unmarshal(outputBuffer.Contents(), &planSchemasOutput)).To(Succeed())
 			Expect(planSchemasOutput).To(Equal(planSchema))

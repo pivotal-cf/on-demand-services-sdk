@@ -67,14 +67,24 @@ type Binder interface {
 	DeleteBinding(params DeleteBindingParams) error
 }
 
+type DashboardUrlParams struct {
+	InstanceID string
+	Plan       Plan
+	Manifest   bosh.BoshManifest
+}
+
 //go:generate counterfeiter -o fakes/dashboard_url_generator.go . DashboardUrlGenerator
 type DashboardUrlGenerator interface {
-	DashboardUrl(instanceID string, plan Plan, manifest bosh.BoshManifest) (DashboardUrl, error)
+	DashboardUrl(params DashboardUrlParams) (DashboardUrl, error)
+}
+
+type GeneratePlanSchemaParams struct {
+	Plan Plan
 }
 
 //go:generate counterfeiter -o fakes/schema_generator.go . SchemaGenerator
 type SchemaGenerator interface {
-	GeneratePlanSchema(plan Plan) (PlanSchema, error)
+	GeneratePlanSchema(params GeneratePlanSchemaParams) (PlanSchema, error)
 }
 
 type ServiceInstanceSchema struct {
@@ -112,7 +122,7 @@ type GenerateManifestJSONParams struct {
 	PreviousConfigs   string `json:"previous_configs"`
 }
 
-type DashboardUrlParams struct {
+type DashboardUrlJSONParams struct {
 	InstanceId string `json:"instance_id"`
 	Plan       string `json:"plan"`
 	Manifest   string `json:"manifest"`
@@ -135,17 +145,17 @@ type DeleteBindingJSONParams struct {
 	Secrets           string `json:"secrets"`
 }
 
-type GeneratePlanSchemasParams struct {
+type GeneratePlanSchemasJSONParams struct {
 	Plan string `json:"plan"`
 }
 
 type InputParams struct {
-	GenerateManifest    GenerateManifestJSONParams `json:"generate_manifest,omitempty"`
-	DashboardUrl        DashboardUrlParams         `json:"dashboard_url,omitempty"`
-	CreateBinding       CreateBindingJSONParams    `json:"create_binding,omitempty"`
-	DeleteBinding       DeleteBindingJSONParams    `json:"delete_binding,omitempty"`
-	GeneratePlanSchemas GeneratePlanSchemasParams  `json:"generate_plan_schemas,omitempty"`
-	TextOutput          bool                       `json:"-"`
+	GenerateManifest    GenerateManifestJSONParams    `json:"generate_manifest,omitempty"`
+	DashboardUrl        DashboardUrlJSONParams        `json:"dashboard_url,omitempty"`
+	CreateBinding       CreateBindingJSONParams       `json:"create_binding,omitempty"`
+	DeleteBinding       DeleteBindingJSONParams       `json:"delete_binding,omitempty"`
+	GeneratePlanSchemas GeneratePlanSchemasJSONParams `json:"generate_plan_schemas,omitempty"`
+	TextOutput          bool                          `json:"-"`
 }
 
 type ODBManagedSecrets map[string]interface{}
