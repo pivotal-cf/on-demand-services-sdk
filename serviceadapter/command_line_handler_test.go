@@ -214,15 +214,15 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, actualSecrets, actualDNSAddresses :=
-				fakeBinder.CreateBindingArgsForCall(0)
 
-			Expect(actualBindingId).To(Equal(bindingID))
-			Expect(actualBoshVMs).To(Equal(boshVMs))
-			Expect(actualManifest).To(Equal(previousManifest))
-			Expect(actualRequestParams).To(Equal(requestParams))
-			Expect(actualSecrets).To(BeNil())
-			Expect(actualDNSAddresses).To(BeNil())
+			params := fakeBinder.CreateBindingArgsForCall(0)
+
+			Expect(params.BindingID).To(Equal(bindingID))
+			Expect(params.DeploymentTopology).To(Equal(boshVMs))
+			Expect(params.Manifest).To(Equal(previousManifest))
+			Expect(params.RequestParams).To(Equal(requestParams))
+			Expect(params.Secrets).To(BeNil())
+			Expect(params.DnsAddresses).To(BeNil())
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
 		})
@@ -232,7 +232,7 @@ var _ = Describe("CommandLineHandler", func() {
 				"some-config": "a.dns.address.for.bosh",
 			}
 			rawInputParams := serviceadapter.InputParams{
-				CreateBinding: serviceadapter.CreateBindingParams{
+				CreateBinding: serviceadapter.CreateBindingJSONParams{
 					RequestParameters: toJson(requestParams),
 					BindingId:         bindingID,
 					BoshVms:           toJson(boshVMs),
@@ -249,15 +249,14 @@ var _ = Describe("CommandLineHandler", func() {
 
 			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
 
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, actualSecrets, actualDNSAddresses :=
-				fakeBinder.CreateBindingArgsForCall(0)
+			params := fakeBinder.CreateBindingArgsForCall(0)
 
-			Expect(actualBindingId).To(Equal(bindingID))
-			Expect(actualBoshVMs).To(Equal(boshVMs))
-			Expect(actualManifest).To(Equal(previousManifest))
-			Expect(actualRequestParams).To(Equal(requestParams))
-			Expect(actualSecrets).To(BeNil())
-			Expect(actualDNSAddresses).To(Equal(dnsAddresses))
+			Expect(params.BindingID).To(Equal(bindingID))
+			Expect(params.DeploymentTopology).To(Equal(boshVMs))
+			Expect(params.Manifest).To(Equal(previousManifest))
+			Expect(params.RequestParams).To(Equal(requestParams))
+			Expect(params.Secrets).To(BeNil())
+			Expect(params.DnsAddresses).To(Equal(dnsAddresses))
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
 		})
@@ -377,18 +376,17 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, _ :=
-				fakeBinder.DeleteBindingArgsForCall(0)
+			params := fakeBinder.DeleteBindingArgsForCall(0)
 
-			Expect(actualBindingId).To(Equal(bindingID))
-			Expect(actualBoshVMs).To(Equal(boshVMs))
-			Expect(actualManifest).To(Equal(previousManifest))
-			Expect(actualRequestParams).To(Equal(requestParams))
+			Expect(params.BindingID).To(Equal(bindingID))
+			Expect(params.DeploymentTopology).To(Equal(boshVMs))
+			Expect(params.Manifest).To(Equal(previousManifest))
+			Expect(params.RequestParams).To(Equal(requestParams))
 		})
 
 		It("succeeds with arguments from stdin", func() {
 			rawInputParams := serviceadapter.InputParams{
-				DeleteBinding: serviceadapter.DeleteBindingParams{
+				DeleteBinding: serviceadapter.DeleteBindingJSONParams{
 					RequestParameters: toJson(requestParams),
 					BindingId:         bindingID,
 					BoshVms:           toJson(boshVMs),
@@ -404,14 +402,13 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVMs, actualManifest, actualRequestParams, actualSecrets :=
-				fakeBinder.DeleteBindingArgsForCall(0)
+			params := fakeBinder.DeleteBindingArgsForCall(0)
 
-			Expect(actualBindingId).To(Equal(bindingID))
-			Expect(actualBoshVMs).To(Equal(boshVMs))
-			Expect(actualManifest).To(Equal(previousManifest))
-			Expect(actualRequestParams).To(Equal(requestParams))
-			Expect(actualSecrets).To(Equal(secrets))
+			Expect(params.BindingID).To(Equal(bindingID))
+			Expect(params.DeploymentTopology).To(Equal(boshVMs))
+			Expect(params.Manifest).To(Equal(previousManifest))
+			Expect(params.RequestParams).To(Equal(requestParams))
+			Expect(params.Secrets).To(Equal(secrets))
 		})
 
 		It("returns a not-implemented error where there is no binder handler", func() {

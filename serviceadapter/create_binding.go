@@ -35,7 +35,7 @@ func (a *CreateBindingAction) ParseArgs(reader io.Reader, args []string) (InputP
 		}
 
 		inputParams = InputParams{
-			CreateBinding: CreateBindingParams{
+			CreateBinding: CreateBindingJSONParams{
 				BindingId:         args[0],
 				BoshVms:           args[1],
 				Manifest:          args[2],
@@ -92,7 +92,15 @@ func (a *CreateBindingAction) Execute(inputParams InputParams, outputWriter io.W
 		}
 	}
 
-	binding, err := a.bindingCreator.CreateBinding(inputParams.CreateBinding.BindingId, boshVMs, manifest, reqParams, secrets, dnsAddresses)
+	params := CreateBindingParams{
+		BindingID:          inputParams.CreateBinding.BindingId,
+		DeploymentTopology: boshVMs,
+		Manifest:           manifest,
+		RequestParams:      reqParams,
+		Secrets:            secrets,
+		DnsAddresses:       dnsAddresses,
+	}
+	binding, err := a.bindingCreator.CreateBinding(params)
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())
 		switch err := err.(type) {

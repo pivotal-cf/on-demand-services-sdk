@@ -4,20 +4,14 @@ package fakes
 import (
 	"sync"
 
-	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
 )
 
 type FakeBinder struct {
-	CreateBindingStub        func(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters, secrets serviceadapter.ManifestSecrets, dnsAddresses serviceadapter.DNSAddresses) (serviceadapter.Binding, error)
+	CreateBindingStub        func(params serviceadapter.CreateBindingParams) (serviceadapter.Binding, error)
 	createBindingMutex       sync.RWMutex
 	createBindingArgsForCall []struct {
-		bindingID          string
-		deploymentTopology bosh.BoshVMs
-		manifest           bosh.BoshManifest
-		requestParams      serviceadapter.RequestParameters
-		secrets            serviceadapter.ManifestSecrets
-		dnsAddresses       serviceadapter.DNSAddresses
+		params serviceadapter.CreateBindingParams
 	}
 	createBindingReturns struct {
 		result1 serviceadapter.Binding
@@ -27,14 +21,10 @@ type FakeBinder struct {
 		result1 serviceadapter.Binding
 		result2 error
 	}
-	DeleteBindingStub        func(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters, secrets serviceadapter.ManifestSecrets) error
+	DeleteBindingStub        func(params serviceadapter.DeleteBindingParams) error
 	deleteBindingMutex       sync.RWMutex
 	deleteBindingArgsForCall []struct {
-		bindingID          string
-		deploymentTopology bosh.BoshVMs
-		manifest           bosh.BoshManifest
-		requestParams      serviceadapter.RequestParameters
-		secrets            serviceadapter.ManifestSecrets
+		params serviceadapter.DeleteBindingParams
 	}
 	deleteBindingReturns struct {
 		result1 error
@@ -46,21 +36,16 @@ type FakeBinder struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeBinder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters, secrets serviceadapter.ManifestSecrets, dnsAddresses serviceadapter.DNSAddresses) (serviceadapter.Binding, error) {
+func (fake *FakeBinder) CreateBinding(params serviceadapter.CreateBindingParams) (serviceadapter.Binding, error) {
 	fake.createBindingMutex.Lock()
 	ret, specificReturn := fake.createBindingReturnsOnCall[len(fake.createBindingArgsForCall)]
 	fake.createBindingArgsForCall = append(fake.createBindingArgsForCall, struct {
-		bindingID          string
-		deploymentTopology bosh.BoshVMs
-		manifest           bosh.BoshManifest
-		requestParams      serviceadapter.RequestParameters
-		secrets            serviceadapter.ManifestSecrets
-		dnsAddresses       serviceadapter.DNSAddresses
-	}{bindingID, deploymentTopology, manifest, requestParams, secrets, dnsAddresses})
-	fake.recordInvocation("CreateBinding", []interface{}{bindingID, deploymentTopology, manifest, requestParams, secrets, dnsAddresses})
+		params serviceadapter.CreateBindingParams
+	}{params})
+	fake.recordInvocation("CreateBinding", []interface{}{params})
 	fake.createBindingMutex.Unlock()
 	if fake.CreateBindingStub != nil {
-		return fake.CreateBindingStub(bindingID, deploymentTopology, manifest, requestParams, secrets, dnsAddresses)
+		return fake.CreateBindingStub(params)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -74,10 +59,10 @@ func (fake *FakeBinder) CreateBindingCallCount() int {
 	return len(fake.createBindingArgsForCall)
 }
 
-func (fake *FakeBinder) CreateBindingArgsForCall(i int) (string, bosh.BoshVMs, bosh.BoshManifest, serviceadapter.RequestParameters, serviceadapter.ManifestSecrets, serviceadapter.DNSAddresses) {
+func (fake *FakeBinder) CreateBindingArgsForCall(i int) serviceadapter.CreateBindingParams {
 	fake.createBindingMutex.RLock()
 	defer fake.createBindingMutex.RUnlock()
-	return fake.createBindingArgsForCall[i].bindingID, fake.createBindingArgsForCall[i].deploymentTopology, fake.createBindingArgsForCall[i].manifest, fake.createBindingArgsForCall[i].requestParams, fake.createBindingArgsForCall[i].secrets, fake.createBindingArgsForCall[i].dnsAddresses
+	return fake.createBindingArgsForCall[i].params
 }
 
 func (fake *FakeBinder) CreateBindingReturns(result1 serviceadapter.Binding, result2 error) {
@@ -102,20 +87,16 @@ func (fake *FakeBinder) CreateBindingReturnsOnCall(i int, result1 serviceadapter
 	}{result1, result2}
 }
 
-func (fake *FakeBinder) DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters, secrets serviceadapter.ManifestSecrets) error {
+func (fake *FakeBinder) DeleteBinding(params serviceadapter.DeleteBindingParams) error {
 	fake.deleteBindingMutex.Lock()
 	ret, specificReturn := fake.deleteBindingReturnsOnCall[len(fake.deleteBindingArgsForCall)]
 	fake.deleteBindingArgsForCall = append(fake.deleteBindingArgsForCall, struct {
-		bindingID          string
-		deploymentTopology bosh.BoshVMs
-		manifest           bosh.BoshManifest
-		requestParams      serviceadapter.RequestParameters
-		secrets            serviceadapter.ManifestSecrets
-	}{bindingID, deploymentTopology, manifest, requestParams, secrets})
-	fake.recordInvocation("DeleteBinding", []interface{}{bindingID, deploymentTopology, manifest, requestParams, secrets})
+		params serviceadapter.DeleteBindingParams
+	}{params})
+	fake.recordInvocation("DeleteBinding", []interface{}{params})
 	fake.deleteBindingMutex.Unlock()
 	if fake.DeleteBindingStub != nil {
-		return fake.DeleteBindingStub(bindingID, deploymentTopology, manifest, requestParams, secrets)
+		return fake.DeleteBindingStub(params)
 	}
 	if specificReturn {
 		return ret.result1
@@ -129,10 +110,10 @@ func (fake *FakeBinder) DeleteBindingCallCount() int {
 	return len(fake.deleteBindingArgsForCall)
 }
 
-func (fake *FakeBinder) DeleteBindingArgsForCall(i int) (string, bosh.BoshVMs, bosh.BoshManifest, serviceadapter.RequestParameters, serviceadapter.ManifestSecrets) {
+func (fake *FakeBinder) DeleteBindingArgsForCall(i int) serviceadapter.DeleteBindingParams {
 	fake.deleteBindingMutex.RLock()
 	defer fake.deleteBindingMutex.RUnlock()
-	return fake.deleteBindingArgsForCall[i].bindingID, fake.deleteBindingArgsForCall[i].deploymentTopology, fake.deleteBindingArgsForCall[i].manifest, fake.deleteBindingArgsForCall[i].requestParams, fake.deleteBindingArgsForCall[i].secrets
+	return fake.deleteBindingArgsForCall[i].params
 }
 
 func (fake *FakeBinder) DeleteBindingReturns(result1 error) {

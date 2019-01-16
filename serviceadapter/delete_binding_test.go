@@ -36,7 +36,7 @@ var _ = Describe("DeleteBinding", func() {
 		outputBuffer = gbytes.NewBuffer()
 
 		expectedInputParams = serviceadapter.InputParams{
-			DeleteBinding: serviceadapter.DeleteBindingParams{
+			DeleteBinding: serviceadapter.DeleteBindingJSONParams{
 				BindingId:         bindingId,
 				BoshVms:           toJson(boshVMs),
 				Manifest:          toYaml(manifest),
@@ -121,13 +121,13 @@ var _ = Describe("DeleteBinding", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.DeleteBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVms, actualManifest, actualRequestParams, actualSecrets := fakeBinder.DeleteBindingArgsForCall(0)
+			params := fakeBinder.DeleteBindingArgsForCall(0)
 
-			Expect(actualBindingId).To(Equal(bindingId))
-			Expect(actualBoshVms).To(Equal(boshVMs))
-			Expect(actualManifest).To(Equal(manifest))
-			Expect(actualRequestParams).To(Equal(requestParams))
-			Expect(actualSecrets).To(Equal(secrets))
+			Expect(params.BindingID).To(Equal(bindingId))
+			Expect(params.DeploymentTopology).To(Equal(boshVMs))
+			Expect(params.Manifest).To(Equal(manifest))
+			Expect(params.RequestParams).To(Equal(requestParams))
+			Expect(params.Secrets).To(Equal(secrets))
 		})
 
 		Context("error handling", func() {

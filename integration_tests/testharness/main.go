@@ -82,7 +82,7 @@ func (m *manifestGenerator) GenerateManifest(params serviceadapter.GenerateManif
 
 type binder struct{}
 
-func (b *binder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters, secrets serviceadapter.ManifestSecrets, dnsAddresses serviceadapter.DNSAddresses) (serviceadapter.Binding, error) {
+func (b *binder) CreateBinding(params serviceadapter.CreateBindingParams) (serviceadapter.Binding, error) {
 	errs := func(err error) (serviceadapter.Binding, error) {
 		return serviceadapter.Binding{}, err
 	}
@@ -99,7 +99,7 @@ func (b *binder) CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs
 	return testvariables.SuccessfulBinding, nil
 }
 
-func (b *binder) DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams serviceadapter.RequestParameters, secrets serviceadapter.ManifestSecrets) error {
+func (b *binder) DeleteBinding(params serviceadapter.DeleteBindingParams) error {
 	switch os.Getenv(testvariables.OperationFailsKey) {
 	case testvariables.ErrBindingNotFound:
 		return serviceadapter.NewBindingNotFoundError(errors.New("not found"))

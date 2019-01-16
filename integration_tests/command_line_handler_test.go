@@ -372,7 +372,7 @@ var _ = Describe("Command line handler", func() {
 
 			BeforeEach(func() {
 				rawInputParams = serviceadapter.InputParams{
-					CreateBinding: serviceadapter.CreateBindingParams{
+					CreateBinding: serviceadapter.CreateBindingJSONParams{
 						BoshVms:           toJson(expectedBoshVMs),
 						BindingId:         expectedBindingID,
 						RequestParameters: toJson(expectedRequestParams),
@@ -463,7 +463,7 @@ var _ = Describe("Command line handler", func() {
 			var rawInputParams serviceadapter.InputParams
 			BeforeEach(func() {
 				rawInputParams = serviceadapter.InputParams{
-					DeleteBinding: serviceadapter.DeleteBindingParams{
+					DeleteBinding: serviceadapter.DeleteBindingJSONParams{
 						BoshVms:           toJson(expectedBoshVMs),
 						BindingId:         expectedBindingID,
 						RequestParameters: toJson(expectedRequestParams),

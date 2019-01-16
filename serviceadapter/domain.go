@@ -44,10 +44,27 @@ type ManifestGenerator interface {
 	GenerateManifest(params GenerateManifestParams) (GenerateManifestOutput, error)
 }
 
+type CreateBindingParams struct {
+	BindingID          string
+	DeploymentTopology bosh.BoshVMs
+	Manifest           bosh.BoshManifest
+	RequestParams      RequestParameters
+	Secrets            ManifestSecrets
+	DnsAddresses       DNSAddresses
+}
+
+type DeleteBindingParams struct {
+	BindingID          string
+	DeploymentTopology bosh.BoshVMs
+	Manifest           bosh.BoshManifest
+	RequestParams      RequestParameters
+	Secrets            ManifestSecrets
+}
+
 //go:generate counterfeiter -o fakes/binder.go . Binder
 type Binder interface {
-	CreateBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters, secrets ManifestSecrets, dnsAddresses DNSAddresses) (Binding, error)
-	DeleteBinding(bindingID string, deploymentTopology bosh.BoshVMs, manifest bosh.BoshManifest, requestParams RequestParameters, secrets ManifestSecrets) error
+	CreateBinding(params CreateBindingParams) (Binding, error)
+	DeleteBinding(params DeleteBindingParams) error
 }
 
 //go:generate counterfeiter -o fakes/dashboard_url_generator.go . DashboardUrlGenerator
@@ -101,7 +118,7 @@ type DashboardUrlParams struct {
 	Manifest   string `json:"manifest"`
 }
 
-type CreateBindingParams struct {
+type CreateBindingJSONParams struct {
 	BindingId         string `json:"binding_id"`
 	BoshVms           string `json:"bosh_vms"`
 	Manifest          string `json:"manifest"`
@@ -110,7 +127,7 @@ type CreateBindingParams struct {
 	DNSAddresses      string `json:"dns_addresses"`
 }
 
-type DeleteBindingParams struct {
+type DeleteBindingJSONParams struct {
 	BindingId         string `json:"binding_id"`
 	BoshVms           string `json:"bosh_vms"`
 	Manifest          string `json:"manifest"`
@@ -125,8 +142,8 @@ type GeneratePlanSchemasParams struct {
 type InputParams struct {
 	GenerateManifest    GenerateManifestJSONParams `json:"generate_manifest,omitempty"`
 	DashboardUrl        DashboardUrlParams         `json:"dashboard_url,omitempty"`
-	CreateBinding       CreateBindingParams        `json:"create_binding,omitempty"`
-	DeleteBinding       DeleteBindingParams        `json:"delete_binding,omitempty"`
+	CreateBinding       CreateBindingJSONParams    `json:"create_binding,omitempty"`
+	DeleteBinding       DeleteBindingJSONParams    `json:"delete_binding,omitempty"`
 	GeneratePlanSchemas GeneratePlanSchemasParams  `json:"generate_plan_schemas,omitempty"`
 	TextOutput          bool                       `json:"-"`
 }

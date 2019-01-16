@@ -36,7 +36,7 @@ var _ = Describe("CreateBinding", func() {
 		outputBuffer = gbytes.NewBuffer()
 
 		expectedInputParams = serviceadapter.InputParams{
-			CreateBinding: serviceadapter.CreateBindingParams{
+			CreateBinding: serviceadapter.CreateBindingJSONParams{
 				BindingId:         bindingId,
 				BoshVms:           toJson(boshVMs),
 				Manifest:          toYaml(manifest),
@@ -139,14 +139,14 @@ var _ = Describe("CreateBinding", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeBinder.CreateBindingCallCount()).To(Equal(1))
-			actualBindingId, actualBoshVms, actualManifest, actualRequestParams, actualSecrets, actualDNSAddresses := fakeBinder.CreateBindingArgsForCall(0)
+			params := fakeBinder.CreateBindingArgsForCall(0)
 
-			Expect(actualBindingId).To(Equal(bindingId))
-			Expect(actualBoshVms).To(Equal(boshVMs))
-			Expect(actualManifest).To(Equal(manifest))
-			Expect(actualRequestParams).To(Equal(requestParams))
-			Expect(actualDNSAddresses).To(Equal(dnsAddresses))
-			Expect(actualSecrets).To(Equal(serviceadapter.ManifestSecrets{
+			Expect(params.BindingID).To(Equal(bindingId))
+			Expect(params.DeploymentTopology).To(Equal(boshVMs))
+			Expect(params.Manifest).To(Equal(manifest))
+			Expect(params.RequestParams).To(Equal(requestParams))
+			Expect(params.DnsAddresses).To(Equal(dnsAddresses))
+			Expect(params.Secrets).To(Equal(serviceadapter.ManifestSecrets{
 				"/foo": `{ "status": "bar" }`,
 			}))
 
