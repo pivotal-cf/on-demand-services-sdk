@@ -98,7 +98,7 @@ func (a *CreateBindingAction) Execute(inputParams InputParams, outputWriter io.W
 		Manifest:           manifest,
 		RequestParams:      reqParams,
 		Secrets:            secrets,
-		DnsAddresses:       dnsAddresses,
+		DNSAddresses:       dnsAddresses,
 	}
 	binding, err := a.bindingCreator.CreateBinding(params)
 	if err != nil {

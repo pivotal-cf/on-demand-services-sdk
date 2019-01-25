@@ -75,6 +75,10 @@ func defaultSecretParams() serviceadapter.ManifestSecrets {
 	return serviceadapter.ManifestSecrets{"((/a/secret/path))": "some r34||y s3cr3t v41", "((another))": "one"}
 }
 
+func defaultDNSParams() serviceadapter.DNSAddresses {
+	return serviceadapter.DNSAddresses{"foo": "a.b.c", "bar": "d.e.f"}
+}
+
 func defaultPlan() serviceadapter.Plan {
 	return serviceadapter.Plan{
 		InstanceGroups: []serviceadapter.InstanceGroup{{

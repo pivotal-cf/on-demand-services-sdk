@@ -50,7 +50,7 @@ type CreateBindingParams struct {
 	Manifest           bosh.BoshManifest
 	RequestParams      RequestParameters
 	Secrets            ManifestSecrets
-	DnsAddresses       DNSAddresses
+	DNSAddresses       DNSAddresses
 }
 
 type DeleteBindingParams struct {
@@ -59,6 +59,7 @@ type DeleteBindingParams struct {
 	Manifest           bosh.BoshManifest
 	RequestParams      RequestParameters
 	Secrets            ManifestSecrets
+	DNSAddresses       DNSAddresses
 }
 
 //go:generate counterfeiter -o fakes/binder.go . Binder
@@ -143,6 +144,7 @@ type DeleteBindingJSONParams struct {
 	Manifest          string `json:"manifest"`
 	RequestParameters string `json:"request_parameters"`
 	Secrets           string `json:"secrets"`
+	DNSAddresses      string `json:"dns_addresses"`
 }
 
 type GeneratePlanSchemasJSONParams struct {

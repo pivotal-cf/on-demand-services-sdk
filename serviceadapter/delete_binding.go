@@ -84,12 +84,20 @@ func (d *DeleteBindingAction) Execute(inputParams InputParams, outputWriter io.W
 		}
 	}
 
+	var dnsAddresses DNSAddresses
+	if inputParams.DeleteBinding.DNSAddresses != "" {
+		if err := json.Unmarshal([]byte(inputParams.DeleteBinding.DNSAddresses), &dnsAddresses); err != nil {
+			return errors.Wrap(err, "unmarshalling DNS addresses")
+		}
+	}
+
 	params := DeleteBindingParams{
 		BindingID:          inputParams.DeleteBinding.BindingId,
 		DeploymentTopology: boshVMs,
 		Manifest:           manifest,
 		RequestParams:      reqParams,
 		Secrets:            secrets,
+		DNSAddresses:       dnsAddresses,
 	}
 	err := d.unbinder.DeleteBinding(params)
 	if err != nil {

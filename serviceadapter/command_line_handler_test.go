@@ -227,7 +227,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(params.Manifest).To(Equal(previousManifest))
 			Expect(params.RequestParams).To(Equal(requestParams))
 			Expect(params.Secrets).To(BeNil())
-			Expect(params.DnsAddresses).To(BeNil())
+			Expect(params.DNSAddresses).To(BeNil())
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
 		})
@@ -261,7 +261,7 @@ var _ = Describe("CommandLineHandler", func() {
 			Expect(params.Manifest).To(Equal(previousManifest))
 			Expect(params.RequestParams).To(Equal(requestParams))
 			Expect(params.Secrets).To(BeNil())
-			Expect(params.DnsAddresses).To(Equal(dnsAddresses))
+			Expect(params.DNSAddresses).To(Equal(dnsAddresses))
 
 			Expect(outputBuffer).To(gbytes.Say(toJson(expectedBinding)))
 		})

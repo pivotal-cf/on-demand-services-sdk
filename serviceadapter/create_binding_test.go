@@ -145,7 +145,7 @@ var _ = Describe("CreateBinding", func() {
 			Expect(params.DeploymentTopology).To(Equal(boshVMs))
 			Expect(params.Manifest).To(Equal(manifest))
 			Expect(params.RequestParams).To(Equal(requestParams))
-			Expect(params.DnsAddresses).To(Equal(dnsAddresses))
+			Expect(params.DNSAddresses).To(Equal(dnsAddresses))
 			Expect(params.Secrets).To(Equal(serviceadapter.ManifestSecrets{
 				"/foo": `{ "status": "bar" }`,
 			}))
