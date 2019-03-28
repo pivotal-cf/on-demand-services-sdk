@@ -60,10 +60,10 @@ func defaultServiceDeployment() serviceadapter.ServiceDeployment {
 				Jobs:    []string{"job_one", "job_two"},
 			},
 		},
-		Stemcell: serviceadapter.Stemcell{
+		Stemcells: []serviceadapter.Stemcell{{
 			OS:      "BeOS",
 			Version: "2",
-		},
+		}},
 	}
 }
 

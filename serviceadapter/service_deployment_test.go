@@ -39,10 +39,10 @@ var _ = Describe("ServiceDeployment", func() {
 					Jobs:    []string{"job_one", "job_two"},
 				},
 			},
-			Stemcell: serviceadapter.Stemcell{
+			Stemcells: []serviceadapter.Stemcell{{
 				OS:      "BeOS",
 				Version: "2",
-			},
+			}},
 		}
 	})
 
@@ -60,10 +60,10 @@ var _ = Describe("ServiceDeployment", func() {
           "job_two"
         ]
       }],
-      "stemcell": {
+      "stemcells": [{
         "stemcell_os": "BeOS",
         "stemcell_version": "2"
-      }
+      }]
     }`)
 
 		JustBeforeEach(func() {
@@ -89,10 +89,10 @@ var _ = Describe("ServiceDeployment", func() {
 		It("returns an error when a field is empty", func() {
 			invalidServiceDeployment := serviceadapter.ServiceDeployment{
 				DeploymentName: "service-instance-deployment",
-				Stemcell: serviceadapter.Stemcell{
+				Stemcells: []serviceadapter.Stemcell{{
 					OS:      "BeOS",
 					Version: "2",
-				},
+				}},
 			}
 			Expect(invalidServiceDeployment.Validate()).NotTo(Succeed())
 		})

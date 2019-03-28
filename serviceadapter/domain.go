@@ -263,7 +263,7 @@ type ServiceReleases []ServiceRelease
 type ServiceDeployment struct {
 	DeploymentName string          `json:"deployment_name" validate:"required"`
 	Releases       ServiceReleases `json:"releases" validate:"required"`
-	Stemcell       Stemcell        `json:"stemcell" validate:"required"`
+	Stemcells      []Stemcell      `json:"stemcells" validate:"required"`
 }
 
 func (r ServiceReleases) Validate() error {
