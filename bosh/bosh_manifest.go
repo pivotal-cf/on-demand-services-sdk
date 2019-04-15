@@ -48,14 +48,19 @@ type IncludeStemcell struct {
 	OS string `yaml:"os"`
 }
 
-type Include struct {
-	Stemcell []IncludeStemcell `yaml:"stemcell,omitempty"`
+type PlacementRule struct {
+    Stemcell       []IncludeStemcell `yaml:"stemcell,omitempty"`
+    Deployments    []string          `yaml:"deployments,omitempty"`
+    Jobs           []Job             `yaml:"jobs,omitempty"`
+    InstanceGroups []string          `yaml:"instance_groups,omitempty"`
+    Networks       []string          `yaml:"networks,omitempty"`
+    Teams          []string          `yaml:"teams,omitempty"`
 }
 
 type Addon struct {
-	Name    string `yaml:"name"`
-	Jobs    []Job  `yaml:"jobs"`
-	Include Include `yaml:"include,omitempty"`
+	Name    string        `yaml:"name"`
+	Jobs    []Job         `yaml:"jobs"`
+	Include PlacementRule `yaml:"include,omitempty"`
 }
 
 // Variable represents a variable in the `variables` block of a BOSH manifest

@@ -54,11 +54,30 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
                         Release: "2003",
                     },
                 },
-                Include: bosh.Include{
+                Include: bosh.PlacementRule{
                     Stemcell: []bosh.IncludeStemcell{
                         {
                             OS: "ubuntu-trusty",
                         },
+                    },
+                    Deployments: []string{
+                        "dep1",
+                        "dep2",
+                    },
+                    Jobs: []bosh.Job{
+                        {
+                            Name:    "the-italian-job-old",
+                            Release: "1969",
+                        },
+                    },
+                    InstanceGroups: []string{
+                        "an-errand",
+                    },
+                    Networks: []string{
+                        "some-network",
+                    },
+                    Teams: []string{
+                        "a-team",
                     },
                 },
             },

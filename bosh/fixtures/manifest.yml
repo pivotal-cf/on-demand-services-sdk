@@ -2,13 +2,25 @@
 name: deployment-name
 
 addons:
-- name: some-addon
-  jobs:
-  - name: the-italian-job
-    release: "2003"
-  include:
-    stemcell:
-    - os: ubuntu-trusty
+  - name: some-addon
+    jobs:
+      - name: the-italian-job
+        release: "2003"
+    include:
+      stemcell:
+        - os: ubuntu-trusty
+      deployments:
+        - dep1
+        - dep2
+      jobs:
+        - name: the-italian-job-old
+          release: "1969"
+      instance_groups:
+        - an-errand
+      networks:
+        - some-network
+      teams:
+        - a-team
 
 releases:
   - name: a-release
