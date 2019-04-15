@@ -44,9 +44,18 @@ func BoolPointer(val bool) *bool {
 	return &val
 }
 
+type IncludeStemcell struct {
+	OS string `yaml:"os"`
+}
+
+type Include struct {
+	Stemcell []IncludeStemcell `yaml:"stemcell,omitempty"`
+}
+
 type Addon struct {
-	Name string `yaml:"name"`
-	Jobs []Job  `yaml:"jobs"`
+	Name    string `yaml:"name"`
+	Jobs    []Job  `yaml:"jobs"`
+	Include Include `yaml:"include,omitempty"`
 }
 
 // Variable represents a variable in the `variables` block of a BOSH manifest
