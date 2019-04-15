@@ -45,6 +45,17 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 				Version: "latest",
 			},
 		},
+		Addons: []bosh.Addon{
+			{
+				Name: "some-addon",
+				Jobs: []bosh.Job{
+					{
+						Name: "the-italian-job",
+						Release: "2003",
+					},
+				},
+			},
+		},
 		Stemcells: []bosh.Stemcell{
 			{
 				Alias:   "greatest",

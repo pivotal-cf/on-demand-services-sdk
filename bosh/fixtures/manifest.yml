@@ -1,6 +1,12 @@
 ---
 name: deployment-name
 
+addons:
+  - name: some-addon
+    jobs:
+      - name: the-italian-job
+        release: "2003"
+
 releases:
   - name: a-release
     version: latest
