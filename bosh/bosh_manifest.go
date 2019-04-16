@@ -44,23 +44,24 @@ func BoolPointer(val bool) *bool {
 	return &val
 }
 
-type IncludeStemcell struct {
+type PlacementRuleStemcell struct {
 	OS string `yaml:"os"`
 }
 
 type PlacementRule struct {
-    Stemcell       []IncludeStemcell `yaml:"stemcell,omitempty"`
-    Deployments    []string          `yaml:"deployments,omitempty"`
-    Jobs           []Job             `yaml:"jobs,omitempty"`
-    InstanceGroups []string          `yaml:"instance_groups,omitempty"`
-    Networks       []string          `yaml:"networks,omitempty"`
-    Teams          []string          `yaml:"teams,omitempty"`
+    Stemcell       []PlacementRuleStemcell `yaml:"stemcell,omitempty"`
+    Deployments    []string                `yaml:"deployments,omitempty"`
+    Jobs           []Job                   `yaml:"jobs,omitempty"`
+    InstanceGroups []string                `yaml:"instance_groups,omitempty"`
+    Networks       []string                `yaml:"networks,omitempty"`
+    Teams          []string                `yaml:"teams,omitempty"`
 }
 
 type Addon struct {
-	Name    string        `yaml:"name"`
-	Jobs    []Job         `yaml:"jobs"`
-	Include PlacementRule `yaml:"include,omitempty"`
+    Name    string        `yaml:"name"`
+    Jobs    []Job         `yaml:"jobs"`
+    Include PlacementRule `yaml:"include,omitempty"`
+    Exclude PlacementRule `yaml:"exclude,omitempty"`
 }
 
 // Variable represents a variable in the `variables` block of a BOSH manifest

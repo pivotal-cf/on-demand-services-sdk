@@ -55,7 +55,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
                     },
                 },
                 Include: bosh.PlacementRule{
-                    Stemcell: []bosh.IncludeStemcell{
+                    Stemcell: []bosh.PlacementRuleStemcell{
                         {
                             OS: "ubuntu-trusty",
                         },
@@ -67,6 +67,31 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
                     Jobs: []bosh.Job{
                         {
                             Name:    "the-italian-job-old",
+                            Release: "1969",
+                        },
+                    },
+                    InstanceGroups: []string{
+                        "an-errand",
+                    },
+                    Networks: []string{
+                        "some-network",
+                    },
+                    Teams: []string{
+                        "a-team",
+                    },
+                },
+                Exclude: bosh.PlacementRule{
+                    Stemcell: []bosh.PlacementRuleStemcell{
+                        {
+                            OS: "ubuntu-xenial",
+                        },
+                    },
+                    Deployments: []string{
+                        "dep3",
+                    },
+                    Jobs: []bosh.Job{
+                        {
+                            Name:    "the-italian-job",
                             Release: "1969",
                         },
                     },

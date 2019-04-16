@@ -21,6 +21,20 @@ addons:
         - some-network
       teams:
         - a-team
+    exclude:
+      stemcell:
+        - os: ubuntu-xenial
+      deployments:
+        - dep3
+      jobs:
+        - name: the-italian-job
+          release: "1969"
+      instance_groups:
+        - an-errand
+      networks:
+        - some-network
+      teams:
+        - a-team
 
 releases:
   - name: a-release
