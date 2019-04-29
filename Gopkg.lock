@@ -77,16 +77,20 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:a9abadcddbfad5ffee9c1746c51feab5cb05bf1bea03170f957bcd3d038f5513"
+  digest = "1:722b78177e410e258ed43bbab0d90c8a1a7f74d3a15aa5d978f23bc5af57ec60"
   name = "github.com/pivotal-cf/brokerapi"
   packages = [
     ".",
     "auth",
-    "middlewares/originating_identity_header",
+    "domain",
+    "domain/apiresponses",
+    "handlers",
+    "middlewares",
+    "utils",
   ]
   pruneopts = "NUT"
-  revision = "f7f5850a3df7eeaf109c5fbcf57963c3aeed39c4"
-  version = "v4.2.5"
+  revision = "0689a56bf95377293e632db1ad1432b311ff3962"
+  version = "v4.3.0"
 
 [[projects]]
   digest = "1:5cf3f025cbee5951a4ee961de067c8a89fc95a5adabead774f82822efabab121"
