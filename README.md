@@ -40,9 +40,9 @@ Redis Service Adapter Release: https://github.com/pivotal-cf-experimental/redis-
 
 ### Documentation
 
-SDK Documentation: https://docs.pivotal.io/on-demand-service-broker/creating.html#sdk
+SDK Documentation: https://docs.pivotal.io/svc-sdk/odb/service-adapter.html#sdk
 
-On-Demand Services Documentation: https://docs.pivotal.io/on-demand-service-broker/index.html
+On-Demand Services Documentation: https://docs.pivotal.io/svc-sdk/odb/index.html
 
 ---
 
