@@ -105,6 +105,7 @@ variables:
   type: password
 - name: default_ca
   type: certificate
+  update_mode: converge
   options:
     is_ca: true
     alternative_names: [some-other-ca]

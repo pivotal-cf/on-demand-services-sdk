@@ -66,9 +66,10 @@ type Addon struct {
 
 // Variable represents a variable in the `variables` block of a BOSH manifest
 type Variable struct {
-	Name    string                 `yaml:"name"`
-	Type    string                 `yaml:"type"`
-	Options map[string]interface{} `yaml:"options,omitempty"`
+	Name       string                 `yaml:"name"`
+	Type       string                 `yaml:"type"`
+	UpdateMode string                 `yaml:"update_mode,omitempty"`
+	Options    map[string]interface{} `yaml:"options,omitempty"`
 
 	// Variables of type `certificate` can optionally be configured with a
 	// `consumes` block, so generated certificates can be created with automatic

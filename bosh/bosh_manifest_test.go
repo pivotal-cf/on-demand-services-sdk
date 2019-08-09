@@ -208,8 +208,9 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 				Type: "password",
 			},
 			{
-				Name: "default_ca",
-				Type: "certificate",
+				Name:       "default_ca",
+				Type:       "certificate",
+				UpdateMode: "converge",
 				Options: map[string]interface{}{
 					"is_ca":             true,
 					"alternative_names": []string{"some-other-ca"},
