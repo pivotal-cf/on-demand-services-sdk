@@ -27,8 +27,8 @@ var _ = Describe("Instance Groups Mapping", func() {
 	var (
 		stemcell                = "windows-ME"
 		deploymentGroupsAndJobs = map[string][]string{
-			"real-instance-group":    []string{"important-job", "extra-job"},
-			"another-instance-group": []string{"underrated-job"},
+			"real-instance-group":    {"important-job", "extra-job"},
+			"another-instance-group": {"underrated-job"},
 		}
 
 		instanceGroups  []InstanceGroup
