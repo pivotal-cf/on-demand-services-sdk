@@ -1,0 +1,9 @@
+language: go
+
+go:
+- "1.12"
+
+install:
+- go get -v github.com/onsi/ginkgo/ginkgo
+
+script: ./scripts/run-tests.sh
