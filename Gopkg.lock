@@ -173,8 +173,8 @@
   name = "gopkg.in/go-playground/validator.v8"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "5f57d2222ad794d0dffb07e664ea05e2ee07d60c"
-  version = "v8.18.1"
+  revision = "5f1438d3fca68893a817e4a66806cea46a9e4ebf"
+  version = "v8.18.2"
 
 [[projects]]
   branch = "v1"
