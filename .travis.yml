@@ -4,6 +4,8 @@ go:
 - "1.12"
 
 install:
+- go get -v github.com/golang/dep/cmd/dep
+- dep ensure
 - go get -v github.com/onsi/ginkgo/ginkgo
 
 script: ./scripts/run-tests.sh
