@@ -13,6 +13,14 @@
   revision = "54c4f2530ddeb742ce9c9ee26f5fa758d6c1b3b6"
 
 [[projects]]
+  digest = "1:ab3ec1fe3e39bac4b3ab63390767766622be35b7cab03f47f787f9ec60522a53"
+  name = "github.com/google/uuid"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
+  version = "v1.1.1"
+
+[[projects]]
   digest = "1:3c8c26bb118e3f02230d4f5f30b972dbfe0c6b371acea8f190aa99ceaaae7028"
   name = "github.com/gorilla/mux"
   packages = ["."]
@@ -86,7 +94,15 @@
   version = "v1.7.0"
 
 [[projects]]
-  digest = "1:4827d743bc395886fceff205a98678fd9609c4ea83f1dd0d59dc13762cb85de3"
+  branch = "master"
+  digest = "1:8052bed5b98ffdd208d45d25da04e8703edbcd3c62e50e5c4e1b72ab40c58ae4"
+  name = "github.com/pborman/uuid"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "8b1b92947f46224e3b97bb1a3a5b0382be00d31e"
+
+[[projects]]
+  digest = "1:8db8d57a13d69c7caa63ea33b4d6beb02570ffd9fc91edc67450c1402331aece"
   name = "github.com/pivotal-cf/brokerapi"
   packages = [
     ".",
@@ -98,8 +114,8 @@
     "utils",
   ]
   pruneopts = "NUT"
-  revision = "7f172186ad595abc9112809fc728d307c29cb2a7"
-  version = "v6.3.0"
+  revision = "970c084aad6413032982f02dda8ca490c7545238"
+  version = "v6.4.0"
 
 [[projects]]
   digest = "1:14715f705ff5dfe0ffd6571d7d201dd8e921030f8070321a79380d8ca4ec1a24"
