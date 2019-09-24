@@ -94,12 +94,12 @@
   version = "v1.7.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:8052bed5b98ffdd208d45d25da04e8703edbcd3c62e50e5c4e1b72ab40c58ae4"
+  digest = "1:93b1d84c5fa6d1ea52f4114c37714cddd84d5b78f151b62bb101128dd51399bf"
   name = "github.com/pborman/uuid"
   packages = ["."]
   pruneopts = "NUT"
-  revision = "8b1b92947f46224e3b97bb1a3a5b0382be00d31e"
+  revision = "adf5a7427709b9deb95d29d3fa8a2bf9cfd388f1"
+  version = "v1.2"
 
 [[projects]]
   digest = "1:8db8d57a13d69c7caa63ea33b4d6beb02570ffd9fc91edc67450c1402331aece"
@@ -114,8 +114,8 @@
     "utils",
   ]
   pruneopts = "NUT"
-  revision = "970c084aad6413032982f02dda8ca490c7545238"
-  version = "v6.4.0"
+  revision = "cf0dcc39e8bcb0a904b4e1cac9263603c442aa9e"
+  version = "v6.4.1"
 
 [[projects]]
   digest = "1:14715f705ff5dfe0ffd6571d7d201dd8e921030f8070321a79380d8ca4ec1a24"
