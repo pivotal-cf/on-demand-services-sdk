@@ -27,6 +27,7 @@ type BoshManifest struct {
 	Stemcells      []Stemcell             `yaml:"stemcells" json:"stemcells"`
 	InstanceGroups []InstanceGroup        `yaml:"instance_groups" json:"instance_groups"`
 	Update         *Update                `yaml:"update" json:"update"`
+	// DEPRECATED: BOSH deprecated deployment level "properties". Use Job properties instead.
 	Properties     map[string]interface{} `yaml:"properties,omitempty" json:"properties,omitempty"`
 	Variables      []Variable             `yaml:"variables,omitempty" json:"variables,omitempty"`
 	Tags           map[string]interface{} `yaml:"tags,omitempty" json:"tags,omitempty"`
@@ -114,6 +115,7 @@ type InstanceGroup struct {
 	PersistentDiskType string                 `yaml:"persistent_disk_type,omitempty"`
 	AZs                []string               `yaml:"azs,omitempty"`
 	Networks           []Network              `yaml:"networks"`
+	// DEPRECATED: BOSH deprecated instance_group level "properties". Use Job properties instead.
 	Properties         map[string]interface{} `yaml:"properties,omitempty"`
 	MigratedFrom       []Migration            `yaml:"migrated_from,omitempty"`
 	Env                map[string]interface{} `yaml:"env,omitempty"`
