@@ -139,19 +139,22 @@ type Network struct {
 //
 type MaxInFlightValue interface{}
 
-type updateStrategyValue string
+type UpdateStrategy string
 
-const SerialUpdate updateStrategyValue = "serial"
-const ParallelUpdate updateStrategyValue = "parallel"
+const (
+	SerialUpdate   UpdateStrategy = "serial"
+	ParallelUpdate UpdateStrategy = "parallel"
+)
 
 type Update struct {
-	Canaries                      int                 `yaml:"canaries"`
-	CanaryWatchTime               string              `yaml:"canary_watch_time"`
-	UpdateWatchTime               string              `yaml:"update_watch_time"`
-	MaxInFlight                   MaxInFlightValue    `yaml:"max_in_flight"`
-	Serial                        *bool               `yaml:"serial,omitempty"`
-	VmStrategy                    string              `yaml:"vm_strategy,omitempty"`
-	InitialDeployAZUpdateStrategy updateStrategyValue `yaml:"initial_deploy_az_update_strategy,omitempty"`
+	Canaries        int              `yaml:"canaries"`
+	CanaryWatchTime string           `yaml:"canary_watch_time"`
+	UpdateWatchTime string           `yaml:"update_watch_time"`
+	MaxInFlight     MaxInFlightValue `yaml:"max_in_flight"`
+	Serial          *bool            `yaml:"serial,omitempty"`
+	VmStrategy      string           `yaml:"vm_strategy,omitempty"`
+	// See bosh.SerialUpdate and bosh.ParallelUpdate
+	InitialDeployAZUpdateStrategy UpdateStrategy `yaml:"initial_deploy_az_update_strategy,omitempty"`
 }
 
 type updateAlias Update

@@ -364,11 +364,12 @@ type Migration struct {
 }
 
 type Update struct {
-	Canaries        int                   `json:"canaries" yaml:"canaries"`
-	CanaryWatchTime string                `json:"canary_watch_time" yaml:"canary_watch_time"`
-	UpdateWatchTime string                `json:"update_watch_time" yaml:"update_watch_time"`
-	MaxInFlight     bosh.MaxInFlightValue `json:"max_in_flight," yaml:"max_in_flight"`
-	Serial          *bool                 `json:"serial,omitempty" yaml:"serial,omitempty"`
+	Canaries                      int                   `json:"canaries" yaml:"canaries"`
+	CanaryWatchTime               string                `json:"canary_watch_time" yaml:"canary_watch_time"`
+	UpdateWatchTime               string                `json:"update_watch_time" yaml:"update_watch_time"`
+	MaxInFlight                   bosh.MaxInFlightValue `json:"max_in_flight," yaml:"max_in_flight"`
+	Serial                        *bool                 `json:"serial,omitempty" yaml:"serial,omitempty"`
+	InitialDeployAZUpdateStrategy bosh.UpdateStrategy   `json:"initial_deploy_az_update_strategy,omitempty" yaml:"initial_deploy_az_update_strategy,omitempty"`
 }
 
 type updateAlias Update

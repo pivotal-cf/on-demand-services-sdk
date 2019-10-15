@@ -524,11 +524,12 @@ func planWithMaxInFlight(maxInFlight bosh.MaxInFlightValue) serviceadapter.Plan 
 		}},
 		Properties: serviceadapter.Properties{"example": "property"},
 		Update: &serviceadapter.Update{
-			Canaries:        1,
-			MaxInFlight:     maxInFlight,
-			CanaryWatchTime: "1000-30000",
-			UpdateWatchTime: "1000-30000",
-			Serial:          booleanPointer(false),
+			Canaries:                      1,
+			MaxInFlight:                   maxInFlight,
+			CanaryWatchTime:               "1000-30000",
+			UpdateWatchTime:               "1000-30000",
+			Serial:                        booleanPointer(false),
+			InitialDeployAZUpdateStrategy: bosh.SerialUpdate,
 		},
 	}
 }
@@ -581,7 +582,8 @@ func jsonPlanWithMaxInFlight(maxInFlight bosh.MaxInFlightValue) []byte {
 			"max_in_flight": %v,
 			"canary_watch_time": "1000-30000",
 			"update_watch_time": "1000-30000",
-			"serial": false
+			"serial": false,
+			"initial_deploy_az_update_strategy": "serial"
 		}
 	}`, m))
 }
@@ -620,6 +622,7 @@ update:
   canary_watch_time: 1000-30000
   update_watch_time: 1000-30000
   serial: false
+  initial_deploy_az_update_strategy: serial
 `, maxInFlight))
 }
 
