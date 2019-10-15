@@ -165,11 +165,12 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 					"something_else": "foo",
 				},
 				Update: &bosh.Update{
-					Canaries:        1,
-					CanaryWatchTime: "30000-180000",
-					UpdateWatchTime: "30000-180000",
-					MaxInFlight:     10,
-					Serial:          boolPointer(false),
+					Canaries:                      1,
+					CanaryWatchTime:               "30000-180000",
+					UpdateWatchTime:               "30000-180000",
+					MaxInFlight:                   10,
+					Serial:                        boolPointer(false),
+					InitialDeployAZUpdateStrategy: bosh.ParallelUpdate,
 				},
 			},
 			{
@@ -195,12 +196,13 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 			"foo": "bar",
 		},
 		Update: &bosh.Update{
-			Canaries:        1,
-			CanaryWatchTime: "30000-180000",
-			UpdateWatchTime: "30000-180000",
-			MaxInFlight:     4,
-			Serial:          boolPointer(false),
-			VmStrategy:      "create-and-swap",
+			Canaries:                      1,
+			CanaryWatchTime:               "30000-180000",
+			UpdateWatchTime:               "30000-180000",
+			MaxInFlight:                   4,
+			Serial:                        boolPointer(false),
+			VmStrategy:                    "create-and-swap",
+			InitialDeployAZUpdateStrategy: bosh.SerialUpdate,
 		},
 		Variables: []bosh.Variable{
 			{

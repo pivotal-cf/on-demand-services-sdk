@@ -21,17 +21,17 @@ import (
 )
 
 type BoshManifest struct {
-	Addons         []Addon                `yaml:"addons,omitempty" json:"addons"`
-	Name           string                 `yaml:"name" json:"name"`
-	Releases       []Release              `yaml:"releases" json:"releases"`
-	Stemcells      []Stemcell             `yaml:"stemcells" json:"stemcells"`
-	InstanceGroups []InstanceGroup        `yaml:"instance_groups" json:"instance_groups"`
-	Update         *Update                `yaml:"update" json:"update"`
+	Addons         []Addon         `yaml:"addons,omitempty" json:"addons"`
+	Name           string          `yaml:"name" json:"name"`
+	Releases       []Release       `yaml:"releases" json:"releases"`
+	Stemcells      []Stemcell      `yaml:"stemcells" json:"stemcells"`
+	InstanceGroups []InstanceGroup `yaml:"instance_groups" json:"instance_groups"`
+	Update         *Update         `yaml:"update" json:"update"`
 	// DEPRECATED: BOSH deprecated deployment level "properties". Use Job properties instead.
-	Properties     map[string]interface{} `yaml:"properties,omitempty" json:"properties,omitempty"`
-	Variables      []Variable             `yaml:"variables,omitempty" json:"variables,omitempty"`
-	Tags           map[string]interface{} `yaml:"tags,omitempty" json:"tags,omitempty"`
-	Features       BoshFeatures           `yaml:"features,omitempty" json:"features,omitempty"`
+	Properties map[string]interface{} `yaml:"properties,omitempty" json:"properties,omitempty"`
+	Variables  []Variable             `yaml:"variables,omitempty" json:"variables,omitempty"`
+	Tags       map[string]interface{} `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Features   BoshFeatures           `yaml:"features,omitempty" json:"features,omitempty"`
 }
 
 type BoshFeatures struct {
@@ -105,21 +105,21 @@ type Stemcell struct {
 }
 
 type InstanceGroup struct {
-	Name               string                 `yaml:"name,omitempty"`
-	Lifecycle          string                 `yaml:"lifecycle,omitempty"`
-	Instances          int                    `yaml:"instances"`
-	Jobs               []Job                  `yaml:"jobs,omitempty"`
-	VMType             string                 `yaml:"vm_type"`
-	VMExtensions       []string               `yaml:"vm_extensions,omitempty"`
-	Stemcell           string                 `yaml:"stemcell"`
-	PersistentDiskType string                 `yaml:"persistent_disk_type,omitempty"`
-	AZs                []string               `yaml:"azs,omitempty"`
-	Networks           []Network              `yaml:"networks"`
+	Name               string    `yaml:"name,omitempty"`
+	Lifecycle          string    `yaml:"lifecycle,omitempty"`
+	Instances          int       `yaml:"instances"`
+	Jobs               []Job     `yaml:"jobs,omitempty"`
+	VMType             string    `yaml:"vm_type"`
+	VMExtensions       []string  `yaml:"vm_extensions,omitempty"`
+	Stemcell           string    `yaml:"stemcell"`
+	PersistentDiskType string    `yaml:"persistent_disk_type,omitempty"`
+	AZs                []string  `yaml:"azs,omitempty"`
+	Networks           []Network `yaml:"networks"`
 	// DEPRECATED: BOSH deprecated instance_group level "properties". Use Job properties instead.
-	Properties         map[string]interface{} `yaml:"properties,omitempty"`
-	MigratedFrom       []Migration            `yaml:"migrated_from,omitempty"`
-	Env                map[string]interface{} `yaml:"env,omitempty"`
-	Update             *Update                `yaml:"update,omitempty"`
+	Properties   map[string]interface{} `yaml:"properties,omitempty"`
+	MigratedFrom []Migration            `yaml:"migrated_from,omitempty"`
+	Env          map[string]interface{} `yaml:"env,omitempty"`
+	Update       *Update                `yaml:"update,omitempty"`
 }
 
 type Migration struct {
@@ -139,13 +139,19 @@ type Network struct {
 //
 type MaxInFlightValue interface{}
 
+type updateStrategyValue string
+
+const SerialUpdate updateStrategyValue = "serial"
+const ParallelUpdate updateStrategyValue = "parallel"
+
 type Update struct {
-	Canaries        int              `yaml:"canaries"`
-	CanaryWatchTime string           `yaml:"canary_watch_time"`
-	UpdateWatchTime string           `yaml:"update_watch_time"`
-	MaxInFlight     MaxInFlightValue `yaml:"max_in_flight"`
-	Serial          *bool            `yaml:"serial,omitempty"`
-	VmStrategy      string           `yaml:"vm_strategy,omitempty"`
+	Canaries                      int                 `yaml:"canaries"`
+	CanaryWatchTime               string              `yaml:"canary_watch_time"`
+	UpdateWatchTime               string              `yaml:"update_watch_time"`
+	MaxInFlight                   MaxInFlightValue    `yaml:"max_in_flight"`
+	Serial                        *bool               `yaml:"serial,omitempty"`
+	VmStrategy                    string              `yaml:"vm_strategy,omitempty"`
+	InitialDeployAZUpdateStrategy updateStrategyValue `yaml:"initial_deploy_az_update_strategy,omitempty"`
 }
 
 type updateAlias Update
