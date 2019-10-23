@@ -18,4 +18,4 @@
 
 set -eu
 
-ginkgo -r .
+GO111MODULE=on go run github.com/onsi/ginkgo/ginkgo -r .
