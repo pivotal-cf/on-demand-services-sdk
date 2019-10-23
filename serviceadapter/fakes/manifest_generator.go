@@ -8,10 +8,10 @@ import (
 )
 
 type FakeManifestGenerator struct {
-	GenerateManifestStub        func(serviceadapter.GenerateManifestParams) (serviceadapter.GenerateManifestOutput, error)
+	GenerateManifestStub        func(params serviceadapter.GenerateManifestParams) (serviceadapter.GenerateManifestOutput, error)
 	generateManifestMutex       sync.RWMutex
 	generateManifestArgsForCall []struct {
-		arg1 serviceadapter.GenerateManifestParams
+		params serviceadapter.GenerateManifestParams
 	}
 	generateManifestReturns struct {
 		result1 serviceadapter.GenerateManifestOutput
@@ -25,22 +25,21 @@ type FakeManifestGenerator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeManifestGenerator) GenerateManifest(arg1 serviceadapter.GenerateManifestParams) (serviceadapter.GenerateManifestOutput, error) {
+func (fake *FakeManifestGenerator) GenerateManifest(params serviceadapter.GenerateManifestParams) (serviceadapter.GenerateManifestOutput, error) {
 	fake.generateManifestMutex.Lock()
 	ret, specificReturn := fake.generateManifestReturnsOnCall[len(fake.generateManifestArgsForCall)]
 	fake.generateManifestArgsForCall = append(fake.generateManifestArgsForCall, struct {
-		arg1 serviceadapter.GenerateManifestParams
-	}{arg1})
-	fake.recordInvocation("GenerateManifest", []interface{}{arg1})
+		params serviceadapter.GenerateManifestParams
+	}{params})
+	fake.recordInvocation("GenerateManifest", []interface{}{params})
 	fake.generateManifestMutex.Unlock()
 	if fake.GenerateManifestStub != nil {
-		return fake.GenerateManifestStub(arg1)
+		return fake.GenerateManifestStub(params)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.generateManifestReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fake.generateManifestReturns.result1, fake.generateManifestReturns.result2
 }
 
 func (fake *FakeManifestGenerator) GenerateManifestCallCount() int {
@@ -49,22 +48,13 @@ func (fake *FakeManifestGenerator) GenerateManifestCallCount() int {
 	return len(fake.generateManifestArgsForCall)
 }
 
-func (fake *FakeManifestGenerator) GenerateManifestCalls(stub func(serviceadapter.GenerateManifestParams) (serviceadapter.GenerateManifestOutput, error)) {
-	fake.generateManifestMutex.Lock()
-	defer fake.generateManifestMutex.Unlock()
-	fake.GenerateManifestStub = stub
-}
-
 func (fake *FakeManifestGenerator) GenerateManifestArgsForCall(i int) serviceadapter.GenerateManifestParams {
 	fake.generateManifestMutex.RLock()
 	defer fake.generateManifestMutex.RUnlock()
-	argsForCall := fake.generateManifestArgsForCall[i]
-	return argsForCall.arg1
+	return fake.generateManifestArgsForCall[i].params
 }
 
 func (fake *FakeManifestGenerator) GenerateManifestReturns(result1 serviceadapter.GenerateManifestOutput, result2 error) {
-	fake.generateManifestMutex.Lock()
-	defer fake.generateManifestMutex.Unlock()
 	fake.GenerateManifestStub = nil
 	fake.generateManifestReturns = struct {
 		result1 serviceadapter.GenerateManifestOutput
@@ -73,8 +63,6 @@ func (fake *FakeManifestGenerator) GenerateManifestReturns(result1 serviceadapte
 }
 
 func (fake *FakeManifestGenerator) GenerateManifestReturnsOnCall(i int, result1 serviceadapter.GenerateManifestOutput, result2 error) {
-	fake.generateManifestMutex.Lock()
-	defer fake.generateManifestMutex.Unlock()
 	fake.GenerateManifestStub = nil
 	if fake.generateManifestReturnsOnCall == nil {
 		fake.generateManifestReturnsOnCall = make(map[int]struct {

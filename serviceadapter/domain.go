@@ -39,8 +39,7 @@ type GenerateManifestParams struct {
 	PreviousConfigs   BOSHConfigs
 }
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/manifest_generator.go . ManifestGenerator
-
+//go:generate counterfeiter -o fakes/manifest_generator.go . ManifestGenerator
 type ManifestGenerator interface {
 	GenerateManifest(params GenerateManifestParams) (GenerateManifestOutput, error)
 }
@@ -63,8 +62,7 @@ type DeleteBindingParams struct {
 	DNSAddresses       DNSAddresses
 }
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/binder.go . Binder
-
+//go:generate counterfeiter -o fakes/binder.go . Binder
 type Binder interface {
 	CreateBinding(params CreateBindingParams) (Binding, error)
 	DeleteBinding(params DeleteBindingParams) error
@@ -76,8 +74,7 @@ type DashboardUrlParams struct {
 	Manifest   bosh.BoshManifest
 }
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/dashboard_url_generator.go . DashboardUrlGenerator
-
+//go:generate counterfeiter -o fakes/dashboard_url_generator.go . DashboardUrlGenerator
 type DashboardUrlGenerator interface {
 	DashboardUrl(params DashboardUrlParams) (DashboardUrl, error)
 }
@@ -86,8 +83,7 @@ type GeneratePlanSchemaParams struct {
 	Plan Plan
 }
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/schema_generator.go . SchemaGenerator
-
+//go:generate counterfeiter -o fakes/schema_generator.go . SchemaGenerator
 type SchemaGenerator interface {
 	GeneratePlanSchema(params GeneratePlanSchemaParams) (PlanSchema, error)
 }
