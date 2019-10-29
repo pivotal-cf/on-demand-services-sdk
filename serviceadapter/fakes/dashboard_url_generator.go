@@ -8,10 +8,10 @@ import (
 )
 
 type FakeDashboardUrlGenerator struct {
-	DashboardUrlStub        func(params serviceadapter.DashboardUrlParams) (serviceadapter.DashboardUrl, error)
+	DashboardUrlStub        func(serviceadapter.DashboardUrlParams) (serviceadapter.DashboardUrl, error)
 	dashboardUrlMutex       sync.RWMutex
 	dashboardUrlArgsForCall []struct {
-		params serviceadapter.DashboardUrlParams
+		arg1 serviceadapter.DashboardUrlParams
 	}
 	dashboardUrlReturns struct {
 		result1 serviceadapter.DashboardUrl
@@ -25,21 +25,22 @@ type FakeDashboardUrlGenerator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDashboardUrlGenerator) DashboardUrl(params serviceadapter.DashboardUrlParams) (serviceadapter.DashboardUrl, error) {
+func (fake *FakeDashboardUrlGenerator) DashboardUrl(arg1 serviceadapter.DashboardUrlParams) (serviceadapter.DashboardUrl, error) {
 	fake.dashboardUrlMutex.Lock()
 	ret, specificReturn := fake.dashboardUrlReturnsOnCall[len(fake.dashboardUrlArgsForCall)]
 	fake.dashboardUrlArgsForCall = append(fake.dashboardUrlArgsForCall, struct {
-		params serviceadapter.DashboardUrlParams
-	}{params})
-	fake.recordInvocation("DashboardUrl", []interface{}{params})
+		arg1 serviceadapter.DashboardUrlParams
+	}{arg1})
+	fake.recordInvocation("DashboardUrl", []interface{}{arg1})
 	fake.dashboardUrlMutex.Unlock()
 	if fake.DashboardUrlStub != nil {
-		return fake.DashboardUrlStub(params)
+		return fake.DashboardUrlStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.dashboardUrlReturns.result1, fake.dashboardUrlReturns.result2
+	fakeReturns := fake.dashboardUrlReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeDashboardUrlGenerator) DashboardUrlCallCount() int {
@@ -48,13 +49,22 @@ func (fake *FakeDashboardUrlGenerator) DashboardUrlCallCount() int {
 	return len(fake.dashboardUrlArgsForCall)
 }
 
+func (fake *FakeDashboardUrlGenerator) DashboardUrlCalls(stub func(serviceadapter.DashboardUrlParams) (serviceadapter.DashboardUrl, error)) {
+	fake.dashboardUrlMutex.Lock()
+	defer fake.dashboardUrlMutex.Unlock()
+	fake.DashboardUrlStub = stub
+}
+
 func (fake *FakeDashboardUrlGenerator) DashboardUrlArgsForCall(i int) serviceadapter.DashboardUrlParams {
 	fake.dashboardUrlMutex.RLock()
 	defer fake.dashboardUrlMutex.RUnlock()
-	return fake.dashboardUrlArgsForCall[i].params
+	argsForCall := fake.dashboardUrlArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeDashboardUrlGenerator) DashboardUrlReturns(result1 serviceadapter.DashboardUrl, result2 error) {
+	fake.dashboardUrlMutex.Lock()
+	defer fake.dashboardUrlMutex.Unlock()
 	fake.DashboardUrlStub = nil
 	fake.dashboardUrlReturns = struct {
 		result1 serviceadapter.DashboardUrl
@@ -63,6 +73,8 @@ func (fake *FakeDashboardUrlGenerator) DashboardUrlReturns(result1 serviceadapte
 }
 
 func (fake *FakeDashboardUrlGenerator) DashboardUrlReturnsOnCall(i int, result1 serviceadapter.DashboardUrl, result2 error) {
+	fake.dashboardUrlMutex.Lock()
+	defer fake.dashboardUrlMutex.Unlock()
 	fake.DashboardUrlStub = nil
 	if fake.dashboardUrlReturnsOnCall == nil {
 		fake.dashboardUrlReturnsOnCall = make(map[int]struct {

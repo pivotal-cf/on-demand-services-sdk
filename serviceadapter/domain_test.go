@@ -22,7 +22,7 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/pivotal-cf/brokerapi"
+	brokerapi "github.com/pivotal-cf/brokerapi/v7"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
 
 	. "github.com/onsi/ginkgo"

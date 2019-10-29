@@ -1,11 +1,6 @@
 language: go
 
 go:
-- "1.12"
-
-install:
-- go get -v github.com/golang/dep/cmd/dep
-- dep ensure
-- go get -v github.com/onsi/ginkgo/ginkgo
+- "1.13"
 
 script: ./scripts/run-tests.sh
