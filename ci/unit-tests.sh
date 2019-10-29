@@ -15,13 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export GOPATH=$(pwd)
-export PATH=$GOPATH/bin:$PATH
-
-mkdir -p src/github.com/pivotal-cf/
-ln -s $(pwd)/on-demand-services-sdk src/github.com/pivotal-cf/
-cd src/github.com/pivotal-cf/on-demand-services-sdk
-
-go get github.com/onsi/ginkgo/ginkgo
-
-scripts/run-tests.sh
+pushd on-demand-services-sdk
+  scripts/run-tests.sh
+popd
