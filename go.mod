@@ -3,7 +3,7 @@ module github.com/pivotal-cf/on-demand-services-sdk
 require (
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2
-	github.com/onsi/ginkgo v1.10.2
+	github.com/onsi/ginkgo v1.10.3
 	github.com/onsi/gomega v1.7.1
 	github.com/pivotal-cf/brokerapi/v7 v7.0.0
 	github.com/pkg/errors v0.8.1
