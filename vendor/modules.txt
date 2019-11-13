@@ -58,9 +58,9 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709
+# github.com/pborman/uuid v1.2.0
 github.com/pborman/uuid
-# github.com/pivotal-cf/brokerapi/v7 v7.0.0
+# github.com/pivotal-cf/brokerapi/v7 v7.1.0
 github.com/pivotal-cf/brokerapi/v7
 github.com/pivotal-cf/brokerapi/v7/auth
 github.com/pivotal-cf/brokerapi/v7/domain

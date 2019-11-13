@@ -5,7 +5,8 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2
 	github.com/onsi/ginkgo v1.10.3
 	github.com/onsi/gomega v1.7.1
-	github.com/pivotal-cf/brokerapi/v7 v7.0.0
+	github.com/pborman/uuid v1.2.0 // indirect
+	github.com/pivotal-cf/brokerapi/v7 v7.1.0
 	github.com/pkg/errors v0.8.1
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297 // indirect
 	golang.org/x/sys v0.0.0-20190826190057-c7b8b68b1456 // indirect
