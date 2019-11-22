@@ -18,4 +18,4 @@
 
 set -eu
 
-GO111MODULE=on GOFLAGS="-mod=vendor" go run github.com/onsi/ginkgo/ginkgo -r .
+GO111MODULE=on go run github.com/onsi/ginkgo/ginkgo -r .
