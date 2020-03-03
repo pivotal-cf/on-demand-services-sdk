@@ -38,6 +38,18 @@ var _ = Describe("bosh jobs", func() {
 		Expect(job.Provides["bar"]).To(Equal(bosh.ProvidesLink{Shared: true}))
 	})
 
+	It("can add provider links with aliases", func() {
+		alias := bosh.Alias{
+			Domain:             "some.domain.internal",
+			HealthFilter:       "healthy",
+			InitialHealthCheck: "asynchronous",
+		}
+
+		job := bosh.Job{}.AddProvidesLinkWithAliases("mylink", []bosh.Alias{alias})
+
+		Expect(job.Provides["mylink"].Aliases).To(Equal([]bosh.Alias{alias}))
+	})
+
 	It("can cross deployment links", func() {
 		job := bosh.Job{}.AddCrossDeploymentConsumesLink("foo", "a-job", "a-deployment")
 		Expect(job.Consumes["foo"]).To(Equal(bosh.ConsumesLink{From: "a-job", Deployment: "a-deployment"}))

@@ -33,6 +33,14 @@ type CustomProviderDefinition struct {
 type ProvidesLink struct {
 	As     string `yaml:"as,omitempty"`
 	Shared bool   `yaml:"shared,omitempty"`
+	Aliases []Alias `yaml:"aliases,omitempty"`
+}
+
+type Alias struct {
+	Domain string `yaml:"domain"`
+	HealthFilter string `yaml:"health_filter,omitempty"`
+	InitialHealthCheck string `yaml:"initial_health_check,omitempty"`
+	PlaceHolderType string `yaml:"placeholder_type,omitempty"`
 }
 
 type ConsumesLink struct {
@@ -54,6 +62,10 @@ func (j Job) AddCustomProviderDefinition(name, providerType string, properties [
 
 func (j Job) AddSharedProvidesLink(name string) Job {
 	return j.addProvidesLink(name, ProvidesLink{Shared: true})
+}
+
+func (j Job) AddProvidesLinkWithAliases(name string, aliases []Alias) Job {
+	return j.addProvidesLink(name, ProvidesLink{Aliases: aliases})
 }
 
 func (j Job) AddConsumesLink(name, fromJob string) Job {
@@ -83,3 +95,4 @@ func (j Job) addProvidesLink(name string, providesLink ProvidesLink) Job {
 	j.Provides[name] = providesLink
 	return j
 }
+
