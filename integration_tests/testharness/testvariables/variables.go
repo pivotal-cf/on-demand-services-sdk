@@ -30,6 +30,7 @@ const (
 var SuccessfulBinding = serviceadapter.Binding{
 	RouteServiceURL: "a route",
 	SyslogDrainURL:  "a url",
+	BackupAgentURL:  "another url",
 	Credentials: map[string]interface{}{
 		"binding": "this binds",
 	},

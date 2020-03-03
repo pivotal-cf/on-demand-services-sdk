@@ -41,21 +41,6 @@ var (
 	operationFails string
 	exitCode       int
 
-	serviceDeploymentFilePath string
-	planFilePath              string
-	requestParamsFilePath     string
-	previousManifestFilePath  string
-	previousPlanFilePath      string
-
-	bindingIdFilePath     string
-	boshVMsFilePath       string
-	boshManifestFilePath  string
-	bindingParamsFilePath string
-
-	instanceIDFilePath        string
-	dashboardPlanFilePath     string
-	dashboardManifestFilePath string
-
 	doNotImplementInterfaces bool
 
 	expectedServiceDeployment = serviceadapter.ServiceDeployment{

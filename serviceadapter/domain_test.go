@@ -49,8 +49,8 @@ var _ = Describe("Domain", func() {
 
 		Context("when bindResource is present", func() {
 			It("can extract bindResource", func() {
-				params := serviceadapter.RequestParameters{"bind_resource": map[string]interface{}{"app_guid": "foo"}}
-				Expect(params.BindResource()).To(Equal(brokerapi.BindResource{AppGuid: "foo"}))
+				params := serviceadapter.RequestParameters{"bind_resource": map[string]interface{}{"app_guid": "foo", "backup_agent": true}}
+				Expect(params.BindResource()).To(Equal(brokerapi.BindResource{AppGuid: "foo", BackupAgent: true}))
 			})
 		})
 
