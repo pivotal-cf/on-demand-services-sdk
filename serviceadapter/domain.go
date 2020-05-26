@@ -118,13 +118,14 @@ type DashboardUrl struct {
 }
 
 type GenerateManifestJSONParams struct {
-	ServiceDeployment string `json:"service_deployment"`
-	Plan              string `json:"plan"`
-	PreviousPlan      string `json:"previous_plan"`
-	PreviousManifest  string `json:"previous_manifest"`
-	RequestParameters string `json:"request_parameters"`
-	PreviousSecrets   string `json:"previous_secrets"`
-	PreviousConfigs   string `json:"previous_configs"`
+	ServiceDeployment        string `json:"service_deployment"`
+	Plan                     string `json:"plan"`
+	PreviousPlan             string `json:"previous_plan"`
+	PreviousManifest         string `json:"previous_manifest"`
+	RequestParameters        string `json:"request_parameters"`
+	PreviousSecrets          string `json:"previous_secrets"`
+	PreviousConfigs          string `json:"previous_configs"`
+	ServiceInstanceUAAClient string `json:"uaa_client"`
 }
 
 type DashboardUrlJSONParams struct {

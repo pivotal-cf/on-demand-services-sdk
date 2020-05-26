@@ -87,6 +87,11 @@ var _ = Describe("GenerateManifest", func() {
 			It("can parse arguments from stdin", func() {
 				expectedInputParams.GenerateManifest.PreviousSecrets = toJson(secretsMap)
 				expectedInputParams.GenerateManifest.PreviousConfigs = toJson(previousBoshConfigs)
+				expectedInputParams.GenerateManifest.ServiceInstanceUAAClient = toJson(map[string]string{
+					"some":   "bar",
+					"client": "secret",
+				})
+
 				input := bytes.NewBuffer([]byte(toJson(expectedInputParams)))
 				actualInputParams, err := action.ParseArgs(input, []string{})
 

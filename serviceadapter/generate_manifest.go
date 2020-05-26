@@ -28,7 +28,7 @@ func (g *GenerateManifestAction) IsImplemented() bool {
 func (g *GenerateManifestAction) ParseArgs(reader io.Reader, args []string) (InputParams, error) {
 	var inputParams InputParams
 
-	if len(args) > 0 {
+	if len(args) > 0 { // Legacy positional arguments
 		if len(args) < 5 {
 			return inputParams, NewMissingArgsError("<service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>")
 		}

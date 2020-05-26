@@ -31,16 +31,16 @@ type CustomProviderDefinition struct {
 }
 
 type ProvidesLink struct {
-	As     string `yaml:"as,omitempty"`
-	Shared bool   `yaml:"shared,omitempty"`
+	As      string  `yaml:"as,omitempty"`
+	Shared  bool    `yaml:"shared,omitempty"`
 	Aliases []Alias `yaml:"aliases,omitempty"`
 }
 
 type Alias struct {
-	Domain string `yaml:"domain"`
-	HealthFilter string `yaml:"health_filter,omitempty"`
+	Domain             string `yaml:"domain"`
+	HealthFilter       string `yaml:"health_filter,omitempty"`
 	InitialHealthCheck string `yaml:"initial_health_check,omitempty"`
-	PlaceHolderType string `yaml:"placeholder_type,omitempty"`
+	PlaceHolderType    string `yaml:"placeholder_type,omitempty"`
 }
 
 type ConsumesLink struct {
@@ -95,4 +95,3 @@ func (j Job) addProvidesLink(name string, providesLink ProvidesLink) Job {
 	j.Provides[name] = providesLink
 	return j
 }
-
