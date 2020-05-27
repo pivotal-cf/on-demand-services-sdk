@@ -62,6 +62,16 @@ func (g *GenerateManifestAction) ParseArgs(reader io.Reader, args []string) (Inp
 	return inputParams, nil
 }
 
+type ServiceInstanceUAAClient struct {
+	Authorities          string `json:"authorities"`
+	AuthorizedGrantTypes string `json:"authorized_grant_types"`
+	ClientID             string `json:"client_id"`
+	ClientSecret         string `json:"client_secret"`
+	Name                 string `json:"names"`
+	ResourceIDs          string `json:"resource_ids"`
+	Scopes               string `json:"scopes"`
+}
+
 func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter io.Writer) (err error) {
 	var serviceDeployment ServiceDeployment
 	generateManifestParams := inputParams.GenerateManifest
@@ -115,14 +125,22 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 		}
 	}
 
+	var serviceInstanceClient ServiceInstanceUAAClient
+	if generateManifestParams.ServiceInstanceUAAClient != "" {
+		if err = json.Unmarshal([]byte(generateManifestParams.ServiceInstanceUAAClient), &serviceInstanceClient); err != nil {
+			return errors.Wrap(err, "unmarshalling service instance client")
+		}
+	}
+
 	generateManifestOutput, err := g.manifestGenerator.GenerateManifest(GenerateManifestParams{
-		ServiceDeployment: serviceDeployment,
-		Plan:              plan,
-		RequestParams:     requestParams,
-		PreviousManifest:  previousManifest,
-		PreviousPlan:      previousPlan,
-		PreviousSecrets:   previousSecrets,
-		PreviousConfigs:   previousConfigs,
+		ServiceDeployment:        serviceDeployment,
+		Plan:                     plan,
+		RequestParams:            requestParams,
+		PreviousManifest:         previousManifest,
+		PreviousPlan:             previousPlan,
+		PreviousSecrets:          previousSecrets,
+		PreviousConfigs:          previousConfigs,
+		ServiceInstanceUAAClient: serviceInstanceClient,
 	})
 	if err != nil {
 		fmt.Fprintf(outputWriter, err.Error())

@@ -160,6 +160,17 @@ var _ = Describe("GenerateManifest", func() {
 
 			expectedInputParams.GenerateManifest.PreviousSecrets = toJson(secretsMap)
 			expectedInputParams.GenerateManifest.PreviousConfigs = toJson(previousBoshConfigs)
+			client := serviceadapter.ServiceInstanceUAAClient{
+				Authorities:          "foo",
+				AuthorizedGrantTypes: "bar",
+				ClientID:             "baz",
+				ClientSecret:         "secret",
+				Name:                 "a-name",
+				ResourceIDs:          "resource-id1,resourceid2",
+				Scopes:               "master-of-universe,admin",
+			}
+			expectedInputParams.GenerateManifest.ServiceInstanceUAAClient = toJson(client)
+
 			err := action.Execute(expectedInputParams, outputBuffer)
 
 			Expect(err).NotTo(HaveOccurred())
@@ -174,6 +185,7 @@ var _ = Describe("GenerateManifest", func() {
 			Expect(actualParams.PreviousPlan).To(Equal(&previousPlan))
 			Expect(actualParams.PreviousSecrets).To(Equal(secretsMap))
 			Expect(actualParams.PreviousConfigs).To(Equal(previousBoshConfigs))
+			Expect(actualParams.ServiceInstanceUAAClient).To(Equal(client))
 
 			var output serviceadapter.MarshalledGenerateManifest
 			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())
@@ -266,6 +278,12 @@ var _ = Describe("GenerateManifest", func() {
 				expectedInputParams.GenerateManifest.PreviousConfigs = "not-json"
 				err := action.Execute(expectedInputParams, outputBuffer)
 				Expect(err).To(MatchError(ContainSubstring("unmarshalling previous configs")))
+			})
+
+			It("returns an error when the service instance client is invalid", func() {
+				expectedInputParams.GenerateManifest.ServiceInstanceUAAClient = "not-json"
+				err := action.Execute(expectedInputParams, outputBuffer)
+				Expect(err).To(MatchError(ContainSubstring("unmarshalling service instance client")))
 			})
 
 			It("returns an error when manifestGenerator returns an error", func() {
