@@ -37,7 +37,7 @@ type GenerateManifestParams struct {
 	PreviousPlan             *Plan
 	PreviousSecrets          ManifestSecrets
 	PreviousConfigs          BOSHConfigs
-	ServiceInstanceUAAClient ServiceInstanceUAAClient
+	ServiceInstanceUAAClient *ServiceInstanceUAAClient
 }
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/manifest_generator.go . ManifestGenerator

@@ -125,7 +125,7 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 		}
 	}
 
-	var serviceInstanceClient ServiceInstanceUAAClient
+	var serviceInstanceClient *ServiceInstanceUAAClient
 	if generateManifestParams.ServiceInstanceUAAClient != "" {
 		if err = json.Unmarshal([]byte(generateManifestParams.ServiceInstanceUAAClient), &serviceInstanceClient); err != nil {
 			return errors.Wrap(err, "unmarshalling service instance client")

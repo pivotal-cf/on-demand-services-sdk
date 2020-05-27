@@ -185,11 +185,29 @@ var _ = Describe("GenerateManifest", func() {
 			Expect(actualParams.PreviousPlan).To(Equal(&previousPlan))
 			Expect(actualParams.PreviousSecrets).To(Equal(secretsMap))
 			Expect(actualParams.PreviousConfigs).To(Equal(previousBoshConfigs))
-			Expect(actualParams.ServiceInstanceUAAClient).To(Equal(client))
+			Expect(*actualParams.ServiceInstanceUAAClient).To(Equal(client))
 
 			var output serviceadapter.MarshalledGenerateManifest
 			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())
 			Expect(output.Manifest).To(Equal(toYaml(manifest)))
+		})
+
+		It("pass nil when service client is not set", func() {
+			manifest := bosh.BoshManifest{Name: "bill"}
+			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{
+				Manifest:          manifest,
+				ODBManagedSecrets: serviceadapter.ODBManagedSecrets{},
+				Configs:           serviceadapter.BOSHConfigs{},
+			}, nil)
+
+			err := action.Execute(expectedInputParams, outputBuffer)
+
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeManifestGenerator.GenerateManifestCallCount()).To(Equal(1))
+			actualParams := fakeManifestGenerator.GenerateManifestArgsForCall(0)
+
+			Expect(actualParams.ServiceInstanceUAAClient).To(BeNil())
 		})
 
 		It("returns the bosh configs", func() {
