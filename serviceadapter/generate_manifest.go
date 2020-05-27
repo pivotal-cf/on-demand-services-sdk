@@ -67,7 +67,7 @@ type ServiceInstanceUAAClient struct {
 	AuthorizedGrantTypes string `json:"authorized_grant_types"`
 	ClientID             string `json:"client_id"`
 	ClientSecret         string `json:"client_secret"`
-	Name                 string `json:"names"`
+	Name                 string `json:"name"`
 	ResourceIDs          string `json:"resource_ids"`
 	Scopes               string `json:"scopes"`
 }
