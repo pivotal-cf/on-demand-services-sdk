@@ -70,6 +70,7 @@ github.com/onsi/gomega v1.9.0/go.mod h1:Ho0h+IUsWyvy1OpqCwxlQ/21gkhVunqlU8fDGcoT
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.10.2 h1:aY/nuoWlKJud2J6U0E3NWsjlg+0GtwXxgEqthRdzlcs=
 github.com/onsi/gomega v1.10.2/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
+github.com/onsi/gomega v1.10.4/go.mod h1:g/HbgYopi++010VEqkFgJHKC09uJiW9UkXvMUuKHUCQ=
 github.com/onsi/gomega v1.10.5/go.mod h1:gza4q3jKQJijlu05nKWRCW/GavJumGt8aNRxWg7mt48=
 github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709 h1:zNBQb37RGLmJybyMcs983HfUfpkw9OTFD9tbBfAViHE=
 github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709/go.mod h1:VyrYX9gd7irzKovcSS6BIIEwPRkP2Wm2m9ufcdFSJ34=
@@ -85,6 +86,7 @@ github.com/pivotal-cf/brokerapi/v7 v7.3.0 h1:kSPtA0fP3ZPUmrYDWOsPOvjdhNd37Ly5N8L
 github.com/pivotal-cf/brokerapi/v7 v7.3.0/go.mod h1:5QRQ8vJmav91F+AvY5NA/QoDOq70XgBVxXKUK4N/cNE=
 github.com/pivotal-cf/brokerapi/v7 v7.4.0 h1:ByvIIilMfUiaqGOZ3EQKvwOMxPUhbpE43qAxoUaOhYY=
 github.com/pivotal-cf/brokerapi/v7 v7.4.0/go.mod h1:5ew1ejTeTqeJchGP2U2xxVEI7Z25Ca4g85NByKgqIx4=
+github.com/pivotal-cf/brokerapi/v7 v7.5.0/go.mod h1:+z5BKkzLViNax5Q8S3Z6e6dkDpAJl4ZJIu9mP1fhyZM=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
