@@ -1,12 +1,14 @@
 module github.com/pivotal-cf/on-demand-services-sdk
 
+go 1.14
+
 require (
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.0
 	github.com/onsi/ginkgo v1.15.2
 	github.com/onsi/gomega v1.11.0
 	github.com/pborman/uuid v1.2.0 // indirect
-	github.com/pivotal-cf/brokerapi/v7 v7.5.0
+	github.com/pivotal-cf/brokerapi/v8 v8.0.0-beta
 	github.com/pkg/errors v0.9.1
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2

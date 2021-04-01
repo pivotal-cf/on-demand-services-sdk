@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"io"
 
-	brokerapi "github.com/pivotal-cf/brokerapi/v7"
+	brokerapi "github.com/pivotal-cf/brokerapi/v8"
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 
 	"bytes"
