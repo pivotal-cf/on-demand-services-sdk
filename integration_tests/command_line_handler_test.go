@@ -198,8 +198,8 @@ var _ = Describe("Command line handler", func() {
 				exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest", "foo"})
 
 				Expect(exitCode).To(Equal(1))
-				Expect(stderr.String()).To(ContainSubstring(
-					"Missing arguments for generate-manifest. Usage: testharness generate-manifest <service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>"))
+				Expect(stderr.String()).To(MatchRegexp(
+					`Missing arguments for generate-manifest. Usage: testharness-\d* generate-manifest <service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>`))
 			})
 
 			It("exits 1 and logs when a generic error occurs", func() {
@@ -327,8 +327,8 @@ var _ = Describe("Command line handler", func() {
 				exitCode = startPassingCommandAndGetExitCode([]string{"create-binding", "arg1"})
 
 				Expect(exitCode).To(Equal(1))
-				Expect(stderr.String()).To(ContainSubstring(
-					"Missing arguments for create-binding. Usage: testharness create-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>",
+				Expect(stderr.String()).To(MatchRegexp(
+					`Missing arguments for create-binding. Usage: testharness-\d* create-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>`,
 				))
 			})
 
@@ -424,8 +424,8 @@ var _ = Describe("Command line handler", func() {
 				exitCode = startPassingCommandAndGetExitCode([]string{"delete-binding", "arg1"})
 
 				Expect(exitCode).To(Equal(1))
-				Expect(stderr.String()).To(ContainSubstring(
-					"Missing arguments for delete-binding. Usage: testharness delete-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>",
+				Expect(stderr.String()).To(MatchRegexp(
+					`Missing arguments for delete-binding. Usage: testharness-\d* delete-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>`,
 				))
 			})
 
@@ -512,8 +512,8 @@ var _ = Describe("Command line handler", func() {
 				exitCode = startPassingCommandAndGetExitCode([]string{"dashboard-url", "foo"})
 
 				Expect(exitCode).To(Equal(1))
-				Expect(stderr.String()).To(ContainSubstring(
-					"Missing arguments for dashboard-url. Usage: testharness dashboard-url <instance-ID> <plan-JSON> <manifest-YAML>",
+				Expect(stderr.String()).To(MatchRegexp(
+					`Missing arguments for dashboard-url. Usage: testharness-\d* dashboard-url <instance-ID> <plan-JSON> <manifest-YAML>`,
 				))
 			})
 
