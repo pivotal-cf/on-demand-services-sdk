@@ -2,7 +2,7 @@ module github.com/pivotal-cf/on-demand-services-sdk
 
 require (
 	github.com/google/uuid v1.1.1 // indirect
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.0
 	github.com/onsi/ginkgo v1.15.2
 	github.com/onsi/gomega v1.11.0
 	github.com/pborman/uuid v1.2.0 // indirect
