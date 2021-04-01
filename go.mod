@@ -1,7 +1,5 @@
 module github.com/pivotal-cf/on-demand-services-sdk
 
-go 1.14
-
 require (
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.0
