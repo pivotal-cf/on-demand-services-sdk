@@ -4,7 +4,7 @@ require (
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/onsi/ginkgo v1.16.2
-	github.com/onsi/gomega v1.12.0
+	github.com/onsi/gomega v1.13.0
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/pivotal-cf/brokerapi/v8 v8.0.0
 	github.com/pkg/errors v0.9.1
