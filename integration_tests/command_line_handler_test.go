@@ -199,7 +199,7 @@ var _ = Describe("Command line handler", func() {
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stderr.String()).To(MatchRegexp(
-					`Missing arguments for generate-manifest. Usage: testharness-\d* generate-manifest <service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>`))
+					`Missing arguments for generate-manifest. Usage: \S+ generate-manifest <service-deployment-JSON> <plan-JSON> <request-params-JSON> <previous-manifest-YAML> <previous-plan-JSON>`))
 			})
 
 			It("exits 1 and logs when a generic error occurs", func() {
@@ -328,7 +328,7 @@ var _ = Describe("Command line handler", func() {
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stderr.String()).To(MatchRegexp(
-					`Missing arguments for create-binding. Usage: testharness-\d* create-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>`,
+					`Missing arguments for create-binding. Usage: \S+ create-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>`,
 				))
 			})
 
@@ -425,7 +425,7 @@ var _ = Describe("Command line handler", func() {
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stderr.String()).To(MatchRegexp(
-					`Missing arguments for delete-binding. Usage: testharness-\d* delete-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>`,
+					`Missing arguments for delete-binding. Usage: \S+ delete-binding <binding-ID> <bosh-VMs-JSON> <manifest-YAML> <request-params-JSON>`,
 				))
 			})
 
@@ -513,7 +513,7 @@ var _ = Describe("Command line handler", func() {
 
 				Expect(exitCode).To(Equal(1))
 				Expect(stderr.String()).To(MatchRegexp(
-					`Missing arguments for dashboard-url. Usage: testharness-\d* dashboard-url <instance-ID> <plan-JSON> <manifest-YAML>`,
+					`Missing arguments for dashboard-url. Usage: \S+ dashboard-url <instance-ID> <plan-JSON> <manifest-YAML>`,
 				))
 			})
 
