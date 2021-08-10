@@ -348,7 +348,7 @@ var _ = Describe("Command line handler", func() {
 				exitCode = startFailingCommandAndGetExitCode([]string{"create-binding", expectedBindingID, toJson(expectedBoshVMs), toYaml(expectedManifest), toJson(expectedRequestParams)}, "true")
 
 				Expect(exitCode).To(Equal(1))
-				Expect(stdout.String()).To(Equal("An internal error occured."))
+				Expect(stdout.String()).To(Equal("An internal error occurred."))
 			})
 		})
 
@@ -402,7 +402,7 @@ var _ = Describe("Command line handler", func() {
 				exitCode = startFailingCommandWithStdinAndGetExitCode([]string{"create-binding"}, toJson(rawInputParams), "true")
 
 				Expect(exitCode).To(Equal(1))
-				Expect(stdout.String()).To(Equal("An internal error occured."))
+				Expect(stdout.String()).To(Equal("An internal error occurred."))
 			})
 		})
 	})

@@ -93,7 +93,7 @@ func (b *binder) CreateBinding(params serviceadapter.CreateBindingParams) (servi
 	case testvariables.ErrBindingAlreadyExists:
 		return errs(serviceadapter.NewBindingAlreadyExistsError(nil))
 	case OperationShouldFail:
-		return errs(errors.New("An internal error occured."))
+		return errs(errors.New("An internal error occurred."))
 	}
 
 	return testvariables.SuccessfulBinding, nil
