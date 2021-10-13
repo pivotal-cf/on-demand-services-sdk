@@ -21,9 +21,6 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-
-	"gopkg.in/yaml.v2"
-
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -32,6 +29,7 @@ import (
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pivotal-cf/on-demand-services-sdk/integration_tests/testharness/testvariables"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
+	"gopkg.in/yaml.v3"
 )
 
 var (

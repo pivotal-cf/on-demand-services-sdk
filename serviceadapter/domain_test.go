@@ -20,7 +20,7 @@ import (
 	"errors"
 	"fmt"
 
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 
 	brokerapi "github.com/pivotal-cf/brokerapi/v8"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
