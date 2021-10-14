@@ -8,7 +8,7 @@ import (
 
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pkg/errors"
-	yaml "gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type CreateBindingAction struct {
