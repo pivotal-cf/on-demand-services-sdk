@@ -1,0 +1,33 @@
+name: run-tests
+
+on: 
+  workflow_call:
+    outputs:
+      pr_number:
+        description: "The PR number"
+        value: ${{ jobs.test.outputs.pr_number }}
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: [ '1.16', '1.17' ]
+    name: Go ${{ matrix.version }}
+    outputs:
+      pr_number: ${{ github.event.number }}
+    steps:
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.version }}
+    - uses: actions/checkout@v2
+    - run: ./scripts/run-tests.sh
+  call-dependabot-pr-workflow:
+    needs: test
+    if: ${{ success() && github.actor == 'dependabot[bot]' }}
+    uses: pivotal-cf/brokerapi/.github/workflows/dependabot-test.yml@main
+    with:
+      pr_number: ${{ github.event.number }}
