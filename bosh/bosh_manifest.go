@@ -136,7 +136,6 @@ type Network struct {
 //
 //	int, for YAML numbers
 //	string, for YAML string literals representing a percentage
-//
 type MaxInFlightValue interface{}
 
 type UpdateStrategy string
