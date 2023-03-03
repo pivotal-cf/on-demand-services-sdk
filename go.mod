@@ -1,6 +1,6 @@
 module github.com/pivotal-cf/on-demand-services-sdk
 
-go 1.19
+go 1.20
 
 require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
