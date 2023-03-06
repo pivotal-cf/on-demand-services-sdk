@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
-	github.com/onsi/ginkgo/v2 v2.8.4
+	github.com/onsi/ginkgo/v2 v2.9.0
 	github.com/onsi/gomega v1.27.2
 	github.com/pivotal-cf/brokerapi/v9 v9.0.0
 	github.com/pkg/errors v0.9.1
