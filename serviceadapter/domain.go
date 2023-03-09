@@ -16,17 +16,16 @@
 package serviceadapter
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 
-	brokerapi "github.com/pivotal-cf/brokerapi/v9"
+	"github.com/go-playground/validator/v10"
+	"github.com/pivotal-cf/brokerapi/v9"
+
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
-
-	"bytes"
-
-	"gopkg.in/go-playground/validator.v8"
 )
 
 type GenerateManifestParams struct {
@@ -254,8 +253,7 @@ func (s RequestParameters) BindResource() brokerapi.BindResource {
 var validate *validator.Validate
 
 func init() {
-	config := &validator.Config{TagName: "validate"}
-	validate = validator.New(config)
+	validate = validator.New()
 }
 
 type ServiceRelease struct {
