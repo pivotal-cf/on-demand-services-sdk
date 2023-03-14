@@ -6,7 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
 	github.com/onsi/ginkgo/v2 v2.9.1
-	github.com/onsi/gomega v1.27.3
+	github.com/onsi/gomega v1.27.4
 	github.com/pivotal-cf/brokerapi/v9 v9.0.0
 	github.com/pkg/errors v0.9.1
 	gopkg.in/yaml.v2 v2.4.0
