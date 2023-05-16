@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/go-playground/validator/v10 v10.13.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
-	github.com/onsi/ginkgo/v2 v2.9.4
+	github.com/onsi/ginkgo/v2 v2.9.5
 	github.com/onsi/gomega v1.27.6
 	github.com/pivotal-cf/brokerapi/v9 v9.0.1
 	github.com/pkg/errors v0.9.1
@@ -28,9 +28,9 @@ require (
 	github.com/pborman/uuid v1.2.1 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/net v0.9.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
-	golang.org/x/tools v0.8.0 // indirect
+	golang.org/x/tools v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
