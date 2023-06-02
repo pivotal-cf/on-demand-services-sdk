@@ -23,7 +23,7 @@ import (
 	"io"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/pivotal-cf/brokerapi/v9"
+	"github.com/pivotal-cf/brokerapi/v10/domain"
 
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 )
@@ -243,9 +243,9 @@ func (s RequestParameters) Platform() string {
 	return platformStr
 }
 
-func (s RequestParameters) BindResource() brokerapi.BindResource {
+func (s RequestParameters) BindResource() domain.BindResource {
 	marshalledParams, _ := json.Marshal(s["bind_resource"])
-	res := brokerapi.BindResource{}
+	res := domain.BindResource{}
 	json.Unmarshal(marshalledParams, &res)
 	return res
 }
