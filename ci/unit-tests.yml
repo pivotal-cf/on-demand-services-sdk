@@ -17,8 +17,8 @@
 platform: linux
 
 image_resource:
-  type: docker-image
-  source: {repository: cflondonservices/services-enablement-ci}
+  type: registry-image
+  source: {repository: dedicatedmysql/odb-ci}
 
 inputs:
   - name: on-demand-services-sdk
