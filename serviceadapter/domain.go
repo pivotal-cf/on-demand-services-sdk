@@ -23,7 +23,7 @@ import (
 	"io"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/pivotal-cf/brokerapi/v10/domain"
+	"github.com/pivotal-cf/brokerapi/v11/domain"
 
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 )
