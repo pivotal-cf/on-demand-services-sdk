@@ -35,8 +35,8 @@ github.com/onsi/ginkgo/v2 v2.19.0 h1:9Cnnf7UHo57Hy3k6/m5k3dRfGTMXGvxhHFvkDTCTpvA
 github.com/onsi/ginkgo/v2 v2.19.0/go.mod h1:rlwLi9PilAFJ8jCg9UE1QP6VBpd6/xj3SRC0d6TU0To=
 github.com/onsi/gomega v1.33.1 h1:dsYjIxxSR755MDmKVsaFQTE22ChNBcuuTWgkUDSubOk=
 github.com/onsi/gomega v1.33.1/go.mod h1:U4R44UsT+9eLIaYRB2a5qajjtQYn0hauxvRm16AVYg0=
-github.com/pivotal-cf/brokerapi/v11 v11.0.2 h1:yUdxr1DHVZxOa+2ATjEP9Yx1NYIkJorFLcs3aiklruk=
-github.com/pivotal-cf/brokerapi/v11 v11.0.2/go.mod h1:voCxb92J8tozmdS9VKxcw6mHheKPlz6n2UO2Fbe7ixk=
+github.com/pivotal-cf/brokerapi/v11 v11.0.4 h1:T3Li9pXoI4fBaehlCsGmGozZptoyEnpUc3xqfHp9y54=
+github.com/pivotal-cf/brokerapi/v11 v11.0.4/go.mod h1:voCxb92J8tozmdS9VKxcw6mHheKPlz6n2UO2Fbe7ixk=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
