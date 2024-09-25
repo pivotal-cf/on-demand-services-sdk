@@ -379,13 +379,10 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 			tmpl, err := template.ParseFiles(filepath.Join(cwd, "fixtures", "manifest_template.yml"))
 			Expect(err).NotTo(HaveOccurred())
 
-			type params struct {
-				MaxInFlight bosh.MaxInFlightValue
-			}
-			p := params{maxInFlight}
-
 			output := gbytes.NewBuffer()
-			err = tmpl.Execute(output, p)
+			err = tmpl.Execute(output, map[string]any{
+				"MaxInFlight": maxInFlight,
+			})
 			Expect(err).NotTo(HaveOccurred())
 
 			var manifest bosh.BoshManifest
@@ -405,4 +402,26 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 		Entry("a bool", true, errors.New("MaxInFlight must be either an integer or a percentage. Got true")),
 		Entry("a non percentage string", "some instances", errors.New("MaxInFlight must be either an integer or a percentage. Got some instances")),
 	)
+
+	When("a stemcell name has been configured", func() {
+		It("correctly handles a manifest including a stemcell name property", func() {
+			tmpl, err := template.ParseFiles(filepath.Join("fixtures", "manifest_template.yml"))
+			Expect(err).NotTo(HaveOccurred())
+
+			params := map[string]any{
+				"MaxInFlight":  1,
+				"StemcellName": "ubuntu-fancy-name-with-fips",
+			}
+
+			output := gbytes.NewBuffer()
+			err = tmpl.Execute(io.MultiWriter(GinkgoWriter, output), params)
+			Expect(err).NotTo(HaveOccurred())
+
+			var manifest bosh.BoshManifest
+			err = yaml.Unmarshal(output.Contents(), &manifest)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(manifest.Stemcells[0].Name).To(Equal("ubuntu-fancy-name-with-fips"))
+		})
+	})
 })
