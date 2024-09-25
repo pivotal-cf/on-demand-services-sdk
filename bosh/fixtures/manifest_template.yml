@@ -9,6 +9,9 @@ stemcells:
   - alias: greatest
     os: Windows
     version: "3.1"
+    {{ if  ne (index . "StemcellName") "" -}}
+    name: {{.StemcellName}}
+    {{- end }}
 
 instance_groups:
   - name: jerb

@@ -102,6 +102,7 @@ type Stemcell struct {
 	Alias   string `yaml:"alias"`
 	OS      string `yaml:"os"`
 	Version string `yaml:"version"`
+	Name    string `yaml:"name,omitempty"`
 }
 
 type InstanceGroup struct {
