@@ -16,15 +16,13 @@
 package serviceadapter_test
 
 import (
+	"bytes"
 	"errors"
 	"io"
-	"io/ioutil"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-
-	"bytes"
 
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
@@ -188,7 +186,6 @@ var _ = Describe("CommandLineHandler", func() {
 			err := handler.Handle([]string{commandName, "generate-manifest"}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
 			Expect(err).To(BeACLIError(serviceadapter.NotImplementedExitCode, "generate-manifest not implemented"))
-
 		})
 
 		It("returns a missing args error when arguments are missing", func() {
@@ -427,7 +424,8 @@ var _ = Describe("CommandLineHandler", func() {
 
 		It("returns a missing args error when request JSON is missing", func() {
 			err := handler.Handle([]string{
-				commandName, "delete-binding", previousManifestYAML}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
+				commandName, "delete-binding", previousManifestYAML,
+			}, outputBuffer, errorBuffer, bytes.NewBufferString(""))
 
 			Expect(err).To(BeACLIError(1, "Missing arguments for delete-binding. Usage:"))
 		})
@@ -486,7 +484,7 @@ var _ = Describe("CommandLineHandler", func() {
 
 			Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0).Plan).To(Equal(plan))
 
-			contents, err := ioutil.ReadAll(outputBuffer)
+			contents, err := io.ReadAll(outputBuffer)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(contents).To(MatchJSON(toJson(expectedPlanSchema)))
 		})
@@ -528,7 +526,7 @@ var _ = Describe("CommandLineHandler", func() {
 
 			Expect(fakeSchemaGenerator.GeneratePlanSchemaArgsForCall(0).Plan).To(Equal(plan))
 
-			contents, err := ioutil.ReadAll(outputBuffer)
+			contents, err := io.ReadAll(outputBuffer)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(contents).To(MatchJSON(toJson(expectedPlanSchema)))
 		})

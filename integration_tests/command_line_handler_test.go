@@ -71,7 +71,8 @@ var (
 
 	expectedRequestParams = map[string]interface{}{"key": "foo", "bar": "baz"}
 
-	expectedResultantBoshManifest = bosh.BoshManifest{Name: "deployment-name",
+	expectedResultantBoshManifest = bosh.BoshManifest{
+		Name: "deployment-name",
 		Releases: []bosh.Release{
 			{
 				Name:    "a-release",
@@ -110,7 +111,8 @@ var (
 
 	expectedPlan = expectedPreviousPlan
 
-	expectedPreviousManifest = bosh.BoshManifest{Name: "another-deployment-name",
+	expectedPreviousManifest = bosh.BoshManifest{
+		Name: "another-deployment-name",
 		Releases: []bosh.Release{
 			{
 				Name:    "a-release",
@@ -124,7 +126,8 @@ var (
 				OS:      "Windows",
 				Version: "3.1",
 			},
-		}}
+		},
+	}
 
 	expectedBindingID = "bindingId"
 
@@ -138,7 +141,6 @@ var (
 )
 
 var _ = Describe("Command line handler", func() {
-
 	BeforeEach(func() {
 		doNotImplementInterfaces = false
 		stdout = new(bytes.Buffer)
@@ -163,7 +165,8 @@ var _ = Describe("Command line handler", func() {
 	Describe("generate-manifest subcommand", func() {
 		Describe("with positional arguments", func() {
 			It("succeeds without optional parameters", func() {
-				exitCode = startPassingCommandAndGetExitCode([]string{"generate-manifest",
+				exitCode = startPassingCommandAndGetExitCode([]string{
+					"generate-manifest",
 					toJson(expectedServiceDeployment),
 					toJson(expectedCurrentPlan),
 					toJson(expectedRequestParams),
@@ -201,7 +204,8 @@ var _ = Describe("Command line handler", func() {
 			})
 
 			It("exits 1 and logs when a generic error occurs", func() {
-				exitCode = startFailingCommandAndGetExitCode([]string{"generate-manifest",
+				exitCode = startFailingCommandAndGetExitCode([]string{
+					"generate-manifest",
 					toJson(expectedServiceDeployment),
 					toJson(expectedCurrentPlan),
 					toJson(expectedRequestParams),
@@ -763,6 +767,7 @@ func toYaml(obj interface{}) string {
 	Expect(err).NotTo(HaveOccurred())
 	return string(str)
 }
+
 func toJson(obj interface{}) string {
 	str, err := json.Marshal(obj)
 	Expect(err).NotTo(HaveOccurred())
