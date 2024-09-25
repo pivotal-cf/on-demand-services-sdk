@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
+
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
 
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
-	"github.com/pkg/errors"
-	yaml "gopkg.in/yaml.v2"
 )
 
 type DeleteBindingAction struct {
@@ -44,7 +44,7 @@ func (d *DeleteBindingAction) ParseArgs(reader io.Reader, args []string) (InputP
 		return inputParams, nil
 	}
 
-	data, err := ioutil.ReadAll(reader)
+	data, err := io.ReadAll(reader)
 	if err != nil {
 		return inputParams, CLIHandlerError{ErrorExitCode, fmt.Sprintf("error reading input params JSON, error: %s", err)}
 	}

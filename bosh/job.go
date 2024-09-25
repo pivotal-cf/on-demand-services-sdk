@@ -72,7 +72,7 @@ func (j Job) AddConsumesLink(name, fromJob string) Job {
 	return j.addConsumesLink(name, ConsumesLink{From: fromJob})
 }
 
-func (j Job) AddCrossDeploymentConsumesLink(name, fromJob string, deployment string) Job {
+func (j Job) AddCrossDeploymentConsumesLink(name, fromJob, deployment string) Job {
 	return j.addConsumesLink(name, ConsumesLink{From: fromJob, Deployment: deployment})
 }
 

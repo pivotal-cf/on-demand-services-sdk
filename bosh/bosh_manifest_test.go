@@ -17,7 +17,7 @@ package bosh_test
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -245,7 +245,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 	It("serialises bosh manifests", func() {
 		cwd, err := os.Getwd()
 		Expect(err).NotTo(HaveOccurred())
-		manifestBytes, err := ioutil.ReadFile(filepath.Join(cwd, "fixtures", "manifest.yml"))
+		manifestBytes, err := os.ReadFile(filepath.Join(cwd, "fixtures", "manifest.yml"))
 		Expect(err).NotTo(HaveOccurred())
 
 		serialisedManifest, err := yaml.Marshal(sampleManifest)
@@ -256,7 +256,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 	It("deserialises bosh manifest features into struct", func() {
 		cwd, err := os.Getwd()
 		Expect(err).NotTo(HaveOccurred())
-		manifestBytes, err := ioutil.ReadFile(filepath.Join(cwd, "fixtures", "manifest.yml"))
+		manifestBytes, err := os.ReadFile(filepath.Join(cwd, "fixtures", "manifest.yml"))
 		Expect(err).NotTo(HaveOccurred())
 
 		manifest := bosh.BoshManifest{}

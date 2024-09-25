@@ -16,19 +16,18 @@
 package serviceadapter_test
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"strings"
+	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
-
-	"encoding/json"
-	"testing"
 
 	"gopkg.in/yaml.v2"
 )
@@ -110,7 +109,8 @@ func defaultPreviousPlan() serviceadapter.Plan {
 }
 
 func defaultManifest() bosh.BoshManifest {
-	return bosh.BoshManifest{Name: "another-deployment-name",
+	return bosh.BoshManifest{
+		Name: "another-deployment-name",
 		Releases: []bosh.Release{
 			{
 				Name:    "a-release",
@@ -129,7 +129,8 @@ func defaultManifest() bosh.BoshManifest {
 }
 
 func defaultPreviousManifest() bosh.BoshManifest {
-	return bosh.BoshManifest{Name: "another-deployment-name",
+	return bosh.BoshManifest{
+		Name: "another-deployment-name",
 		Releases: []bosh.Release{
 			{
 				Name:    "a-release",
@@ -212,8 +213,7 @@ func NewFakeReader() io.Reader {
 	return &FakeReader{}
 }
 
-type FakeReader struct {
-}
+type FakeReader struct{}
 
 func (f *FakeReader) Read(b []byte) (int, error) {
 	return 1, fmt.Errorf("fool!")

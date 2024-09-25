@@ -157,7 +157,6 @@ var _ = Describe("GeneratePlanSchemas", func() {
 				err := action.Execute(expectedInputParams, fakeWriter)
 				Expect(err).To(MatchError(ContainSubstring("marshalling plan schema")))
 			})
-
 		})
 	})
 })
