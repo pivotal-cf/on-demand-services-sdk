@@ -28,7 +28,6 @@ func GenerateInstanceGroupsWithNoProperties(
 	stemcell string,
 	deploymentInstanceGroupsToJobs map[string][]string,
 ) ([]bosh.InstanceGroup, error) {
-
 	if len(instanceGroups) == 0 {
 		return nil, fmt.Errorf("no instance groups provided")
 	}

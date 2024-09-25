@@ -19,11 +19,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sort"
-
-	"strings"
-
 	"path/filepath"
+	"sort"
+	"strings"
 )
 
 // CommandLineHandler contains all of the implementers required for the service adapter interface
