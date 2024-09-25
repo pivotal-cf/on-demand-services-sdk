@@ -110,8 +110,10 @@ type PlanSchema struct {
 	ServiceBinding  ServiceBindingSchema  `json:"service_binding"`
 }
 
-type ManifestSecrets map[string]string
-type DNSAddresses map[string]string
+type (
+	ManifestSecrets map[string]string
+	DNSAddresses    map[string]string
+)
 
 type DashboardUrl struct {
 	DashboardUrl string `json:"dashboard_url"`
@@ -165,8 +167,10 @@ type InputParams struct {
 	TextOutput          bool                          `json:"-"`
 }
 
-type ODBManagedSecrets map[string]interface{}
-type BOSHConfigs map[string]string
+type (
+	ODBManagedSecrets map[string]interface{}
+	BOSHConfigs       map[string]string
+)
 
 type GenerateManifestOutput struct {
 	Manifest          bosh.BoshManifest `json:"manifest"`

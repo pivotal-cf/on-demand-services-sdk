@@ -24,9 +24,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var (
-	validDeployment serviceadapter.ServiceDeployment
-)
+var validDeployment serviceadapter.ServiceDeployment
 
 var _ = Describe("ServiceDeployment", func() {
 	BeforeEach(func() {
@@ -47,7 +45,6 @@ var _ = Describe("ServiceDeployment", func() {
 	})
 
 	Describe("(De)serialising JSON", func() {
-
 		var expectedServiceDeployment serviceadapter.ServiceDeployment
 
 		serviceDeploymentJSON := []byte(`{
