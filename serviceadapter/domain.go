@@ -289,6 +289,7 @@ func (r ServiceReleases) Validate() error {
 }
 
 type Stemcell struct {
+	Name    string `json:"stemcell_name,omitempty"`
 	OS      string `json:"stemcell_os" validate:"required"`
 	Version string `json:"stemcell_version" validate:"required"`
 }

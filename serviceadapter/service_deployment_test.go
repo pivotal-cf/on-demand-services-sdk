@@ -38,6 +38,7 @@ var _ = Describe("ServiceDeployment", func() {
 				},
 			},
 			Stemcells: []serviceadapter.Stemcell{{
+				Name:    "beos-fips-stemcell",
 				OS:      "BeOS",
 				Version: "2",
 			}},
@@ -58,6 +59,7 @@ var _ = Describe("ServiceDeployment", func() {
         ]
       }],
       "stemcells": [{
+		"stemcell_name": "beos-fips-stemcell",
         "stemcell_os": "BeOS",
         "stemcell_version": "2"
       }]
