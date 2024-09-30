@@ -82,7 +82,7 @@ var _ = Describe("(de)serialising BOSH manifests", func() {
 				Exclude: bosh.PlacementRule{
 					Stemcell: []bosh.PlacementRuleStemcell{
 						{
-							OS: "ubuntu-xenial",
+							OS: "ubuntu-jammy",
 						},
 					},
 					Deployments: []string{

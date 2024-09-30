@@ -23,7 +23,7 @@ addons:
         - a-team
     exclude:
       stemcell:
-        - os: ubuntu-xenial
+        - os: ubuntu-jammy
       deployments:
         - dep3
       jobs:
