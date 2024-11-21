@@ -6,7 +6,7 @@ toolchain go1.23.2
 require (
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.10.0
-	github.com/onsi/ginkgo/v2 v2.21.0
+	github.com/onsi/ginkgo/v2 v2.22.0
 	github.com/onsi/gomega v1.35.1
 	github.com/pivotal-cf/brokerapi/v11 v11.0.13
 	github.com/pkg/errors v0.9.1
