@@ -46,13 +46,13 @@ func main() {
 type manifestGenerator struct{}
 
 func (m *manifestGenerator) GenerateManifest(params serviceadapter.GenerateManifestParams) (serviceadapter.GenerateManifestOutput, error) {
-
 	if os.Getenv(testvariables.OperationFailsKey) == OperationShouldFail {
 		fmt.Fprintf(os.Stderr, "not valid")
 		return serviceadapter.GenerateManifestOutput{}, errors.New("some message to the user")
 	}
 
-	manifest := bosh.BoshManifest{Name: "deployment-name",
+	manifest := bosh.BoshManifest{
+		Name: "deployment-name",
 		Releases: []bosh.Release{
 			{
 				Name:    "a-release",
