@@ -1,7 +1,8 @@
 module github.com/pivotal-cf/on-demand-services-sdk
 
-go 1.22.0
-toolchain go1.23.2
+go 1.23
+
+toolchain go1.23.3
 
 require (
 	github.com/go-playground/validator/v10 v10.23.0
