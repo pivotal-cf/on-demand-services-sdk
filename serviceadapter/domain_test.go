@@ -22,7 +22,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/brokerapi/v11/domain"
+	"github.com/pivotal-cf/brokerapi/v12/domain"
 	"gopkg.in/yaml.v2"
 
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
