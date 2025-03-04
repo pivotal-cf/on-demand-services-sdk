@@ -5,11 +5,11 @@ go 1.23
 toolchain go1.23.3
 
 require (
+	code.cloudfoundry.org/brokerapi/v13 v13.0.0
 	github.com/go-playground/validator/v10 v10.25.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.2
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
-	github.com/pivotal-cf/brokerapi/v12 v12.0.1
 	github.com/pkg/errors v0.9.1
 	gopkg.in/yaml.v2 v2.4.0
 )
