@@ -24,9 +24,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var (
-	validDeployment serviceadapter.ServiceDeployment
-)
+var validDeployment serviceadapter.ServiceDeployment
 
 var _ = Describe("ServiceDeployment", func() {
 	BeforeEach(func() {
@@ -40,6 +38,7 @@ var _ = Describe("ServiceDeployment", func() {
 				},
 			},
 			Stemcells: []serviceadapter.Stemcell{{
+				Name:    "beos-fips-stemcell",
 				OS:      "BeOS",
 				Version: "2",
 			}},
@@ -47,7 +46,6 @@ var _ = Describe("ServiceDeployment", func() {
 	})
 
 	Describe("(De)serialising JSON", func() {
-
 		var expectedServiceDeployment serviceadapter.ServiceDeployment
 
 		serviceDeploymentJSON := []byte(`{
@@ -61,6 +59,7 @@ var _ = Describe("ServiceDeployment", func() {
         ]
       }],
       "stemcells": [{
+		"stemcell_name": "beos-fips-stemcell",
         "stemcell_os": "BeOS",
         "stemcell_version": "2"
       }]
