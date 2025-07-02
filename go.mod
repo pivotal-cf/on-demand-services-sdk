@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	code.cloudfoundry.org/brokerapi/v13 v13.0.4
-	github.com/go-playground/validator/v10 v10.26.0
+	github.com/go-playground/validator/v10 v10.27.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.2
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.37.0
