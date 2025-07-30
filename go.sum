@@ -1,5 +1,5 @@
-code.cloudfoundry.org/brokerapi/v13 v13.0.4 h1:46I9Bbo5OumlKjjeZIDUM73iQQUTiIYYscbCQc/gcOA=
-code.cloudfoundry.org/brokerapi/v13 v13.0.4/go.mod h1:2Jd9gH5kHUfUupSWwklx3I/Ih1HvqNPvInyYbgLs9iM=
+code.cloudfoundry.org/brokerapi/v13 v13.0.5 h1:tVR8TKJm+xb6gaMR2Hdk4IpCTh6TGPemXb/XUI1u3cU=
+code.cloudfoundry.org/brokerapi/v13 v13.0.5/go.mod h1:Ar3b20DGMrzsXz1Nm4uTpw92A8nnMbtlGTI7v1IaGow=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
