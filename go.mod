@@ -1,11 +1,11 @@
 module github.com/pivotal-cf/on-demand-services-sdk
 
-go 1.23.0
+go 1.24.0
 
 toolchain go1.24.1
 
 require (
-	code.cloudfoundry.org/brokerapi/v13 v13.0.7
+	code.cloudfoundry.org/brokerapi/v13 v13.0.8
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.3
 	github.com/onsi/ginkgo/v2 v2.25.3
@@ -22,7 +22,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20250501235452-c0086092b71a // indirect
+	github.com/google/pprof v0.0.0-20250820193118-f64d9cf942d6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
