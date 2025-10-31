@@ -176,12 +176,14 @@ type GenerateManifestOutput struct {
 	Manifest          bosh.BoshManifest `json:"manifest"`
 	ODBManagedSecrets ODBManagedSecrets `json:"secrets"`
 	Configs           BOSHConfigs       `json:"configs"`
+	Labels            map[string]any    `json:"labels,omitempty"`
 }
 
 type MarshalledGenerateManifest struct {
 	Manifest          string            `json:"manifest"`
 	ODBManagedSecrets ODBManagedSecrets `json:"secrets"`
 	Configs           BOSHConfigs       `json:"configs"`
+	Labels            map[string]any    `json:"labels,omitempty"`
 }
 
 const (
