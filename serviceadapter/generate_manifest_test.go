@@ -230,6 +230,26 @@ var _ = Describe("GenerateManifest", func() {
 			Expect(output.Configs).To(Equal(expectedBoshConfigs))
 		})
 
+		It("returns the labels", func() {
+			manifest := bosh.BoshManifest{Name: "bill"}
+			expectedLabels := map[string]any{
+				"foo": "bar",
+			}
+			fakeManifestGenerator.GenerateManifestReturns(serviceadapter.GenerateManifestOutput{
+				Manifest: manifest,
+				Labels:   expectedLabels,
+			}, nil)
+
+			err := action.Execute(expectedInputParams, outputBuffer)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeManifestGenerator.GenerateManifestCallCount()).To(Equal(1))
+
+			var output serviceadapter.MarshalledGenerateManifest
+			Expect(json.Unmarshal(outputBuffer.Contents(), &output)).To(Succeed())
+			Expect(output.Labels).To(Equal(expectedLabels))
+		})
+
 		When("not outputting json", func() {
 			It("outputs the manifest as text", func() {
 				manifest := bosh.BoshManifest{Name: "bill"}
