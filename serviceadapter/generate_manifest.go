@@ -165,6 +165,7 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 			Manifest:          string(manifestBytes),
 			ODBManagedSecrets: generateManifestOutput.ODBManagedSecrets,
 			Configs:           generateManifestOutput.Configs,
+			Labels:            generateManifestOutput.Labels,
 		}
 		output, err = json.Marshal(marshalledOutput)
 		if err != nil {
