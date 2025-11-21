@@ -81,7 +81,7 @@ func (d *DashboardUrlAction) Execute(inputParams InputParams, outputWriter io.Wr
 	}
 	dashboardUrl, err := d.dashboardUrlGenerator.DashboardUrl(params)
 	if err != nil {
-		fmt.Fprintf(outputWriter, err.Error())
+		fmt.Fprint(outputWriter, err.Error())
 		return CLIHandlerError{ErrorExitCode, err.Error()}
 	}
 

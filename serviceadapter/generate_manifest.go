@@ -143,7 +143,7 @@ func (g *GenerateManifestAction) Execute(inputParams InputParams, outputWriter i
 		ServiceInstanceUAAClient: serviceInstanceClient,
 	})
 	if err != nil {
-		fmt.Fprintf(outputWriter, err.Error())
+		fmt.Fprint(outputWriter, err.Error())
 		return CLIHandlerError{ErrorExitCode, err.Error()}
 	}
 

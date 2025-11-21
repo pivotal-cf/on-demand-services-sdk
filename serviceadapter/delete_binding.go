@@ -101,7 +101,7 @@ func (d *DeleteBindingAction) Execute(inputParams InputParams, outputWriter io.W
 	}
 	err := d.unbinder.DeleteBinding(params)
 	if err != nil {
-		fmt.Fprintf(outputWriter, err.Error())
+		fmt.Fprint(outputWriter, err.Error())
 		switch err.(type) {
 		case BindingNotFoundError:
 			return CLIHandlerError{BindingNotFoundErrorExitCode, err.Error()}
