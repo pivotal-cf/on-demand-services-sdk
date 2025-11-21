@@ -79,7 +79,7 @@ func (g *GeneratePlanSchemasAction) Execute(inputParams InputParams, outputWrite
 	}
 	schema, err := g.schemaGenerator.GeneratePlanSchema(GeneratePlanSchemaParams{Plan: plan})
 	if err != nil {
-		fmt.Fprintf(outputWriter, err.Error())
+		fmt.Fprint(outputWriter, err.Error())
 		return CLIHandlerError{ErrorExitCode, err.Error()}
 	}
 

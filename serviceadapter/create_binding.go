@@ -102,7 +102,7 @@ func (a *CreateBindingAction) Execute(inputParams InputParams, outputWriter io.W
 	}
 	binding, err := a.bindingCreator.CreateBinding(params)
 	if err != nil {
-		fmt.Fprintf(outputWriter, err.Error())
+		fmt.Fprint(outputWriter, err.Error())
 		switch err := err.(type) {
 		case BindingAlreadyExistsError:
 			return CLIHandlerError{BindingAlreadyExistsErrorExitCode, err.Error()}

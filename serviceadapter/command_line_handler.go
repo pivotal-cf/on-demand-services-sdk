@@ -63,9 +63,9 @@ func HandleCLI(args []string, handler CommandLineHandler) {
 	switch e := err.(type) {
 	case nil:
 	case CLIHandlerError:
-		failWithCode(e.ExitCode, err.Error())
+		failWithCode(e.ExitCode, "%s", err.Error())
 	default:
-		failWithCode(ErrorExitCode, err.Error())
+		failWithCode(ErrorExitCode, "%s", err.Error())
 	}
 }
 
@@ -95,7 +95,7 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 	var err error
 	ac, ok := actions[action]
 	if !ok {
-		failWithCode(ErrorExitCode, fmt.Sprintf("unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands))
+		failWithCode(ErrorExitCode, "unknown subcommand: %s. The following commands are supported: %s", args[1], supportedCommands)
 		return nil
 	}
 
@@ -117,13 +117,11 @@ func (h CommandLineHandler) Handle(args []string, outputWriter, errorWriter io.W
 func failWithMissingArgsError(args []string, argumentNames string) {
 	failWithCode(
 		ErrorExitCode,
-		fmt.Sprintf(
-			"Missing arguments for %s. Usage: %s %s %s",
-			args[1],
-			filepath.Base(args[0]),
-			args[1],
-			argumentNames,
-		),
+		"Missing arguments for %s. Usage: %s %s %s",
+		args[1],
+		filepath.Base(args[0]),
+		args[1],
+		argumentNames,
 	)
 }
 
@@ -174,11 +172,12 @@ func fail(format string, params ...interface{}) {
 }
 
 func failWithCode(code int, format string, params ...interface{}) {
-	fmt.Fprintf(os.Stderr, fmt.Sprintf("[odb-sdk] %s\n", format), params...)
+	message := fmt.Sprintf(format, params...)
+	fmt.Fprintf(os.Stderr, "[odb-sdk] %s\n", message)
 	os.Exit(code)
 }
 
 func failWithCodeAndNotifyUser(code int, format string) {
-	fmt.Fprintf(os.Stdout, fmt.Sprintf("%s", format))
+	fmt.Fprint(os.Stdout, format)
 	os.Exit(code)
 }
