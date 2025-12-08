@@ -1,5 +1,5 @@
-code.cloudfoundry.org/brokerapi/v13 v13.0.13 h1:qJKh3hW359NnihsHtpzk8Q0ZVxWwQzqmjwk86ga57kg=
-code.cloudfoundry.org/brokerapi/v13 v13.0.13/go.mod h1:NfWsmTam3YQiltoMZB+onlglEAbVQHaL3sqj+RKjuu0=
+code.cloudfoundry.org/brokerapi/v13 v13.0.14 h1:MMTOM4ElgBnJDRvaJ5D2bWjmQhqTREYuqdshkU8gHsA=
+code.cloudfoundry.org/brokerapi/v13 v13.0.14/go.mod h1:8uRkgZvpgZtDimcCUeaUBlp66heQb/3qnpK5Ayd3uXA=
 github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
