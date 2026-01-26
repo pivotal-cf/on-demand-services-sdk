@@ -5,7 +5,7 @@ go 1.24.0
 toolchain go1.24.4
 
 require (
-	code.cloudfoundry.org/brokerapi/v13 v13.0.16
+	code.cloudfoundry.org/brokerapi/v13 v13.0.17
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.1
 	github.com/onsi/ginkgo/v2 v2.27.5
