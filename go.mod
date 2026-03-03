@@ -3,7 +3,7 @@ module github.com/pivotal-cf/on-demand-services-sdk
 go 1.25.0
 
 require (
-	code.cloudfoundry.org/brokerapi/v13 v13.0.19
+	code.cloudfoundry.org/brokerapi/v13 v13.0.20
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.1
 	github.com/onsi/ginkgo/v2 v2.28.1
