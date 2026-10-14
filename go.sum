@@ -46,8 +46,8 @@ github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2 h1:V23nK2R2B63g2GhygF9zVGpnigmh
 github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2/go.mod h1:Mr897yU9FmyKaQDPtRlVKibrjz40XXyOHUfyZBPSyZU=
 github.com/mfridman/tparse v0.18.0 h1:wh6dzOKaIwkUGyKgOntDW4liXSo37qg5AXbIhkMV3vE=
 github.com/mfridman/tparse v0.18.0/go.mod h1:gEvqZTuCgEhPbYk/2lS3Kcxg1GmTxxU7kTC8DvP0i/A=
-github.com/onsi/ginkgo/v2 v2.32.1 h1:6tlvcDm/3sE8lGJbZ4+d4mO3RLy24/tQWOFzVSQNIfw=
-github.com/onsi/ginkgo/v2 v2.32.1/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
+github.com/onsi/ginkgo/v2 v2.33.1 h1:62XfWJbEIjPSCSDYrsCPP/SHcmH7O0M8ne8zfqQ2iz4=
+github.com/onsi/ginkgo/v2 v2.33.1/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
 github.com/onsi/gomega v1.42.1 h1:iN1rCUX+44NZ1Dc97MPoeFYbFR0vh8zxoxMFwKdyZ6I=
 github.com/onsi/gomega v1.42.1/go.mod h1:REff/hsDsodHoKlWsP2mAPhu1+5/6hVYNf9rIEBpeSg=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
